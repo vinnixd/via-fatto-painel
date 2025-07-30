@@ -29,7 +29,7 @@ const Header = () => {
                 <span className="text-primary-foreground font-bold text-lg">S</span>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-foreground">Sibele Imóveis</h1>
+                <h1 className="text-xl font-bold text-foreground">Via Fatto Imóveis</h1>
                 <p className="text-xs text-muted-foreground">CRECI-SP 123456</p>
               </div>
             </div>

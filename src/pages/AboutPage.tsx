@@ -13,7 +13,7 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Sibele Santos
+                Via Fatto Imóveis
                 <span className="block text-lg font-normal text-muted-foreground mt-2">
                   CRECI-SP 123456
                 </span>
@@ -44,7 +44,7 @@ const AboutPage = () => {
               <div className="aspect-[4/5] bg-neutral-200 rounded-2xl overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=750&fit=crop&crop=face"
-                  alt="Sibele Santos - Corretora de Imóveis"
+                  alt="Via Fatto Imóveis - Corretor de Imóveis"
                   className="w-full h-full object-cover grayscale"
                 />
               </div>
@@ -213,7 +213,7 @@ const AboutPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="https://wa.me/5511999887766?text=Olá Sibele! Gostaria de conversar sobre imóveis."
+                  href="https://wa.me/5511999887766?text=Olá! Gostaria de conversar sobre imóveis."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
@@ -227,7 +227,7 @@ const AboutPage = () => {
                   Telefone
                 </a>
                 <a
-                  href="mailto:sibele@sibeleimoveis.com.br"
+                  href="mailto:contato@viafatto.com.br"
                   className="btn-secondary"
                 >
                   E-mail

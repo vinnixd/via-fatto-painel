@@ -56,9 +56,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-20',
     views: 1250,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   },
@@ -113,9 +113,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-18',
     views: 890,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   },
@@ -163,9 +163,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-15',
     views: 445,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   },
@@ -214,9 +214,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-19',
     views: 720,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   },
@@ -264,9 +264,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-16',
     views: 560,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   },
@@ -315,9 +315,9 @@ export const mockProperties: Property[] = [
     updatedAt: '2024-01-21',
     views: 680,
     broker: {
-      name: 'Sibele Santos',
+      name: 'Via Fatto Team',
       phone: '11999887766',
-      email: 'sibele@sibeleimoveis.com.br',
+      email: 'contato@viafatto.com.br',
       creci: 'CRECI-SP 123456'
     }
   }

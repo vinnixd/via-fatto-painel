@@ -16,7 +16,7 @@ const ContactPage = () => {
     e.preventDefault();
     
     // Create WhatsApp message
-    const whatsappMessage = `Olá Sibele!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
+    const whatsappMessage = `Olá!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
     
     const whatsappUrl = `https://wa.me/5511999887766?text=${encodeURIComponent(whatsappMessage)}`;
     window.open(whatsappUrl, '_blank');
@@ -170,7 +170,7 @@ const ContactPage = () => {
                 <div className="card-property p-8">
                   <h2 className="text-2xl font-bold mb-6 flex items-center">
                     <User className="mr-2 text-primary" size={24} />
-                    Sibele Santos
+                    Via Fatto Team
                   </h2>
                   
                   <div className="space-y-4">
@@ -206,10 +206,10 @@ const ContactPage = () => {
                       <Mail className="text-primary flex-shrink-0" size={20} />
                       <div>
                         <a 
-                          href="mailto:sibele@sibeleimoveis.com.br"
+                          href="mailto:contato@viafatto.com.br"
                           className="text-foreground hover:text-primary transition-colors font-medium"
                         >
-                          sibele@sibeleimoveis.com.br
+                          contato@viafatto.com.br
                         </a>
                         <p className="text-sm text-muted-foreground">E-mail profissional</p>
                       </div>

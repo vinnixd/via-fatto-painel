@@ -136,7 +136,7 @@ const Home = () => {
           <div className="max-w-4xl mx-auto text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Encontre o <span className="text-primary">imóvel</span> dos
-              <span className="block">seus sonhos com a Sibele Imóveis</span>
+              <span className="block">seus sonhos com a Via Fatto Imóveis</span>
             </h1>
           </div>
 
@@ -454,7 +454,7 @@ const Home = () => {
               <div className="aspect-square bg-neutral-200 rounded-2xl overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=600&fit=crop&crop=face"
-                  alt="Sibele Santos"
+                  alt="Via Fatto Team"
                   className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300"
                 />
               </div>

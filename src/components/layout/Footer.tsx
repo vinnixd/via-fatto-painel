@@ -14,7 +14,7 @@ const Footer = () => {
                   <span className="text-primary-foreground font-bold text-xl">S</span>
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Sibele Imóveis</h2>
+                  <h2 className="text-xl font-bold">Via Fatto Imóveis</h2>
                   <p className="text-sm text-neutral-400">CRECI-SP 123456</p>
                 </div>
               </div>
@@ -80,11 +80,11 @@ const Footer = () => {
                   <span>(11) 99988-7766</span>
                 </a>
                 <a 
-                  href="mailto:sibele@sibeleimoveis.com.br"
+                  href="mailto:contato@viafatto.com.br"
                   className="flex items-center space-x-2 text-neutral-300 hover:text-primary transition-colors"
                 >
                   <Mail size={16} />
-                  <span>sibele@sibeleimoveis.com.br</span>
+                  <span>contato@viafatto.com.br</span>
                 </a>
                 <div className="flex items-start space-x-2 text-neutral-300">
                   <MapPin size={16} className="mt-1 flex-shrink-0" />
@@ -112,7 +112,7 @@ const Footer = () => {
         <div className="border-t border-neutral-800 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-neutral-400 text-sm">
-              © 2024 Sibele Imóveis. Todos os direitos reservados.
+              © 2024 Via Fatto Imóveis. Todos os direitos reservados.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
               <Link to="/privacidade" className="text-neutral-400 hover:text-primary text-sm transition-colors">
