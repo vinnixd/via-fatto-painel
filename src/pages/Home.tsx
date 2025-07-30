@@ -142,7 +142,7 @@ const Home = () => {
         <div className="container">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold">
-              {filteredProperties.length > 0 ? 'Resultados da Busca' : 'Imóveis em Destaque'}
+              Imóveis em Destaque
             </h2>
             <Link 
               to="/imoveis" 
@@ -153,9 +153,9 @@ const Home = () => {
             </Link>
           </div>
 
-          {displayProperties.length > 0 ? (
+          {featuredProperties.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayProperties.map((property) => (
+              {featuredProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
                   property={property}
