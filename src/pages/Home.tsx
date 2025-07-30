@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine } from 'lucide-react';
+import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine, ChevronLeft, ChevronRight } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
 import PropertyCard from '@/components/ui/PropertyCard';
 import { mockProperties } from '@/data/mockProperties';
 import { Property, PropertyFilter as PropertyFilterType } from '@/types/property';
@@ -101,6 +103,20 @@ const Home = () => {
 
   const featuredProperties = mockProperties.filter(property => property.featured);
   const displayProperties = filteredProperties.length > 0 ? filteredProperties.slice(0, 6) : featuredProperties;
+  
+  // Carousel for featured properties
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, dragFree: false },
+    [Autoplay({ delay: 4000, stopOnInteraction: false })]
+  );
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -225,30 +241,30 @@ const Home = () => {
       {/* Properties Grid */}
       <section className="py-16">
         <div className="container">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">
-              Imóveis em Destaque
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">
+              Conheça nossos melhores imóveis
             </h2>
-            <Link 
-              to="/imoveis" 
-              className="text-primary hover:text-primary-hover font-medium inline-flex items-center space-x-1"
-            >
-              <span>Ver todos</span>
-              <ArrowRight size={16} />
-            </Link>
           </div>
 
           {displayProperties.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayProperties.map((property) => (
-                <PropertyCard
-                  key={property.id}
-                  property={property}
-                  onFavorite={handleFavorite}
-                  isFavorited={favorites.includes(property.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {displayProperties.map((property) => (
+                  <PropertyCard
+                    key={property.id}
+                    property={property}
+                    onFavorite={handleFavorite}
+                    isFavorited={favorites.includes(property.id)}
+                  />
+                ))}
+              </div>
+              <div className="text-center">
+                <Link to="/imoveis" className="btn-primary">
+                  Todos os imóveis
+                </Link>
+              </div>
+            </>
           ) : (
             <div className="text-center py-16">
               <HomeIcon size={64} className="mx-auto text-muted-foreground mb-4" />
@@ -324,6 +340,50 @@ const Home = () => {
                 Anunciar
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Properties Carousel */}
+      <section className="py-16">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              Imóveis em Destaque
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Conheça alguns dos nossos melhores imóveis selecionados especialmente para você
+            </p>
+          </div>
+          
+          <div className="relative">
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex">
+                {featuredProperties.slice(0, 9).map((property, index) => (
+                  <div key={property.id} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3">
+                    <PropertyCard
+                      property={property}
+                      onFavorite={handleFavorite}
+                      isFavorited={favorites.includes(property.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Carousel Navigation */}
+            <button
+              onClick={scrollPrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={scrollNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+            >
+              <ChevronRight size={20} />
+            </button>
           </div>
         </div>
       </section>
