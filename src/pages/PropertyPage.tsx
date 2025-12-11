@@ -47,7 +47,9 @@ const PropertyPage = () => {
     );
   }
 
-  const images = property.images?.map(img => img.url) || ['/placeholder.svg'];
+  const images = property.images && property.images.length > 0 
+    ? property.images.map(img => img.url) 
+    : ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=60'];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
