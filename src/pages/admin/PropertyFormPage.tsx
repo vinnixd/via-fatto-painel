@@ -19,8 +19,14 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ArrowLeft, Loader2, Upload, X, GripVertical, Plus } from 'lucide-react';
+import { ArrowLeft, Loader2, Upload, X, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
+
+type PropertyStatus = Database['public']['Enums']['property_status'];
+type PropertyType = Database['public']['Enums']['property_type'];
+type PropertyProfile = Database['public']['Enums']['property_profile'];
+type DocumentationStatus = Database['public']['Enums']['documentation_status'];
 
 interface PropertyImage {
   id?: string;
@@ -29,6 +35,34 @@ interface PropertyImage {
   order_index: number;
   file?: File;
   isNew?: boolean;
+}
+
+interface FormData {
+  title: string;
+  slug: string;
+  description: string;
+  price: number;
+  status: PropertyStatus;
+  type: PropertyType;
+  profile: PropertyProfile;
+  address_street: string;
+  address_neighborhood: string;
+  address_city: string;
+  address_state: string;
+  address_zipcode: string;
+  bedrooms: number;
+  suites: number;
+  bathrooms: number;
+  garages: number;
+  area: number;
+  built_area: number;
+  financing: boolean;
+  documentation: DocumentationStatus;
+  featured: boolean;
+  features: string[];
+  amenities: string[];
+  reference: string;
+  category_id: string;
 }
 
 const PropertyFormPage = () => {
@@ -43,14 +77,14 @@ const PropertyFormPage = () => {
   const [newFeature, setNewFeature] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     slug: '',
     description: '',
     price: 0,
-    status: 'venda' as const,
-    type: 'casa' as const,
-    profile: 'residencial' as const,
+    status: 'venda',
+    type: 'casa',
+    profile: 'residencial',
     address_street: '',
     address_neighborhood: '',
     address_city: '',
@@ -63,10 +97,10 @@ const PropertyFormPage = () => {
     area: 0,
     built_area: 0,
     financing: false,
-    documentation: 'regular' as const,
+    documentation: 'regular',
     featured: false,
-    features: [] as string[],
-    amenities: [] as string[],
+    features: [],
+    amenities: [],
     reference: '',
     category_id: '',
   });
@@ -101,9 +135,9 @@ const PropertyFormPage = () => {
         slug: property.slug || '',
         description: property.description || '',
         price: property.price || 0,
-        status: property.status || 'venda',
-        type: property.type || 'casa',
-        profile: property.profile || 'residencial',
+        status: property.status,
+        type: property.type,
+        profile: property.profile,
         address_street: property.address_street || '',
         address_neighborhood: property.address_neighborhood || '',
         address_city: property.address_city || '',
@@ -116,7 +150,7 @@ const PropertyFormPage = () => {
         area: property.area || 0,
         built_area: property.built_area || 0,
         financing: property.financing || false,
-        documentation: property.documentation || 'regular',
+        documentation: property.documentation,
         featured: property.featured || false,
         features: property.features || [],
         amenities: property.amenities || [],
@@ -217,14 +251,30 @@ const PropertyFormPage = () => {
       }
 
       const propertyData = {
-        ...formData,
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
         price: Number(formData.price),
-        area: Number(formData.area),
-        built_area: formData.built_area ? Number(formData.built_area) : null,
+        status: formData.status,
+        type: formData.type,
+        profile: formData.profile,
+        address_street: formData.address_street,
+        address_neighborhood: formData.address_neighborhood,
+        address_city: formData.address_city,
+        address_state: formData.address_state,
+        address_zipcode: formData.address_zipcode,
         bedrooms: Number(formData.bedrooms),
         suites: Number(formData.suites),
         bathrooms: Number(formData.bathrooms),
         garages: Number(formData.garages),
+        area: Number(formData.area),
+        built_area: formData.built_area ? Number(formData.built_area) : null,
+        financing: formData.financing,
+        documentation: formData.documentation,
+        featured: formData.featured,
+        features: formData.features,
+        amenities: formData.amenities,
+        reference: formData.reference,
         category_id: formData.category_id || null,
         created_by: user?.id,
       };
@@ -391,19 +441,21 @@ const PropertyFormPage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="status">Status *</Label>
-                      <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                      <Select value={formData.status} onValueChange={(v: PropertyStatus) => setFormData({ ...formData, status: v })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="venda">Venda</SelectItem>
                           <SelectItem value="aluguel">Aluguel</SelectItem>
+                          <SelectItem value="vendido">Vendido</SelectItem>
+                          <SelectItem value="alugado">Alugado</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="type">Tipo *</Label>
-                      <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+                      <Select value={formData.type} onValueChange={(v: PropertyType) => setFormData({ ...formData, type: v })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -413,6 +465,9 @@ const PropertyFormPage = () => {
                           <SelectItem value="terreno">Terreno</SelectItem>
                           <SelectItem value="comercial">Comercial</SelectItem>
                           <SelectItem value="rural">Rural</SelectItem>
+                          <SelectItem value="cobertura">Cobertura</SelectItem>
+                          <SelectItem value="flat">Flat</SelectItem>
+                          <SelectItem value="galpao">Galpão</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -586,7 +641,7 @@ const PropertyFormPage = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="profile">Perfil</Label>
-                      <Select value={formData.profile} onValueChange={(v) => setFormData({ ...formData, profile: v })}>
+                      <Select value={formData.profile} onValueChange={(v: PropertyProfile) => setFormData({ ...formData, profile: v })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -594,13 +649,13 @@ const PropertyFormPage = () => {
                           <SelectItem value="residencial">Residencial</SelectItem>
                           <SelectItem value="comercial">Comercial</SelectItem>
                           <SelectItem value="industrial">Industrial</SelectItem>
-                          <SelectItem value="rural">Rural</SelectItem>
+                          <SelectItem value="misto">Misto</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="documentation">Documentação</Label>
-                      <Select value={formData.documentation} onValueChange={(v) => setFormData({ ...formData, documentation: v })}>
+                      <Select value={formData.documentation} onValueChange={(v: DocumentationStatus) => setFormData({ ...formData, documentation: v })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
