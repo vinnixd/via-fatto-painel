@@ -94,7 +94,7 @@ const Home = () => {
     description: property.description || '',
     price: property.price,
     status: property.status as 'venda' | 'aluguel',
-    type: property.type,
+    type: property.type as 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'rural',
     profile: property.profile as 'residencial' | 'comercial' | 'industrial' | 'misto',
     address: {
       street: property.address_street || '',
