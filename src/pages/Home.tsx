@@ -1,17 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import PropertyCard from '@/components/ui/PropertyCard';
-import { mockProperties } from '@/data/mockProperties';
-import { Property, PropertyFilter as PropertyFilterType } from '@/types/property';
+import { useProperties, useCategories, useSiteConfig, PropertyFromDB } from '@/hooks/useSupabaseData';
 import heroHouse from '@/assets/hero-house.jpg';
 
 const Home = () => {
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<PropertyFilterType>({});
   const [favorites, setFavorites] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [heroSearch, setHeroSearch] = useState({
@@ -21,6 +17,11 @@ const Home = () => {
     location: ''
   });
 
+  const { data: allProperties = [], isLoading } = useProperties();
+  const { data: featuredProperties = [] } = useProperties({ featured: true });
+  const { data: categories = [] } = useCategories();
+  const { data: siteConfig } = useSiteConfig();
+
   // Load favorites from localStorage
   useEffect(() => {
     const savedFavorites = localStorage.getItem('favorites');
@@ -29,36 +30,19 @@ const Home = () => {
     }
   }, []);
 
-  // Filter properties based on search and filters
-  useEffect(() => {
-    let filtered = [...mockProperties];
-
-    // Apply category filter
-    if (activeCategory !== 'all') {
-      if (activeCategory === 'residencial') {
-        filtered = filtered.filter(property => property.type === 'casa' || property.type === 'apartamento');
-      } else if (activeCategory === 'comercial') {
-        filtered = filtered.filter(property => property.type === 'comercial');
-      } else if (activeCategory === 'terrenos') {
-        filtered = filtered.filter(property => property.type === 'terreno');
-      }
+  const filteredProperties = allProperties.filter(property => {
+    if (activeCategory === 'all') return true;
+    if (activeCategory === 'residencial') {
+      return property.type === 'casa' || property.type === 'apartamento';
     }
-
-    // Apply search query
-    if (searchQuery) {
-      filtered = filtered.filter(property =>
-        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.address.neighborhood.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.address.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.features.some(feature => 
-          feature.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
+    if (activeCategory === 'comercial') {
+      return property.type === 'comercial';
     }
-
-    setFilteredProperties(filtered);
-  }, [searchQuery, activeCategory]);
+    if (activeCategory === 'terrenos') {
+      return property.type === 'terreno';
+    }
+    return true;
+  });
 
   const handleFavorite = (propertyId: string) => {
     const newFavorites = favorites.includes(propertyId)
@@ -71,38 +55,22 @@ const Home = () => {
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Apply hero search filters
-    const newFilters: PropertyFilterType = {};
-    
-    if (heroSearch.category) {
-      newFilters.type = heroSearch.category;
-    }
-    
-    if (heroSearch.minPrice) {
-      newFilters.minPrice = Number(heroSearch.minPrice.replace(/\D/g, ''));
-    }
-    
-    if (heroSearch.maxPrice) {
-      newFilters.maxPrice = Number(heroSearch.maxPrice.replace(/\D/g, ''));
-    }
-    
-    if (heroSearch.location) {
-      newFilters.city = heroSearch.location;
-    }
-    
-    setFilters(newFilters);
-    setSearchQuery(heroSearch.location);
+    // Navigate to properties page with search params
+    const params = new URLSearchParams();
+    if (heroSearch.category) params.set('type', heroSearch.category);
+    if (heroSearch.location) params.set('location', heroSearch.location);
+    if (heroSearch.minPrice) params.set('minPrice', heroSearch.minPrice);
+    window.location.href = `/imoveis?${params.toString()}`;
   };
 
-  const categories = [
-    { id: 'all', name: 'TODOS', icon: HomeIcon, count: mockProperties.length },
-    { id: 'residencial', name: 'RESIDENCIAL', icon: HomeIcon, count: mockProperties.filter(p => p.type === 'casa' || p.type === 'apartamento').length },
-    { id: 'comercial', name: 'COMERCIAL', icon: Building, count: mockProperties.filter(p => p.type === 'comercial').length },
-    { id: 'terrenos', name: 'TERRENOS', icon: TreePine, count: mockProperties.filter(p => p.type === 'terreno').length },
+  const categoryFilters = [
+    { id: 'all', name: 'TODOS', icon: HomeIcon, count: allProperties.length },
+    { id: 'residencial', name: 'RESIDENCIAL', icon: HomeIcon, count: allProperties.filter(p => p.type === 'casa' || p.type === 'apartamento').length },
+    { id: 'comercial', name: 'COMERCIAL', icon: Building, count: allProperties.filter(p => p.type === 'comercial').length },
+    { id: 'terrenos', name: 'TERRENOS', icon: TreePine, count: allProperties.filter(p => p.type === 'terreno').length },
   ];
 
-  const featuredProperties = mockProperties.filter(property => property.featured);
-  const displayProperties = filteredProperties.length > 0 ? filteredProperties.slice(0, 6) : featuredProperties;
+  const displayProperties = filteredProperties.slice(0, 6);
   
   // Carousel for featured properties
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -118,6 +86,48 @@ const Home = () => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
 
+  // Convert DB property to card format
+  const convertToCardFormat = (property: PropertyFromDB) => ({
+    id: property.id,
+    title: property.title,
+    slug: property.slug,
+    description: property.description || '',
+    price: property.price,
+    status: property.status as 'venda' | 'aluguel',
+    type: property.type,
+    profile: property.profile as 'residencial' | 'comercial' | 'industrial' | 'misto',
+    address: {
+      street: property.address_street || '',
+      neighborhood: property.address_neighborhood || '',
+      city: property.address_city,
+      state: property.address_state,
+      zipCode: property.address_zipcode || '',
+    },
+    bedrooms: property.bedrooms,
+    suites: property.suites,
+    bathrooms: property.bathrooms,
+    garages: property.garages,
+    area: property.area,
+    builtArea: property.built_area || undefined,
+    features: property.features || [],
+    amenities: property.amenities || [],
+    images: property.images?.map(img => img.url) || ['/placeholder.svg'],
+    featured: property.featured,
+    financing: property.financing,
+    documentation: property.documentation as 'regular' | 'pendente' | 'irregular',
+    reference: property.reference || '',
+    views: property.views,
+    broker: {
+      name: 'Via Fatto Imóveis',
+      phone: siteConfig?.whatsapp || '11999887766',
+      email: siteConfig?.email || 'contato@viafatto.com.br',
+      creci: 'CRECI-SP 123456',
+      avatar: '',
+    },
+    createdAt: property.created_at,
+    updatedAt: property.updated_at,
+  });
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section with Integrated Search */}
@@ -125,7 +135,7 @@ const Home = () => {
         {/* Background Image */}
         <div className="absolute inset-0">
           <img
-            src={heroHouse}
+            src={siteConfig?.hero_background_url || heroHouse}
             alt="Casa moderna"
             className="w-full h-full object-cover opacity-40"
           />
@@ -135,9 +145,11 @@ const Home = () => {
         <div className="relative container py-20">
           <div className="max-w-4xl mx-auto text-center mb-12">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Encontre o <span className="text-primary">imóvel</span> dos
-              <span className="block">seus sonhos com a Via Fatto Imóveis</span>
+              {siteConfig?.hero_title || 'Encontre o imóvel dos seus sonhos'}
             </h1>
+            {siteConfig?.hero_subtitle && (
+              <p className="text-xl text-neutral-200">{siteConfig.hero_subtitle}</p>
+            )}
           </div>
 
           {/* Hero Search Form */}
@@ -212,7 +224,7 @@ const Home = () => {
           </div>
           
           <div className="flex flex-wrap justify-center gap-4 mb-8">
-            {categories.map((category) => {
+            {categoryFilters.map((category) => {
               const Icon = category.icon;
               return (
                 <button
@@ -247,13 +259,17 @@ const Home = () => {
             </h2>
           </div>
 
-          {displayProperties.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : displayProperties.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {displayProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
-                    property={property}
+                    property={convertToCardFormat(property)}
                     onFavorite={handleFavorite}
                     isFavorited={favorites.includes(property.id)}
                   />
@@ -269,21 +285,11 @@ const Home = () => {
             <div className="text-center py-16">
               <HomeIcon size={64} className="mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                Nenhum imóvel encontrado
+                Nenhum imóvel cadastrado
               </h3>
               <p className="text-muted-foreground mb-6">
-                Tente ajustar os filtros ou entre em contato conosco para mais opções.
+                Acesse o painel administrativo para adicionar imóveis.
               </p>
-              <button
-                onClick={() => {
-                  setFilters({});
-                  setSearchQuery('');
-                  setActiveCategory('all');
-                }}
-                className="btn-primary"
-              >
-                Limpar Filtros
-              </button>
             </div>
           )}
         </div>
@@ -345,48 +351,50 @@ const Home = () => {
       </section>
 
       {/* Featured Properties Carousel */}
-      <section className="py-16">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">
-              Imóveis em Destaque
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Conheça alguns dos nossos melhores imóveis selecionados especialmente para você
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="overflow-hidden" ref={emblaRef}>
-              <div className="flex">
-                {featuredProperties.slice(0, 9).map((property, index) => (
-                  <div key={property.id} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3">
-                    <PropertyCard
-                      property={property}
-                      onFavorite={handleFavorite}
-                      isFavorited={favorites.includes(property.id)}
-                    />
-                  </div>
-                ))}
-              </div>
+      {featuredProperties.length > 0 && (
+        <section className="py-16">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">
+                Imóveis em Destaque
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Conheça alguns dos nossos melhores imóveis selecionados especialmente para você
+              </p>
             </div>
             
-            {/* Carousel Navigation */}
-            <button
-              onClick={scrollPrev}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={scrollNext}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
-            >
-              <ChevronRight size={20} />
-            </button>
+            <div className="relative">
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex">
+                  {featuredProperties.slice(0, 9).map((property) => (
+                    <div key={property.id} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0 px-3">
+                      <PropertyCard
+                        property={convertToCardFormat(property)}
+                        onFavorite={handleFavorite}
+                        isFavorited={favorites.includes(property.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Carousel Navigation */}
+              <button
+                onClick={scrollPrev}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={scrollNext}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm hover:bg-white text-neutral-800 rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 z-10"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Stats Section */}
       <section className="py-16 bg-primary text-primary-foreground">
@@ -427,70 +435,26 @@ const Home = () => {
                 o imóvel <span className="text-primary">perfeito</span> para você
               </h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                Com mais de uma década de experiência no mercado imobiliário de São Paulo, 
-                dedico-me a oferecer um atendimento personalizado e encontrar o imóvel 
-                perfeito para cada cliente. Especializada em imóveis de alto padrão 
-                nas regiões mais valorizadas da capital.
+                {siteConfig?.about_text || 'Com anos de experiência no mercado imobiliário, oferecemos um serviço personalizado para ajudá-lo a encontrar ou vender seu imóvel com segurança e tranquilidade.'}
               </p>
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">500+</div>
-                  <div className="text-sm text-muted-foreground">Vendas</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">10+</div>
-                  <div className="text-sm text-muted-foreground">Anos</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">98%</div>
-                  <div className="text-sm text-muted-foreground">Satisfação</div>
-                </div>
+              <div className="flex flex-wrap gap-4">
+                <Link to="/sobre" className="btn-primary">
+                  Saiba mais
+                </Link>
+                <Link to="/contato" className="btn-secondary">
+                  Entre em contato
+                </Link>
               </div>
-              <Link to="/sobre" className="btn-primary">
-                Conhecer Mais
-              </Link>
             </div>
             <div className="relative">
-              <div className="aspect-square bg-neutral-200 rounded-2xl overflow-hidden">
+              <div className="aspect-video bg-neutral-200 rounded-2xl overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=600&fit=crop&crop=face"
-                  alt="Via Fatto Team"
-                  className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300"
+                  src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop"}
+                  alt="Via Fatto Imóveis"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-6 -right-6 bg-primary text-primary-foreground p-4 rounded-xl shadow-lg">
-                <div className="text-center">
-                  <div className="text-lg font-bold">CRECI-SP</div>
-                  <div className="text-sm">123456</div>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-neutral-900 text-white">
-        <div className="container text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Pronto para Encontrar Seu Novo Lar?
-          </h2>
-          <p className="text-xl text-neutral-300 mb-8 max-w-2xl mx-auto">
-            Entre em contato e deixe nossa expertise trabalhar para você. 
-            Atendimento personalizado e resultados garantidos.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://wa.me/5511999887766?text=Olá! Gostaria de agendar uma consulta sobre imóveis."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-            >
-              Agendar Consulta
-            </a>
-            <Link to="/contato" className="btn-secondary border-white text-white hover:bg-white hover:text-neutral-900">
-              Outros Contatos
-            </Link>
           </div>
         </div>
       </section>

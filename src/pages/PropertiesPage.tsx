@@ -3,12 +3,15 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/ui/PropertyCard';
 import PropertyFilter from '@/components/ui/PropertyFilter';
-import { mockProperties } from '@/data/mockProperties';
-import { Property, PropertyFilter as PropertyFilterType } from '@/types/property';
-import { Grid, List } from 'lucide-react';
+import { useProperties, useSiteConfig, PropertyFromDB } from '@/hooks/useSupabaseData';
+import { PropertyFilter as PropertyFilterType } from '@/types/property';
+import { Grid, List, Loader2 } from 'lucide-react';
 
 const PropertiesPage = () => {
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>(mockProperties);
+  const { data: properties = [], isLoading } = useProperties();
+  const { data: siteConfig } = useSiteConfig();
+  
+  const [filteredProperties, setFilteredProperties] = useState<PropertyFromDB[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<PropertyFilterType>({});
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -27,18 +30,18 @@ const PropertiesPage = () => {
 
   // Filter and sort properties
   useEffect(() => {
-    let filtered = [...mockProperties];
+    let filtered = [...properties];
 
     // Apply search query
     if (searchQuery) {
       filtered = filtered.filter(property =>
         property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.address.neighborhood.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.address.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        property.features.some(feature => 
+        (property.description?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (property.address_neighborhood?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        property.address_city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (property.features?.some(feature => 
           feature.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        ))
       );
     }
 
@@ -48,7 +51,7 @@ const PropertiesPage = () => {
     }
     
     if (filters.city) {
-      filtered = filtered.filter(property => property.address.city === filters.city);
+      filtered = filtered.filter(property => property.address_city === filters.city);
     }
     
     if (filters.minPrice) {
@@ -94,16 +97,16 @@ const PropertiesPage = () => {
         filtered.sort((a, b) => b.area - a.area);
         break;
       case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
       case 'oldest':
-        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         break;
     }
 
     setFilteredProperties(filtered);
     setCurrentPage(1);
-  }, [searchQuery, filters, sortBy]);
+  }, [properties, searchQuery, filters, sortBy]);
 
   const handleFavorite = (propertyId: string) => {
     const newFavorites = favorites.includes(propertyId)
@@ -113,6 +116,48 @@ const PropertiesPage = () => {
     setFavorites(newFavorites);
     localStorage.setItem('favorites', JSON.stringify(newFavorites));
   };
+
+  // Convert DB property to card format
+  const convertToCardFormat = (property: PropertyFromDB) => ({
+    id: property.id,
+    title: property.title,
+    slug: property.slug,
+    description: property.description || '',
+    price: property.price,
+    status: property.status as 'venda' | 'aluguel',
+    type: property.type,
+    profile: property.profile as 'residencial' | 'comercial' | 'industrial' | 'misto',
+    address: {
+      street: property.address_street || '',
+      neighborhood: property.address_neighborhood || '',
+      city: property.address_city,
+      state: property.address_state,
+      zipCode: property.address_zipcode || '',
+    },
+    bedrooms: property.bedrooms,
+    suites: property.suites,
+    bathrooms: property.bathrooms,
+    garages: property.garages,
+    area: property.area,
+    builtArea: property.built_area || undefined,
+    features: property.features || [],
+    amenities: property.amenities || [],
+    images: property.images?.map(img => img.url) || ['/placeholder.svg'],
+    featured: property.featured,
+    financing: property.financing,
+    documentation: property.documentation as 'regular' | 'pendente' | 'irregular',
+    reference: property.reference || '',
+    views: property.views,
+    broker: {
+      name: 'Via Fatto Imóveis',
+      phone: siteConfig?.whatsapp || '11999887766',
+      email: siteConfig?.email || 'contato@viafatto.com.br',
+      creci: 'CRECI-SP 123456',
+      avatar: '',
+    },
+    createdAt: property.created_at,
+    updatedAt: property.updated_at,
+  });
 
   // Pagination
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
@@ -176,7 +221,11 @@ const PropertiesPage = () => {
           </div>
 
           {/* Properties Grid/List */}
-          {currentProperties.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : currentProperties.length > 0 ? (
             <div className={viewMode === 'grid' 
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
               : 'space-y-6'
@@ -184,7 +233,7 @@ const PropertiesPage = () => {
               {currentProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
-                  property={property}
+                  property={convertToCardFormat(property)}
                   onFavorite={handleFavorite}
                   isFavorited={favorites.includes(property.id)}
                 />
@@ -223,7 +272,7 @@ const PropertiesPage = () => {
                   Anterior
                 </button>
                 
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}

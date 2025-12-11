@@ -1,8 +1,11 @@
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Star, Users, Home, Trophy, Phone, Mail } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
 
 const AboutPage = () => {
+  const { data: siteConfig } = useSiteConfig();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -13,19 +16,17 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div>
               <h1 className="text-4xl md:text-5xl font-bold mb-6">
-                Via Fatto Imóveis
+                {siteConfig?.about_title || 'Via Fatto Imóveis'}
                 <span className="block text-lg font-normal text-muted-foreground mt-2">
                   CRECI-SP 123456
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Corretora de imóveis especializada em propriedades de alto padrão 
-                em São Paulo, com mais de uma década de experiência e centenas 
-                de clientes satisfeitos.
+                {siteConfig?.about_text || 'Corretora de imóveis especializada em propriedades de alto padrão em São Paulo, com mais de uma década de experiência e centenas de clientes satisfeitos.'}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href="https://wa.me/5511999887766?text=Olá! Gostaria de agendar uma consulta."
+                  href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de agendar uma consulta.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
@@ -33,7 +34,7 @@ const AboutPage = () => {
                   Agendar Consulta
                 </a>
                 <a
-                  href="tel:+5511999887766"
+                  href={`tel:${siteConfig?.phone || '+5511999887766'}`}
                   className="btn-secondary"
                 >
                   Ligar Agora
@@ -43,9 +44,9 @@ const AboutPage = () => {
             <div className="relative">
               <div className="aspect-[4/5] bg-neutral-200 rounded-2xl overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=750&fit=crop&crop=face"
-                  alt="Via Fatto Imóveis - Corretor de Imóveis"
-                  className="w-full h-full object-cover grayscale"
+                  src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=750&fit=crop&crop=face"}
+                  alt="Via Fatto Imóveis"
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-primary text-primary-foreground p-6 rounded-xl shadow-xl">
@@ -85,20 +86,20 @@ const AboutPage = () => {
           <div className="max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
               <div>
-                <h2 className="text-2xl font-bold mb-6">Minha História</h2>
+                <h2 className="text-2xl font-bold mb-6">Nossa História</h2>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Há mais de 10 anos atuo no mercado imobiliário de São Paulo, 
+                    Há mais de 10 anos atuamos no mercado imobiliário de São Paulo, 
                     sempre com foco em oferecer um atendimento diferenciado e 
                     personalizado para cada cliente.
                   </p>
                   <p>
-                    Minha paixão pelo setor imobiliário começou quando percebi 
+                    Nossa paixão pelo setor imobiliário começou quando percebemos 
                     que comprar ou vender um imóvel é muito mais que uma transação 
                     comercial - é sobre realizar sonhos e construir futuro.
                   </p>
                   <p>
-                    Especializada em imóveis de alto padrão nas regiões mais 
+                    Especializados em imóveis de alto padrão nas regiões mais 
                     valorizadas de São Paulo, como Jardins, Vila Madalena, 
                     Moema e Alphaville.
                   </p>
@@ -106,21 +107,21 @@ const AboutPage = () => {
               </div>
               
               <div>
-                <h2 className="text-2xl font-bold mb-6">Minha Missão</h2>
+                <h2 className="text-2xl font-bold mb-6">Nossa Missão</h2>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Acredito que cada cliente é único, com necessidades e sonhos 
-                    específicos. Por isso, dedico tempo para entender exatamente 
+                    Acreditamos que cada cliente é único, com necessidades e sonhos 
+                    específicos. Por isso, dedicamos tempo para entender exatamente 
                     o que você procura.
                   </p>
                   <p>
-                    Meu compromisso é oferecer transparência total no processo, 
+                    Nosso compromisso é oferecer transparência total no processo, 
                     desde a primeira conversa até a entrega das chaves. Você 
                     sempre saberá exatamente onde estamos no processo.
                   </p>
                   <p>
-                    Mantenho relacionamentos duradouros com meus clientes, 
-                    que frequentemente me indicam para amigos e familiares.
+                    Mantemos relacionamentos duradouros com nossos clientes, 
+                    que frequentemente nos indicam para amigos e familiares.
                   </p>
                 </div>
               </div>
@@ -128,7 +129,7 @@ const AboutPage = () => {
 
             {/* Services */}
             <div className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-12">Meus Serviços</h2>
+              <h2 className="text-3xl font-bold text-center mb-12">Nossos Serviços</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <div className="card-property text-center p-6">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -147,7 +148,7 @@ const AboutPage = () => {
                   </div>
                   <h3 className="text-xl font-semibold mb-3">Compra de Imóveis</h3>
                   <p className="text-muted-foreground">
-                    Encontro o imóvel perfeito que atenda suas necessidades 
+                    Encontramos o imóvel perfeito que atenda suas necessidades 
                     e orçamento, com total suporte jurídico.
                   </p>
                 </div>
@@ -167,7 +168,7 @@ const AboutPage = () => {
 
             {/* Testimonials */}
             <div className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-12">O que dizem meus clientes</h2>
+              <h2 className="text-3xl font-bold text-center mb-12">O que dizem nossos clientes</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="card-property p-6">
                   <div className="flex items-center mb-4">
@@ -178,8 +179,8 @@ const AboutPage = () => {
                     </div>
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    "Sibele foi fundamental na compra do nosso apartamento. 
-                    Atendimento excepcional e sempre disponível para esclarecer dúvidas."
+                    "A equipe da Via Fatto foi fundamental na compra do nosso apartamento. 
+                    Atendimento excepcional e sempre disponíveis para esclarecer dúvidas."
                   </p>
                   <div className="font-medium">— Maria Silva</div>
                   <div className="text-sm text-muted-foreground">Morumbi</div>
@@ -194,7 +195,7 @@ const AboutPage = () => {
                     </div>
                   </div>
                   <p className="text-muted-foreground mb-4">
-                    "Profissional competente e honesta. Vendeu nossa casa 
+                    "Profissionais competentes e honestos. Venderam nossa casa 
                     em apenas 30 dias pelo preço que queríamos."
                   </p>
                   <div className="font-medium">— João Santos</div>
@@ -207,13 +208,13 @@ const AboutPage = () => {
             <div className="bg-neutral-50 rounded-2xl p-8 text-center">
               <h2 className="text-2xl font-bold mb-4">Vamos Conversar?</h2>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                Estou aqui para ajudar você a encontrar o imóvel perfeito 
+                Estamos aqui para ajudar você a encontrar o imóvel perfeito 
                 ou vender sua propriedade. Entre em contato e vamos conversar 
                 sobre seus objetivos.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="https://wa.me/5511999887766?text=Olá! Gostaria de conversar sobre imóveis."
+                  href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de conversar sobre imóveis.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
@@ -221,13 +222,13 @@ const AboutPage = () => {
                   WhatsApp
                 </a>
                 <a
-                  href="tel:+5511999887766"
+                  href={`tel:${siteConfig?.phone || '+5511999887766'}`}
                   className="btn-secondary"
                 >
                   Telefone
                 </a>
                 <a
-                  href="mailto:contato@viafatto.com.br"
+                  href={`mailto:${siteConfig?.email || 'contato@viafatto.com.br'}`}
                   className="btn-secondary"
                 >
                   E-mail

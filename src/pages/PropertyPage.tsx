@@ -1,24 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, X } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { mockProperties } from '@/data/mockProperties';
-import { Property } from '@/types/property';
+import { useProperty, useSiteConfig } from '@/hooks/useSupabaseData';
 
 const PropertyPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [property, setProperty] = useState<Property | null>(null);
+  const { data: property, isLoading } = useProperty(slug || '');
+  const { data: siteConfig } = useSiteConfig();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
-
-  useEffect(() => {
-    const foundProperty = mockProperties.find(p => p.slug === slug);
-    if (foundProperty) {
-      setProperty(foundProperty);
-    }
-  }, [slug]);
 
   useEffect(() => {
     if (property) {
@@ -26,6 +19,18 @@ const PropertyPage = () => {
       setIsFavorited(favorites.includes(property.id));
     }
   }, [property]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-16 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!property) {
     return (
@@ -41,6 +46,8 @@ const PropertyPage = () => {
       </div>
     );
   }
+
+  const images = property.images?.map(img => img.url) || ['/placeholder.svg'];
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -62,8 +69,9 @@ const PropertyPage = () => {
   };
 
   const getWhatsAppUrl = () => {
-    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference} - ${formatPrice(property.price)}. Poderia me passar mais informações?`;
-    return `https://wa.me/55${property.broker.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    const phone = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference || property.id} - ${formatPrice(property.price)}. Poderia me passar mais informações?`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
   const handleShare = () => {
@@ -99,15 +107,15 @@ const PropertyPage = () => {
             <div className="lg:col-span-2">
               <div className="relative mb-4">
                 <img
-                  src={property.images[currentImageIndex]}
+                  src={images[currentImageIndex]}
                   alt={property.title}
                   className="w-full h-[400px] md:h-[500px] object-cover rounded-xl"
                 />
                 
                 {/* Image Navigation */}
-                {property.images.length > 1 && (
+                {images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {property.images.map((_, index) => (
+                    {images.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
@@ -121,9 +129,9 @@ const PropertyPage = () => {
               </div>
 
               {/* Thumbnail Grid */}
-              {property.images.length > 1 && (
+              {images.length > 1 && (
                 <div className="grid grid-cols-4 gap-2">
-                  {property.images.slice(0, 4).map((image, index) => (
+                  {images.slice(0, 4).map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
@@ -136,9 +144,9 @@ const PropertyPage = () => {
                         alt={`${property.title} - ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
-                      {index === 3 && property.images.length > 4 && (
+                      {index === 3 && images.length > 4 && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium">
-                          +{property.images.length - 4}
+                          +{images.length - 4}
                         </div>
                       )}
                     </button>
@@ -188,13 +196,13 @@ const PropertyPage = () => {
                 <h1 className="text-2xl md:text-3xl font-bold mb-2">{property.title}</h1>
                 <div className="flex items-center text-muted-foreground mb-4">
                   <MapPin size={16} className="mr-1" />
-                  <span>{property.address.neighborhood}, {property.address.city}</span>
+                  <span>{property.address_neighborhood}, {property.address_city}</span>
                 </div>
                 <div className="text-3xl font-bold text-primary mb-2">
                   {formatPrice(property.price)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  Ref: {property.reference}
+                  Ref: {property.reference || property.id.substring(0, 8)}
                 </div>
               </div>
 
@@ -225,24 +233,28 @@ const PropertyPage = () => {
               </div>
 
               {/* Description */}
-              <div>
-                <h3 className="font-semibold mb-2">Descrição</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  {property.description}
-                </p>
-              </div>
+              {property.description && (
+                <div>
+                  <h3 className="font-semibold mb-2">Descrição</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {property.description}
+                  </p>
+                </div>
+              )}
 
               {/* Features */}
-              <div>
-                <h3 className="font-semibold mb-2">Características</h3>
-                <div className="flex flex-wrap gap-2">
-                  {property.features.map((feature, index) => (
-                    <span key={index} className="badge-feature">
-                      {feature}
-                    </span>
-                  ))}
+              {property.features && property.features.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Características</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {property.features.map((feature, index) => (
+                      <span key={index} className="badge-feature">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Documentation */}
               <div className="flex items-center space-x-2">
@@ -257,13 +269,13 @@ const PropertyPage = () => {
                 <h3 className="font-semibold mb-3">Contato</h3>
                 <div className="space-y-2 mb-4">
                   <div className="text-sm">
-                    <strong>{property.broker.name}</strong>
+                    <strong>Via Fatto Imóveis</strong>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {property.broker.creci}
+                    CRECI-SP 123456
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {property.broker.phone}
+                    {siteConfig?.phone || '(11) 99988-7766'}
                   </div>
                 </div>
                 <a

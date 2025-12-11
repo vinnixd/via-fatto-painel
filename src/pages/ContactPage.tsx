@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Phone, Mail, MapPin, MessageCircle, Clock, User, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageCircle, Clock, User, Send, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { toast } from 'sonner';
 
 const ContactPage = () => {
+  const { data: siteConfig } = useSiteConfig();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,23 +17,44 @@ const ContactPage = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Create WhatsApp message
-    const whatsappMessage = `Olá!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
-    
-    const whatsappUrl = `https://wa.me/5511999887766?text=${encodeURIComponent(whatsappMessage)}`;
-    window.open(whatsappUrl, '_blank');
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      subject: '',
-      message: ''
-    });
+    try {
+      // Save to database
+      const { error } = await supabase.from('contacts').insert({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        message: `Assunto: ${formData.subject}\n\n${formData.message}`,
+      });
+
+      if (error) throw error;
+
+      // Create WhatsApp message
+      const whatsappPhone = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+      const whatsappMessage = `Olá!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
+      
+      const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(whatsappMessage)}`;
+      window.open(whatsappUrl, '_blank');
+      
+      toast.success('Mensagem enviada com sucesso!');
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Erro ao enviar mensagem. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -51,7 +77,7 @@ const ContactPage = () => {
                 Entre em Contato
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Estou aqui para ajudar você a encontrar o imóvel perfeito 
+                Estamos aqui para ajudar você a encontrar o imóvel perfeito 
                 ou esclarecer qualquer dúvida. Vamos conversar!
               </p>
             </div>
@@ -156,10 +182,17 @@ const ContactPage = () => {
 
                   <button
                     type="submit"
+                    disabled={loading}
                     className="btn-primary w-full flex items-center justify-center space-x-2"
                   >
-                    <MessageCircle size={18} />
-                    <span>Enviar via WhatsApp</span>
+                    {loading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <MessageCircle size={18} />
+                        <span>Enviar via WhatsApp</span>
+                      </>
+                    )}
                   </button>
                 </form>
               </div>
@@ -170,7 +203,7 @@ const ContactPage = () => {
                 <div className="card-property p-8">
                   <h2 className="text-2xl font-bold mb-6 flex items-center">
                     <User className="mr-2 text-primary" size={24} />
-                    Via Fatto Team
+                    Via Fatto Imóveis
                   </h2>
                   
                   <div className="space-y-4">
@@ -178,10 +211,10 @@ const ContactPage = () => {
                       <Phone className="text-primary flex-shrink-0" size={20} />
                       <div>
                         <a 
-                          href="tel:+5511999887766"
+                          href={`tel:${siteConfig?.phone || '+5511999887766'}`}
                           className="text-foreground hover:text-primary transition-colors font-medium"
                         >
-                          (11) 99988-7766
+                          {siteConfig?.phone || '(11) 99988-7766'}
                         </a>
                         <p className="text-sm text-muted-foreground">Ligação direta</p>
                       </div>
@@ -191,7 +224,7 @@ const ContactPage = () => {
                       <MessageCircle className="text-primary flex-shrink-0" size={20} />
                       <div>
                         <a 
-                          href="https://wa.me/5511999887766"
+                          href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-foreground hover:text-primary transition-colors font-medium"
@@ -206,26 +239,26 @@ const ContactPage = () => {
                       <Mail className="text-primary flex-shrink-0" size={20} />
                       <div>
                         <a 
-                          href="mailto:contato@viafatto.com.br"
+                          href={`mailto:${siteConfig?.email || 'contato@viafatto.com.br'}`}
                           className="text-foreground hover:text-primary transition-colors font-medium"
                         >
-                          contato@viafatto.com.br
+                          {siteConfig?.email || 'contato@viafatto.com.br'}
                         </a>
                         <p className="text-sm text-muted-foreground">E-mail profissional</p>
                       </div>
                     </div>
 
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="text-primary flex-shrink-0 mt-1" size={20} />
-                      <div>
-                        <p className="text-foreground font-medium">
-                          Rua Augusta, 1234<br />
-                          Jardins - São Paulo/SP<br />
-                          CEP: 01305-100
-                        </p>
-                        <p className="text-sm text-muted-foreground mt-1">Escritório</p>
+                    {siteConfig?.address && (
+                      <div className="flex items-start space-x-3">
+                        <MapPin className="text-primary flex-shrink-0 mt-1" size={20} />
+                        <div>
+                          <p className="text-foreground font-medium whitespace-pre-line">
+                            {siteConfig.address}
+                          </p>
+                          <p className="text-sm text-muted-foreground mt-1">Escritório</p>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   <div className="mt-6 pt-6 border-t border-border">
@@ -269,7 +302,7 @@ const ContactPage = () => {
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 gap-4">
                   <a
-                    href="https://wa.me/5511999887766?text=Olá! Gostaria de agendar uma visita."
+                    href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de agendar uma visita.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary text-center"
@@ -277,25 +310,13 @@ const ContactPage = () => {
                     Agendar Visita
                   </a>
                   <a
-                    href="https://wa.me/5511999887766?text=Olá! Gostaria de uma avaliação do meu imóvel."
+                    href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de uma avaliação do meu imóvel.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-secondary text-center"
                   >
                     Avaliar Meu Imóvel
                   </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Map Placeholder */}
-            <div className="mt-16">
-              <h2 className="text-2xl font-bold text-center mb-8">Localização do Escritório</h2>
-              <div className="card-property h-64 flex items-center justify-center bg-neutral-100">
-                <div className="text-center text-muted-foreground">
-                  <MapPin size={48} className="mx-auto mb-2" />
-                  <p className="font-medium">Rua Augusta, 1234 - Jardins</p>
-                  <p className="text-sm">São Paulo/SP - CEP: 01305-100</p>
                 </div>
               </div>
             </div>
