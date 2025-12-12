@@ -23,6 +23,7 @@ import ProfilePage from "./pages/admin/ProfilePage";
 import SettingsPage from "./pages/admin/SettingsPage";
 import FavoritesListPage from "./pages/admin/FavoritesListPage";
 import MessagesPage from "./pages/admin/MessagesPage";
+import ImportPage from "./pages/admin/ImportPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/admin/configuracoes" element={<SettingsPage />} />
             <Route path="/admin/favoritos" element={<FavoritesListPage />} />
             <Route path="/admin/mensagens" element={<MessagesPage />} />
+            <Route path="/admin/importar" element={<ImportPage />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

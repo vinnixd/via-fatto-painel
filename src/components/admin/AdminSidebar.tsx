@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Upload,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
+  { icon: Upload, label: 'Importar CSV', path: '/admin/importar' },
   { icon: FolderOpen, label: 'Categorias', path: '/admin/categorias' },
   { icon: User, label: 'Meu Perfil', path: '/admin/perfil' },
   { icon: Globe, label: 'Configurações', path: '/admin/configuracoes' },

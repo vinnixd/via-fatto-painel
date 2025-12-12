@@ -177,6 +177,7 @@ export type Database = {
           financing: boolean
           garages: number
           id: string
+          old_url: string | null
           price: number
           profile: Database["public"]["Enums"]["property_profile"]
           reference: string | null
@@ -211,6 +212,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          old_url?: string | null
           price?: number
           profile?: Database["public"]["Enums"]["property_profile"]
           reference?: string | null
@@ -245,6 +247,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          old_url?: string | null
           price?: number
           profile?: Database["public"]["Enums"]["property_profile"]
           reference?: string | null
