@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -35,6 +36,7 @@ interface AdminSidebarProps {
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const { data: siteConfig } = useSiteConfig();
 
   return (
     <aside
@@ -47,17 +49,35 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800">
         {!collapsed && (
           <Link to="/admin" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg">Imobiliária</span>
+            {siteConfig?.logo_url ? (
+              <img 
+                src={siteConfig.logo_url} 
+                alt="Via Fatto Imóveis" 
+                className="h-10 w-auto object-contain brightness-0 invert"
+              />
+            ) : (
+              <>
+                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <span className="font-bold text-lg">Via Fatto</span>
+              </>
+            )}
           </Link>
         )}
         {collapsed && (
           <Link to="/admin" className="mx-auto">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
-            </div>
+            {siteConfig?.logo_url ? (
+              <img 
+                src={siteConfig.logo_url} 
+                alt="Via Fatto Imóveis" 
+                className="h-8 w-auto object-contain brightness-0 invert"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-primary-foreground" />
+              </div>
+            )}
           </Link>
         )}
       </div>
