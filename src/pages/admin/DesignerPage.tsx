@@ -150,6 +150,7 @@ const DesignerPage = () => {
           about_text: config.about_text,
           about_image_url: config.about_image_url,
           about_image_position: config.about_image_position,
+          home_image_url: config.home_image_url,
           footer_text: config.footer_text,
           phone: config.phone,
           email: config.email,
