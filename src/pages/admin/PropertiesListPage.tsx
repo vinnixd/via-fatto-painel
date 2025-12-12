@@ -30,7 +30,10 @@ import {
   MapPin,
   Home,
   Building2,
-  MoreVertical
+  MoreVertical,
+  GripVertical,
+  ArrowUpDown,
+  Check
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -40,6 +43,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Property {
   id: string;
@@ -57,8 +77,176 @@ interface Property {
   bedrooms: number;
   bathrooms: number;
   area: number;
+  order_index: number;
   thumbnail?: string;
 }
+
+interface SortablePropertyCardProps {
+  property: Property;
+  isReorderMode: boolean;
+  getStatusBadge: (status: string) => React.ReactNode;
+  getTypeIcon: (type: string) => React.ReactNode;
+  formatPrice: (price: number) => string;
+  toggleFeatured: (id: string, featured: boolean) => void;
+  setDeleteId: (id: string) => void;
+}
+
+const SortablePropertyCard = ({
+  property,
+  isReorderMode,
+  getStatusBadge,
+  getTypeIcon,
+  formatPrice,
+  toggleFeatured,
+  setDeleteId,
+}: SortablePropertyCardProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: property.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className={`border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 ${
+        isDragging ? 'ring-2 ring-primary z-50' : ''
+      }`}
+    >
+      {/* Image */}
+      <div className="relative aspect-[16/10] bg-muted overflow-hidden">
+        {property.thumbnail ? (
+          <img
+            src={property.thumbnail}
+            alt={property.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+        )}
+
+        {/* Overlays */}
+        <div className="absolute top-2 left-2 flex gap-1.5">
+          {getStatusBadge(property.status)}
+          {property.featured && (
+            <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950 text-xs px-1.5 py-0.5">
+              <Star className="h-2.5 w-2.5 fill-current" />
+            </Badge>
+          )}
+        </div>
+
+        {/* Drag Handle or Actions */}
+        <div className="absolute top-2 right-2">
+          {isReorderMode ? (
+            <Button
+              size="icon"
+              variant="secondary"
+              className="h-6 w-6 bg-background/80 backdrop-blur-sm hover:bg-background cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-3 w-3" />
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-6 w-6 bg-background/80 backdrop-blur-sm hover:bg-background"
+                >
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={`/imovel/${property.slug}`}
+                    target="_blank"
+                    className="flex items-center gap-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Ver no site
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={`/admin/imoveis/${property.id}`}
+                    className="flex items-center gap-2"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => toggleFeatured(property.id, property.featured)}
+                  className="flex items-center gap-2"
+                >
+                  <Star
+                    className={`h-4 w-4 ${
+                      property.featured ? 'fill-yellow-500 text-yellow-500' : ''
+                    }`}
+                  />
+                  {property.featured ? 'Remover destaque' : 'Destacar'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setDeleteId(property.id)}
+                  className="text-destructive focus:text-destructive flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+
+        {/* Price */}
+        <div className="absolute bottom-2 left-2">
+          <span className="bg-background/90 backdrop-blur-sm text-foreground font-semibold px-2 py-1 rounded text-xs">
+            {formatPrice(property.price)}
+          </span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <CardContent className="p-2.5">
+        <h3 className="font-medium text-sm line-clamp-1 mb-1 group-hover:text-primary transition-colors">
+          {property.title}
+        </h3>
+
+        <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1.5">
+          <MapPin className="h-3 w-3 flex-shrink-0" />
+          <span className="line-clamp-1">
+            {property.address_city} - {property.address_state}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="flex items-center gap-0.5 capitalize">
+            {getTypeIcon(property.type)}
+            {property.type}
+          </span>
+          {property.bedrooms > 0 && <span>{property.bedrooms}q</span>}
+          {property.area > 0 && <span>{property.area}m²</span>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const PropertiesListPage = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -68,15 +256,34 @@ const PropertiesListPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 12;
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const itemsPerPage = 24;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchProperties = async () => {
     setLoading(true);
     try {
       let query = supabase
         .from('properties')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' });
+
+      // When in reorder mode, sort by order_index, otherwise by created_at
+      if (isReorderMode) {
+        query = query.order('order_index', { ascending: true });
+      } else {
+        query = query.order('order_index', { ascending: true });
+      }
 
       if (search) {
         query = query.ilike('title', `%${search}%`);
@@ -99,10 +306,10 @@ const PropertiesListPage = () => {
             .eq('property_id', property.id)
             .order('order_index', { ascending: true })
             .limit(1);
-          
+
           return {
             ...property,
-            thumbnail: images?.[0]?.url || null
+            thumbnail: images?.[0]?.url || null,
           };
         })
       );
@@ -120,7 +327,48 @@ const PropertiesListPage = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, [page, search]);
+  }, [page, search, isReorderMode]);
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setProperties((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const saveOrder = async () => {
+    setSavingOrder(true);
+    try {
+      // Update order_index for all properties in current view
+      const updates = properties.map((property, index) => ({
+        id: property.id,
+        order_index: (page - 1) * itemsPerPage + index,
+      }));
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('properties')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+
+        if (error) throw error;
+      }
+
+      toast.success('Ordem salva com sucesso!');
+      setIsReorderMode(false);
+    } catch (error) {
+      console.error('Error saving order:', error);
+      toast.error('Erro ao salvar ordem');
+    } finally {
+      setSavingOrder(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -128,7 +376,7 @@ const PropertiesListPage = () => {
     try {
       // Delete related images first
       await supabase.from('property_images').delete().eq('property_id', deleteId);
-      
+
       // Delete property
       const { error } = await supabase.from('properties').delete().eq('id', deleteId);
 
@@ -153,9 +401,9 @@ const PropertiesListPage = () => {
 
       if (error) throw error;
 
-      setProperties(properties.map(p => 
-        p.id === id ? { ...p, featured: !featured } : p
-      ));
+      setProperties(
+        properties.map((p) => (p.id === id ? { ...p, featured: !featured } : p))
+      );
       toast.success(featured ? 'Destaque removido' : 'Imóvel destacado');
     } catch (error) {
       console.error('Error toggling featured:', error);
@@ -172,7 +420,10 @@ const PropertiesListPage = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+    const statusConfig: Record<
+      string,
+      { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+    > = {
       venda: { label: 'Venda', variant: 'default' },
       aluguel: { label: 'Aluguel', variant: 'secondary' },
       vendido: { label: 'Vendido', variant: 'destructive' },
@@ -192,7 +443,7 @@ const PropertiesListPage = () => {
   return (
     <AdminLayout>
       <AdminHeader title="Imóveis" subtitle="Gerencie todos os imóveis cadastrados" />
-      
+
       <div className="p-6 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -205,19 +456,25 @@ const PropertiesListPage = () => {
           <Card className="border-0 shadow-sm bg-gradient-to-br from-green-500/10 to-green-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">À Venda</p>
-              <p className="text-2xl font-bold text-green-600">{properties.filter(p => p.status === 'venda').length}</p>
+              <p className="text-2xl font-bold text-green-600">
+                {properties.filter((p) => p.status === 'venda').length}
+              </p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-500/10 to-orange-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Aluguel</p>
-              <p className="text-2xl font-bold text-orange-600">{properties.filter(p => p.status === 'aluguel').length}</p>
+              <p className="text-2xl font-bold text-orange-600">
+                {properties.filter((p) => p.status === 'aluguel').length}
+              </p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Destaques</p>
-              <p className="text-2xl font-bold text-yellow-600">{properties.filter(p => p.featured).length}</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {properties.filter((p) => p.featured).length}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -236,23 +493,66 @@ const PropertiesListPage = () => {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
+                  disabled={isReorderMode}
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" asChild className="gap-2">
-                  <Link to="/admin/importar">
-                    <Upload className="h-4 w-4" />
-                    <span className="hidden sm:inline">Importar CSV</span>
-                  </Link>
-                </Button>
-                <Button asChild className="gap-2 shadow-md">
-                  <Link to="/admin/imoveis/novo">
-                    <Plus className="h-4 w-4" />
-                    Novo Imóvel
-                  </Link>
-                </Button>
+                {isReorderMode ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsReorderMode(false);
+                        fetchProperties();
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      onClick={saveOrder}
+                      disabled={savingOrder}
+                      className="gap-2"
+                    >
+                      {savingOrder ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                      Salvar Ordem
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsReorderMode(true)}
+                      className="gap-2"
+                    >
+                      <ArrowUpDown className="h-4 w-4" />
+                      <span className="hidden sm:inline">Ordenar</span>
+                    </Button>
+                    <Button variant="outline" asChild className="gap-2">
+                      <Link to="/admin/importar">
+                        <Upload className="h-4 w-4" />
+                        <span className="hidden sm:inline">Importar CSV</span>
+                      </Link>
+                    </Button>
+                    <Button asChild className="gap-2 shadow-md">
+                      <Link to="/admin/imoveis/novo">
+                        <Plus className="h-4 w-4" />
+                        Novo Imóvel
+                      </Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
+            {isReorderMode && (
+              <div className="mt-3 p-2 bg-primary/10 rounded-lg text-sm text-primary flex items-center gap-2">
+                <GripVertical className="h-4 w-4" />
+                Arraste os imóveis para reordenar. Clique em "Salvar Ordem" quando terminar.
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -271,7 +571,9 @@ const PropertiesListPage = () => {
                 {search ? 'Nenhum imóvel encontrado' : 'Nenhum imóvel cadastrado'}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {search ? 'Tente alterar os termos de busca' : 'Comece cadastrando seu primeiro imóvel'}
+                {search
+                  ? 'Tente alterar os termos de busca'
+                  : 'Comece cadastrando seu primeiro imóvel'}
               </p>
               {!search && (
                 <Button asChild>
@@ -285,120 +587,38 @@ const PropertiesListPage = () => {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {properties.map((property) => (
-                <Card 
-                  key={property.id} 
-                  className="border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300"
-                >
-                  {/* Image */}
-                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
-                    {property.thumbnail ? (
-                      <img 
-                        src={property.thumbnail} 
-                        alt={property.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-                      </div>
-                    )}
-                    
-                    {/* Overlays */}
-                    <div className="absolute top-2 left-2 flex gap-1.5">
-                      {getStatusBadge(property.status)}
-                      {property.featured && (
-                        <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950 text-xs px-1.5 py-0.5">
-                          <Star className="h-2.5 w-2.5 fill-current" />
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="absolute top-2 right-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            size="icon" 
-                            variant="secondary" 
-                            className="h-6 w-6 bg-background/80 backdrop-blur-sm hover:bg-background"
-                          >
-                            <MoreVertical className="h-3 w-3" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/imovel/${property.slug}`} target="_blank" className="flex items-center gap-2">
-                              <Eye className="h-4 w-4" />
-                              Ver no site
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/imoveis/${property.id}`} className="flex items-center gap-2">
-                              <Pencil className="h-4 w-4" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toggleFeatured(property.id, property.featured)} className="flex items-center gap-2">
-                            <Star className={`h-4 w-4 ${property.featured ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                            {property.featured ? 'Remover destaque' : 'Destacar'}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => setDeleteId(property.id)}
-                            className="text-destructive focus:text-destructive flex items-center gap-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {/* Price */}
-                    <div className="absolute bottom-2 left-2">
-                      <span className="bg-background/90 backdrop-blur-sm text-foreground font-semibold px-2 py-1 rounded text-xs">
-                        {formatPrice(property.price)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <CardContent className="p-2.5">
-                    <h3 className="font-medium text-sm line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-                      {property.title}
-                    </h3>
-                    
-                    <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1.5">
-                      <MapPin className="h-3 w-3 flex-shrink-0" />
-                      <span className="line-clamp-1">
-                        {property.address_city} - {property.address_state}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-0.5 capitalize">
-                        {getTypeIcon(property.type)}
-                        {property.type}
-                      </span>
-                      {property.bedrooms > 0 && (
-                        <span>{property.bedrooms}q</span>
-                      )}
-                      {property.area > 0 && (
-                        <span>{property.area}m²</span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={properties.map((p) => p.id)}
+                strategy={rectSortingStrategy}
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+                  {properties.map((property) => (
+                    <SortablePropertyCard
+                      key={property.id}
+                      property={property}
+                      isReorderMode={isReorderMode}
+                      getStatusBadge={getStatusBadge}
+                      getTypeIcon={getTypeIcon}
+                      formatPrice={formatPrice}
+                      toggleFeatured={toggleFeatured}
+                      setDeleteId={setDeleteId}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {totalPages > 1 && !isReorderMode && (
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Mostrando {(page - 1) * itemsPerPage + 1} a {Math.min(page * itemsPerPage, totalCount)} de {totalCount} imóveis
+                  Mostrando {(page - 1) * itemsPerPage + 1} a{' '}
+                  {Math.min(page * itemsPerPage, totalCount)} de {totalCount} imóveis
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -455,12 +675,16 @@ const PropertiesListPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este imóvel? Esta ação não pode ser
+              desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
