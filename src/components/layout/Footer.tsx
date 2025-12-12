@@ -18,22 +18,18 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Logo e Descrição */}
             <div className="lg:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
+              <div className="mb-4">
                 {siteConfig?.logo_url ? (
                   <img 
                     src={siteConfig.logo_url} 
                     alt="Via Fatto Imóveis" 
-                    className="h-12 w-auto object-contain brightness-0 invert"
+                    className="h-14 w-auto object-contain brightness-0 invert"
                   />
                 ) : (
                   <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                     <span className="text-primary-foreground font-bold text-xl">V</span>
                   </div>
                 )}
-                <div>
-                  <h2 className="text-xl font-bold">Via Fatto Imóveis</h2>
-                  <p className="text-sm text-neutral-400">CRECI-DF: 29588</p>
-                </div>
               </div>
               <p className="text-neutral-300 mb-6 max-w-md">
                 {siteConfig?.about_text?.substring(0, 200) || 'Especializada em imóveis de alto padrão em São Paulo. Com mais de 10 anos de experiência, oferecemos um atendimento personalizado para encontrar o imóvel dos seus sonhos.'}
