@@ -80,12 +80,24 @@ const ImportPage = () => {
         throw new Error(data.error || 'Erro ao importar imóveis');
       }
 
-      setResult(data);
-      
-      if (data.erros?.length === 0) {
-        toast.success(`Importação concluída! ${data.imoveis_criados} criados, ${data.imoveis_atualizados} atualizados.`);
+      // Check if it's a background processing response
+      if (data.status === 'processing') {
+        setResult({
+          total_linhas: data.total_linhas,
+          imoveis_criados: 0,
+          imoveis_atualizados: 0,
+          imagens_importadas: 0,
+          erros: []
+        });
+        toast.success(`Importação de ${data.total_linhas} imóveis iniciada em segundo plano!`);
       } else {
-        toast.warning(`Importação concluída com ${data.erros.length} erros.`);
+        setResult(data);
+        
+        if (data.erros?.length === 0) {
+          toast.success(`Importação concluída! ${data.imoveis_criados} criados, ${data.imoveis_atualizados} atualizados.`);
+        } else {
+          toast.warning(`Importação concluída com ${data.erros.length} erros.`);
+        }
       }
       
     } catch (err) {

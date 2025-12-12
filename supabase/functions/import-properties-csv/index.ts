@@ -7,14 +7,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface ImportResult {
-  total_linhas: number;
-  imoveis_criados: number;
-  imoveis_atualizados: number;
-  imagens_importadas: number;
-  erros: Array<{ linha: number; titulo: string; motivo: string }>;
-}
-
 interface CSVRow {
   [key: string]: string;
 }
@@ -23,7 +15,6 @@ function parseCSV(csvText: string): CSVRow[] {
   const lines = csvText.split('\n');
   if (lines.length < 2) return [];
   
-  // Parse header - handle quoted fields
   const headerLine = lines[0];
   const headers = parseCSVLine(headerLine);
   
@@ -132,7 +123,7 @@ function parseNumber(value: string): number | null {
   return isNaN(num) ? null : num;
 }
 
-function parseInt(value: string): number {
+function parseIntValue(value: string): number {
   if (!value) return 0;
   const num = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
   return isNaN(num) ? 0 : num;
@@ -162,17 +153,15 @@ async function downloadAndUploadImage(
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Extract file extension from original URL
     const urlPath = new URL(imageUrl).pathname;
     let ext = urlPath.split('.').pop()?.toLowerCase() || 'jpg';
     if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
       ext = 'jpg';
     }
     
-    // Use slug-based naming for cleaner file organization
     const fileName = `${propertySlug}/${propertySlug}-${index}.${ext}`;
     
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('property-images')
       .upload(fileName, uint8Array, {
         contentType,
@@ -188,7 +177,7 @@ async function downloadAndUploadImage(
       .from('property-images')
       .getPublicUrl(fileName);
     
-    console.log(`Image uploaded successfully: ${publicUrl}`);
+    console.log(`Image uploaded: ${publicUrl}`);
     return publicUrl;
   } catch (error) {
     console.error(`Error processing image: ${error}`);
@@ -196,8 +185,128 @@ async function downloadAndUploadImage(
   }
 }
 
+// Process a single property (for background processing)
+async function processProperty(
+  supabase: any,
+  row: CSVRow,
+  lineNumber: number
+): Promise<{ success: boolean; created: boolean; updated: boolean; imagesCount: number; error?: string }> {
+  try {
+    const title = row['Title'] || row['title'] || '';
+    if (!title) {
+      return { success: false, created: false, updated: false, imagesCount: 0, error: 'Título vazio' };
+    }
+    
+    const permalink = row['Permalink'] || row['permalink'] || '';
+    const slug = row['Slug'] || row['slug'] || generateSlug(title);
+    const description = row['Content'] || row['content'] || row['Excerpt'] || row['excerpt'] || '';
+    
+    const estadoCidade = row['Estado e Cidade'] || row['estado_cidade'] || '';
+    const { estado, cidade } = parseLocation(estadoCidade);
+    
+    const tipo = row['Tipo do Imóvel'] || row['tipo'] || 'Casa';
+    const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
+    const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
+    
+    const preco = parseNumber(row['Preço'] || row['preco'] || row['Price'] || '');
+    const quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
+    const banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
+    const vagas = parseIntValue(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
+    const area = parseNumber(row['Área'] || row['area'] || row['Area'] || '');
+    
+    const propertyData = {
+      title,
+      slug,
+      description,
+      address_state: estado,
+      address_city: cidade,
+      type: mapPropertyType(tipo),
+      status: mapPropertyStatus(finalidade),
+      featured: destaque,
+      old_url: permalink,
+      price: preco || 0,
+      bedrooms: quartos,
+      bathrooms: banheiros,
+      garages: vagas,
+      area: area || 0,
+      updated_at: new Date().toISOString()
+    };
+    
+    console.log(`Processing: ${title} (${slug})`);
+    
+    // Check if property exists
+    const { data: existingProperty } = await supabase
+      .from('properties')
+      .select('id')
+      .or(`slug.eq.${slug},old_url.eq.${permalink}`)
+      .maybeSingle();
+    
+    let propertyId: string;
+    let created = false;
+    let updated = false;
+    
+    if (existingProperty) {
+      const { error: updateError } = await supabase
+        .from('properties')
+        .update(propertyData)
+        .eq('id', existingProperty.id);
+      
+      if (updateError) throw new Error(`Update error: ${updateError.message}`);
+      
+      propertyId = existingProperty.id;
+      updated = true;
+      
+      // Delete existing images
+      await supabase.from('property_images').delete().eq('property_id', propertyId);
+    } else {
+      const { data: newProperty, error: insertError } = await supabase
+        .from('properties')
+        .insert({ ...propertyData, created_at: new Date().toISOString() })
+        .select('id')
+        .single();
+      
+      if (insertError) throw new Error(`Insert error: ${insertError.message}`);
+      
+      propertyId = newProperty.id;
+      created = true;
+    }
+    
+    // Process images
+    const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || '';
+    const imageUrls = imageUrlsRaw
+      .split('|')
+      .map(url => url.trim())
+      .filter(url => url.startsWith('http'));
+    
+    console.log(`Found ${imageUrls.length} images for ${title}`);
+    
+    let imagesCount = 0;
+    for (let imgIndex = 0; imgIndex < imageUrls.length; imgIndex++) {
+      const uploadedUrl = await downloadAndUploadImage(supabase, imageUrls[imgIndex], slug, imgIndex);
+      
+      if (uploadedUrl) {
+        const { error: imgError } = await supabase
+          .from('property_images')
+          .insert({
+            property_id: propertyId,
+            url: uploadedUrl,
+            order_index: imgIndex,
+            alt: `${title} - Imagem ${imgIndex + 1}`
+          });
+        
+        if (!imgError) imagesCount++;
+      }
+    }
+    
+    return { success: true, created, updated, imagesCount };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Error line ${lineNumber}: ${errorMessage}`);
+    return { success: false, created: false, updated: false, imagesCount: 0, error: errorMessage };
+  }
+}
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -205,10 +314,9 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get authorization header for user check
+    // Verify authentication
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       return new Response(
@@ -217,7 +325,6 @@ serve(async (req) => {
       );
     }
     
-    // Verify user is admin
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } }
@@ -231,7 +338,7 @@ serve(async (req) => {
       );
     }
     
-    // Check if user is admin
+    // Check admin role
     const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
@@ -241,12 +348,12 @@ serve(async (req) => {
     
     if (!roleData) {
       return new Response(
-        JSON.stringify({ error: 'Acesso negado. Apenas administradores podem importar imóveis.' }),
+        JSON.stringify({ error: 'Acesso negado. Apenas administradores podem importar.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    // Parse form data
+    // Parse CSV
     const formData = await req.formData();
     const file = formData.get('file') as File;
     
@@ -260,169 +367,55 @@ serve(async (req) => {
     const csvText = await file.text();
     const rows = parseCSV(csvText);
     
-    console.log(`Processing ${rows.length} rows from CSV`);
+    console.log(`Starting import of ${rows.length} properties`);
     
-    const result: ImportResult = {
-      total_linhas: rows.length,
-      imoveis_criados: 0,
-      imoveis_atualizados: 0,
-      imagens_importadas: 0,
-      erros: []
+    // Process in background using waitUntil
+    const backgroundTask = async () => {
+      let criados = 0;
+      let atualizados = 0;
+      let imagensImportadas = 0;
+      const erros: Array<{ linha: number; titulo: string; motivo: string }> = [];
+      
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const lineNumber = i + 2;
+        
+        const result = await processProperty(supabase, row, lineNumber);
+        
+        if (result.success) {
+          if (result.created) criados++;
+          if (result.updated) atualizados++;
+          imagensImportadas += result.imagesCount;
+        } else {
+          erros.push({
+            linha: lineNumber,
+            titulo: row['Title'] || row['title'] || 'Desconhecido',
+            motivo: result.error || 'Erro desconhecido'
+          });
+        }
+      }
+      
+      console.log(`Import completed: ${criados} created, ${atualizados} updated, ${imagensImportadas} images, ${erros.length} errors`);
     };
     
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const lineNumber = i + 2; // Account for header and 0-index
-      
-      try {
-        const title = row['Title'] || row['title'] || '';
-        if (!title) {
-          result.erros.push({
-            linha: lineNumber,
-            titulo: 'Sem título',
-            motivo: 'Título vazio ou não encontrado'
-          });
-          continue;
-        }
-        
-        const permalink = row['Permalink'] || row['permalink'] || '';
-        const slug = row['Slug'] || row['slug'] || generateSlug(title);
-        const description = row['Content'] || row['content'] || row['Excerpt'] || row['excerpt'] || '';
-        
-        const estadoCidade = row['Estado e Cidade'] || row['estado_cidade'] || '';
-        const { estado, cidade } = parseLocation(estadoCidade);
-        
-        const tipo = row['Tipo do Imóvel'] || row['tipo'] || 'Casa';
-        const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
-        const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
-        const wpStatus = row['Status'] || row['status'] || 'publish';
-        
-        // Optional numeric fields
-        const preco = parseNumber(row['Preço'] || row['preco'] || row['Price'] || '');
-        const quartos = parseInt(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
-        const banheiros = parseInt(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
-        const vagas = parseInt(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
-        const area = parseNumber(row['Área'] || row['area'] || row['Area'] || '');
-        
-        const propertyData = {
-          title,
-          slug,
-          description,
-          address_state: estado,
-          address_city: cidade,
-          type: mapPropertyType(tipo),
-          status: mapPropertyStatus(finalidade),
-          featured: destaque,
-          old_url: permalink,
-          price: preco || 0,
-          bedrooms: quartos,
-          bathrooms: banheiros,
-          garages: vagas,
-          area: area || 0,
-          updated_at: new Date().toISOString()
-        };
-        
-        console.log(`Processing property: ${title} (${slug})`);
-        
-        // Check if property exists by slug or old_url
-        const { data: existingProperty } = await supabase
-          .from('properties')
-          .select('id')
-          .or(`slug.eq.${slug},old_url.eq.${permalink}`)
-          .maybeSingle();
-        
-        let propertyId: string;
-        
-        if (existingProperty) {
-          // Update existing property
-          const { error: updateError } = await supabase
-            .from('properties')
-            .update(propertyData)
-            .eq('id', existingProperty.id);
-          
-          if (updateError) {
-            throw new Error(`Erro ao atualizar: ${updateError.message}`);
-          }
-          
-          propertyId = existingProperty.id;
-          result.imoveis_atualizados++;
-          
-          // Delete existing images for re-import
-          await supabase
-            .from('property_images')
-            .delete()
-            .eq('property_id', propertyId);
-            
-        } else {
-          // Create new property
-          const { data: newProperty, error: insertError } = await supabase
-            .from('properties')
-            .insert({
-              ...propertyData,
-              created_at: new Date().toISOString()
-            })
-            .select('id')
-            .single();
-          
-          if (insertError) {
-            throw new Error(`Erro ao criar: ${insertError.message}`);
-          }
-          
-          propertyId = newProperty.id;
-          result.imoveis_criados++;
-        }
-        
-        // Process images
-        const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || '';
-        const imageUrls = imageUrlsRaw
-          .split('|')
-          .map(url => url.trim())
-          .filter(url => url.startsWith('http'));
-        
-        console.log(`Found ${imageUrls.length} images for property ${title}`);
-        
-        for (let imgIndex = 0; imgIndex < imageUrls.length; imgIndex++) {
-          const imageUrl = imageUrls[imgIndex];
-          const uploadedUrl = await downloadAndUploadImage(supabase, imageUrl, slug, imgIndex);
-          
-          if (uploadedUrl) {
-            const { error: imageInsertError } = await supabase
-              .from('property_images')
-              .insert({
-                property_id: propertyId,
-                url: uploadedUrl,
-                order_index: imgIndex,
-                alt: `${title} - Imagem ${imgIndex + 1}`
-              });
-            
-            if (!imageInsertError) {
-              result.imagens_importadas++;
-            }
-          }
-        }
-        
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-        result.erros.push({
-          linha: lineNumber,
-          titulo: row['Title'] || row['title'] || 'Desconhecido',
-          motivo: errorMessage
-        });
-        console.error(`Error processing line ${lineNumber}: ${errorMessage}`);
-      }
-    }
+    // Start background processing
+    EdgeRuntime.waitUntil(backgroundTask());
     
-    console.log(`Import completed: ${JSON.stringify(result)}`);
-    
+    // Return immediate response
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify({
+        message: 'Importação iniciada em segundo plano',
+        total_linhas: rows.length,
+        status: 'processing',
+        info: 'A importação está sendo processada. Verifique a lista de imóveis em alguns minutos.'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
   } catch (error) {
     console.error('Import error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro interno do servidor' }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro interno' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
