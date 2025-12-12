@@ -37,6 +37,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ImagePositionPicker } from '@/components/ui/ImagePositionPicker';
 
 interface SiteConfig {
   id: string;
@@ -53,6 +54,7 @@ interface SiteConfig {
   about_image_url: string;
   about_image_position: 'top' | 'center' | 'bottom';
   home_image_url: string;
+  home_image_position: string;
   footer_text: string;
   phone: string;
   email: string;
@@ -151,6 +153,7 @@ const DesignerPage = () => {
           about_image_url: config.about_image_url,
           about_image_position: config.about_image_position,
           home_image_url: config.home_image_url,
+          home_image_position: config.home_image_position,
           footer_text: config.footer_text,
           phone: config.phone,
           email: config.email,
@@ -757,7 +760,8 @@ const DesignerPage = () => {
                           <img 
                             src={config.home_image_url} 
                             alt="Home About" 
-                            className="w-full h-full object-cover object-top"
+                            className="w-full h-full object-cover"
+                            style={{ objectPosition: config.home_image_position || '50% 50%' }}
                           />
                         </div>
                       ) : (
@@ -779,6 +783,15 @@ const DesignerPage = () => {
                         />
                       </Label>
                     </div>
+                    
+                    {config.home_image_url && (
+                      <ImagePositionPicker
+                        imageUrl={config.home_image_url}
+                        position={config.home_image_position || '50% 50%'}
+                        onChange={(position) => setConfig({ ...config, home_image_position: position })}
+                      />
+                    )}
+                    
                     <p className="text-xs text-muted-foreground">Esta imagem aparece na seção de apresentação da página inicial. Se não definida, usará a imagem da página Sobre.</p>
                   </CardContent>
                 </Card>
