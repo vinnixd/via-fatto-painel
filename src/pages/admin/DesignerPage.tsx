@@ -52,6 +52,7 @@ interface SiteConfig {
   about_text: string;
   about_image_url: string;
   about_image_position: 'top' | 'center' | 'bottom';
+  home_image_url: string;
   footer_text: string;
   phone: string;
   email: string;
@@ -671,8 +672,8 @@ const DesignerPage = () => {
                         <Image className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <CardTitle>Imagem do Corretor</CardTitle>
-                        <CardDescription>Foto para a seção sobre</CardDescription>
+                        <CardTitle>Imagem da Página Sobre</CardTitle>
+                        <CardDescription>Foto para a página Sobre</CardDescription>
                       </div>
                     </div>
                   </CardHeader>
@@ -733,6 +734,51 @@ const DesignerPage = () => {
                         ))}
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Image className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>Imagem da Página Inicial</CardTitle>
+                        <CardDescription>Foto para a seção "Sobre" na página inicial (diferente da página Sobre)</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center gap-6">
+                      {config.home_image_url ? (
+                        <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-border">
+                          <img 
+                            src={config.home_image_url} 
+                            alt="Home About" 
+                            className="w-full h-full object-cover object-top"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 rounded-xl bg-muted flex items-center justify-center">
+                          <Image className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <Label htmlFor="home-img-upload" className="cursor-pointer">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors">
+                          <Upload className="h-4 w-4" />
+                          Enviar Foto
+                        </div>
+                        <Input
+                          id="home-img-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'home_image_url')}
+                        />
+                      </Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Esta imagem aparece na seção de apresentação da página inicial. Se não definida, usará a imagem da página Sobre.</p>
                   </CardContent>
                 </Card>
 

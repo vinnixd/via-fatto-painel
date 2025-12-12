@@ -461,7 +461,7 @@ const Home = () => {
             <div className="relative group">
               <div className="aspect-square bg-neutral-200 rounded-2xl overflow-hidden">
                 <img
-                  src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=800&fit=crop&crop=top"}
+                  src={siteConfig?.home_image_url || siteConfig?.about_image_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=800&fit=crop&crop=top"}
                   alt="Via Fatto Imóveis"
                   className="w-full h-full object-cover object-top grayscale transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
                 />
