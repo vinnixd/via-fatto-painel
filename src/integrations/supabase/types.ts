@@ -178,6 +178,7 @@ export type Database = {
           garages: number
           id: string
           old_url: string | null
+          order_index: number | null
           price: number
           profile: Database["public"]["Enums"]["property_profile"]
           reference: string | null
@@ -213,6 +214,7 @@ export type Database = {
           garages?: number
           id?: string
           old_url?: string | null
+          order_index?: number | null
           price?: number
           profile?: Database["public"]["Enums"]["property_profile"]
           reference?: string | null
@@ -248,6 +250,7 @@ export type Database = {
           garages?: number
           id?: string
           old_url?: string | null
+          order_index?: number | null
           price?: number
           profile?: Database["public"]["Enums"]["property_profile"]
           reference?: string | null
