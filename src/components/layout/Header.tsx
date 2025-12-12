@@ -29,23 +29,17 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="flex items-center space-x-2">
-              {siteConfig?.logo_url ? (
-                <img 
-                  src={siteConfig.logo_url} 
-                  alt="Via Fatto Imóveis" 
-                  className="h-10 w-auto object-contain"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">V</span>
-                </div>
-              )}
-              <div className="hidden sm:block">
-                <h1 className="text-xl font-bold text-foreground">Via Fatto Imóveis</h1>
-                <p className="text-xs text-muted-foreground">CRECI-SP 123456</p>
+            {siteConfig?.logo_url ? (
+              <img 
+                src={siteConfig.logo_url} 
+                alt="Logo" 
+                className="h-10 w-auto object-contain"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">V</span>
               </div>
-            </div>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
