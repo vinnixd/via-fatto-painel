@@ -6,6 +6,9 @@ import { useSiteConfig } from '@/hooks/useSupabaseData';
 const AboutPage = () => {
   const { data: siteConfig } = useSiteConfig();
 
+  const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+  const imagePosition = siteConfig?.about_image_position || 'center';
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -26,7 +29,7 @@ const AboutPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de agendar uma consulta.`}
+                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de agendar uma consulta.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
@@ -42,11 +45,14 @@ const AboutPage = () => {
               </div>
             </div>
             <div className="relative">
-              <div className="aspect-[4/5] bg-neutral-200 rounded-2xl overflow-hidden">
+              <div className="aspect-[4/5] bg-neutral-200 rounded-2xl overflow-hidden group">
                 <img
                   src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=750&fit=crop&crop=face"}
                   alt="Via Fatto Imóveis"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500"
+                  style={{ 
+                    objectPosition: imagePosition === 'top' ? 'top' : imagePosition === 'bottom' ? 'bottom' : 'center' 
+                  }}
                 />
               </div>
               <div className="absolute -bottom-6 -right-6 bg-primary text-primary-foreground p-6 rounded-xl shadow-xl">
@@ -214,7 +220,7 @@ const AboutPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de conversar sobre imóveis.`}
+                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de conversar sobre imóveis.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"

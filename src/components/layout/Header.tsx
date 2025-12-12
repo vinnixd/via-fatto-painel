@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, MessageCircle } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { data: siteConfig } = useSiteConfig();
 
   const navigation = [
     { name: 'Início', href: '/' },
@@ -18,6 +20,9 @@ const Header = () => {
     return location.pathname === href;
   };
 
+  const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
+  const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container">
@@ -25,9 +30,17 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">S</span>
-              </div>
+              {siteConfig?.logo_url ? (
+                <img 
+                  src={siteConfig.logo_url} 
+                  alt="Via Fatto Imóveis" 
+                  className="h-10 w-auto object-contain"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-lg">V</span>
+                </div>
+              )}
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-foreground">Via Fatto Imóveis</h1>
                 <p className="text-xs text-muted-foreground">CRECI-SP 123456</p>
@@ -53,14 +66,14 @@ const Header = () => {
           {/* Contact Actions */}
           <div className="hidden lg:flex items-center space-x-4">
             <a
-              href="tel:+5511999887766"
+              href={`tel:${siteConfig?.phone || '+5511999887766'}`}
               className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <Phone size={18} />
-              <span className="text-sm font-medium">(11) 99988-7766</span>
+              <span className="text-sm font-medium">{phoneNumber}</span>
             </a>
             <a
-              href="https://wa.me/5511999887766?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis."
+              href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis.`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary flex items-center space-x-2"
@@ -97,14 +110,14 @@ const Header = () => {
               ))}
               <div className="border-t border-border pt-4 mt-4">
                 <a
-                  href="tel:+5511999887766"
+                  href={`tel:${siteConfig?.phone || '+5511999887766'}`}
                   className="flex items-center space-x-2 px-3 py-2 text-muted-foreground"
                 >
                   <Phone size={18} />
-                  <span>(11) 99988-7766</span>
+                  <span>{phoneNumber}</span>
                 </a>
                 <a
-                  href="https://wa.me/5511999887766?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis."
+                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 px-3 py-2 text-primary"

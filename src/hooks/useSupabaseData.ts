@@ -46,6 +46,7 @@ export interface SiteConfig {
   about_title: string | null;
   about_text: string | null;
   about_image_url: string | null;
+  about_image_position: 'top' | 'center' | 'bottom' | null;
   footer_text: string | null;
   phone: string | null;
   whatsapp: string | null;
