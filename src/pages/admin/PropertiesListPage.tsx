@@ -285,14 +285,14 @@ const PropertiesListPage = () => {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {properties.map((property) => (
                 <Card 
                   key={property.id} 
-                  className="border-0 shadow-sm overflow-hidden group hover:shadow-lg transition-all duration-300"
+                  className="border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300"
                 >
                   {/* Image */}
-                  <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+                  <div className="relative aspect-[16/10] bg-muted overflow-hidden">
                     {property.thumbnail ? (
                       <img 
                         src={property.thumbnail} 
@@ -301,31 +301,30 @@ const PropertiesListPage = () => {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ImageIcon className="h-12 w-12 text-muted-foreground/40" />
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
                       </div>
                     )}
                     
                     {/* Overlays */}
-                    <div className="absolute top-3 left-3 flex gap-2">
+                    <div className="absolute top-2 left-2 flex gap-1.5">
                       {getStatusBadge(property.status)}
                       {property.featured && (
-                        <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950">
-                          <Star className="h-3 w-3 mr-1 fill-current" />
-                          Destaque
+                        <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950 text-xs px-1.5 py-0.5">
+                          <Star className="h-2.5 w-2.5 fill-current" />
                         </Badge>
                       )}
                     </div>
 
                     {/* Actions */}
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-2 right-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button 
                             size="icon" 
                             variant="secondary" 
-                            className="h-8 w-8 bg-background/80 backdrop-blur-sm hover:bg-background"
+                            className="h-6 w-6 bg-background/80 backdrop-blur-sm hover:bg-background"
                           >
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -358,42 +357,33 @@ const PropertiesListPage = () => {
                     </div>
 
                     {/* Price */}
-                    <div className="absolute bottom-3 left-3">
-                      <span className="bg-background/90 backdrop-blur-sm text-foreground font-bold px-3 py-1.5 rounded-lg text-sm">
+                    <div className="absolute bottom-2 left-2">
+                      <span className="bg-background/90 backdrop-blur-sm text-foreground font-semibold px-2 py-1 rounded text-xs">
                         {formatPrice(property.price)}
-                      </span>
-                    </div>
-
-                    {/* Views */}
-                    <div className="absolute bottom-3 right-3">
-                      <span className="bg-background/80 backdrop-blur-sm text-muted-foreground px-2 py-1 rounded text-xs flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {property.views}
                       </span>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold line-clamp-1 mb-2 group-hover:text-primary transition-colors">
+                  <CardContent className="p-2.5">
+                    <h3 className="font-medium text-sm line-clamp-1 mb-1 group-hover:text-primary transition-colors">
                       {property.title}
                     </h3>
                     
-                    <div className="flex items-center gap-1.5 text-muted-foreground text-sm mb-3">
-                      <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                    <div className="flex items-center gap-1 text-muted-foreground text-xs mb-1.5">
+                      <MapPin className="h-3 w-3 flex-shrink-0" />
                       <span className="line-clamp-1">
-                        {property.address_neighborhood ? `${property.address_neighborhood}, ` : ''}
                         {property.address_city} - {property.address_state}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1 capitalize">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-0.5 capitalize">
                         {getTypeIcon(property.type)}
                         {property.type}
                       </span>
                       {property.bedrooms > 0 && (
-                        <span>{property.bedrooms} quartos</span>
+                        <span>{property.bedrooms}q</span>
                       )}
                       {property.area > 0 && (
                         <span>{property.area}m²</span>
