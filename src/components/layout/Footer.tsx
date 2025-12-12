@@ -30,6 +30,10 @@ const Footer = () => {
                     <span className="text-primary-foreground font-bold text-xl">V</span>
                   </div>
                 )}
+                <div className="mt-2 space-y-1">
+                  <p className="text-sm text-neutral-400">📍 CRECI-DF: 29588</p>
+                  <p className="text-sm text-neutral-400">📍 CRECI-GO: 42119</p>
+                </div>
               </div>
               <p className="text-neutral-300 mb-6 max-w-md">
                 {siteConfig?.about_text?.substring(0, 200) || 'Especializada em imóveis de alto padrão em São Paulo. Com mais de 10 anos de experiência, oferecemos um atendimento personalizado para encontrar o imóvel dos seus sonhos.'}
