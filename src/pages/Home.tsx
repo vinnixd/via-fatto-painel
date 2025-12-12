@@ -435,7 +435,7 @@ const Home = () => {
                 o imóvel <span className="text-primary">perfeito</span> para você
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                {siteConfig?.about_text || 'Com mais de uma década de experiência no mercado imobiliário de São Paulo, dedico-me a oferecer um atendimento personalizado e encontrar o imóvel perfeito para cada cliente. Especializada em imóveis de alto padrão nas regiões mais valorizadas da capital.'}
+                {siteConfig?.about_text || 'Com mais de uma década de experiência no mercado imobiliário de Brasília DF, dedico-me a oferecer um atendimento personalizado e encontrar o imóvel perfeito para cada cliente. Especializada em imóveis de alto padrão nas regiões mais valorizadas da capital.'}
               </p>
               
               {/* Stats */}

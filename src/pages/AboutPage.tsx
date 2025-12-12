@@ -25,7 +25,7 @@ const AboutPage = () => {
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                {siteConfig?.about_text || 'Corretora de imóveis especializada em propriedades de alto padrão em São Paulo, com mais de uma década de experiência e centenas de clientes satisfeitos.'}
+                {siteConfig?.about_text || 'Corretora de imóveis especializada em propriedades de alto padrão em Brasília DF, com mais de uma década de experiência e centenas de clientes satisfeitos.'}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
@@ -95,7 +95,7 @@ const AboutPage = () => {
                 <h2 className="text-2xl font-bold mb-6">Nossa História</h2>
                 <div className="space-y-4 text-muted-foreground leading-relaxed">
                   <p>
-                    Há mais de 10 anos atuamos no mercado imobiliário de São Paulo, 
+                    Há mais de 10 anos atuamos no mercado imobiliário de Brasília DF, 
                     sempre com foco em oferecer um atendimento diferenciado e 
                     personalizado para cada cliente.
                   </p>
@@ -106,8 +106,8 @@ const AboutPage = () => {
                   </p>
                   <p>
                     Especializados em imóveis de alto padrão nas regiões mais 
-                    valorizadas de São Paulo, como Jardins, Vila Madalena, 
-                    Moema e Alphaville.
+                    valorizadas de Brasília DF, como Lago Sul, Lago Norte, 
+                    Sudoeste e Park Way.
                   </p>
                 </div>
               </div>

@@ -9,7 +9,7 @@ const Footer = () => {
   const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
   const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
   const email = siteConfig?.email || 'contato@viafatto.com.br';
-  const address = siteConfig?.address || 'Rua Augusta, 1234\nJardins - São Paulo/SP\nCEP: 01305-100';
+  const address = siteConfig?.address || 'SCLRN 714 Bloco G\nAsa Norte - Brasília/DF\nCEP: 70760-507';
   const footerText = siteConfig?.footer_text || '© 2024 Via Fatto Imóveis. Todos os direitos reservados.';
 
   return (
@@ -37,7 +37,7 @@ const Footer = () => {
                 </div>
               </div>
               <p className="text-neutral-300 mb-6 max-w-md">
-                {siteConfig?.about_text?.substring(0, 200) || 'Especializada em imóveis de alto padrão em São Paulo. Com mais de 10 anos de experiência, oferecemos um atendimento personalizado para encontrar o imóvel dos seus sonhos.'}
+                {siteConfig?.about_text?.substring(0, 200) || 'Especializada em imóveis de alto padrão em Brasília DF. Com mais de 10 anos de experiência, oferecemos um atendimento personalizado para encontrar o imóvel dos seus sonhos.'}
                 {siteConfig?.about_text && siteConfig.about_text.length > 200 ? '...' : ''}
               </p>
               <div className="flex space-x-4">
