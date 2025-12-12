@@ -37,10 +37,10 @@ const FaviconManager = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <FaviconManager />
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <FaviconManager />
         <AuthProvider>
           <Routes>
             {/* Public Routes */}
