@@ -50,6 +50,7 @@ interface SiteConfig {
   about_title: string;
   about_text: string;
   about_image_url: string;
+  about_image_position: 'top' | 'center' | 'bottom';
   footer_text: string;
   phone: string;
   email: string;
@@ -145,6 +146,7 @@ const DesignerPage = () => {
           about_title: config.about_title,
           about_text: config.about_text,
           about_image_url: config.about_image_url,
+          about_image_position: config.about_image_position,
           footer_text: config.footer_text,
           phone: config.phone,
           email: config.email,
@@ -594,14 +596,19 @@ const DesignerPage = () => {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-6">
                     <div className="flex items-center gap-6">
                       {config.about_image_url ? (
-                        <img 
-                          src={config.about_image_url} 
-                          alt="About" 
-                          className="w-32 h-32 object-cover rounded-xl"
-                        />
+                        <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-border">
+                          <img 
+                            src={config.about_image_url} 
+                            alt="About" 
+                            className="w-full h-full object-cover"
+                            style={{ 
+                              objectPosition: config.about_image_position === 'top' ? 'top' : config.about_image_position === 'bottom' ? 'bottom' : 'center' 
+                            }}
+                          />
+                        </div>
                       ) : (
                         <div className="w-32 h-32 rounded-xl bg-muted flex items-center justify-center">
                           <Image className="h-8 w-8 text-muted-foreground" />
@@ -620,6 +627,31 @@ const DesignerPage = () => {
                           onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'about_image_url')}
                         />
                       </Label>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Posição da Imagem</Label>
+                      <p className="text-xs text-muted-foreground">Ajuste qual parte da foto deve ser exibida</p>
+                      <div className="flex gap-2">
+                        {[
+                          { value: 'top', label: 'Topo' },
+                          { value: 'center', label: 'Centro' },
+                          { value: 'bottom', label: 'Base' },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => setConfig({ ...config, about_image_position: option.value as 'top' | 'center' | 'bottom' })}
+                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              config.about_image_position === option.value
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted hover:bg-muted/80 text-foreground'
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

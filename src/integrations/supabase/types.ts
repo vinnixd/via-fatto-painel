@@ -306,6 +306,7 @@ export type Database = {
       }
       site_config: {
         Row: {
+          about_image_position: string | null
           about_image_url: string | null
           about_text: string | null
           about_title: string | null
@@ -335,6 +336,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          about_image_position?: string | null
           about_image_url?: string | null
           about_text?: string | null
           about_title?: string | null
@@ -364,6 +366,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          about_image_position?: string | null
           about_image_url?: string | null
           about_text?: string | null
           about_title?: string | null
