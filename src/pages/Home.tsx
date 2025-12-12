@@ -425,36 +425,73 @@ const Home = () => {
       </section>
 
       {/* About Preview */}
-      <section className="py-16">
+      <section className="py-20 bg-background">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
                 A melhor maneira de encontrar
                 <br />
                 o imóvel <span className="text-primary">perfeito</span> para você
               </h2>
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                {siteConfig?.about_text || 'Com anos de experiência no mercado imobiliário, oferecemos um serviço personalizado para ajudá-lo a encontrar ou vender seu imóvel com segurança e tranquilidade.'}
+              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                {siteConfig?.about_text || 'Com mais de uma década de experiência no mercado imobiliário de São Paulo, dedico-me a oferecer um atendimento personalizado e encontrar o imóvel perfeito para cada cliente. Especializada em imóveis de alto padrão nas regiões mais valorizadas da capital.'}
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Link to="/sobre" className="btn-primary">
-                  Saiba mais
-                </Link>
-                <Link to="/contato" className="btn-secondary">
-                  Entre em contato
-                </Link>
+              
+              {/* Stats */}
+              <div className="flex gap-8 mb-8">
+                <div>
+                  <div className="text-2xl font-bold text-primary">500+</div>
+                  <div className="text-sm text-muted-foreground">Vendas</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">10+</div>
+                  <div className="text-sm text-muted-foreground">Anos</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">98%</div>
+                  <div className="text-sm text-muted-foreground">Satisfação</div>
+                </div>
               </div>
+              
+              <Link to="/sobre" className="btn-primary">
+                Conhecer Mais
+              </Link>
             </div>
             <div className="relative">
-              <div className="aspect-video bg-neutral-200 rounded-2xl overflow-hidden">
+              <div className="rounded-2xl overflow-hidden">
                 <img
-                  src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop"}
+                  src={siteConfig?.about_image_url || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&h=600&fit=crop"}
                   alt="Via Fatto Imóveis"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover grayscale"
                 />
               </div>
+              {/* CRECI Badge */}
+              <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-6 py-3 rounded-lg shadow-lg">
+                <div className="text-sm font-bold">CRECI-SP</div>
+                <div className="text-lg font-bold">123456</div>
+              </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-neutral-900 text-white">
+        <div className="container text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Pronto para Encontrar Seu Novo Lar?
+          </h2>
+          <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
+            Entre em contato e deixe nossa expertise trabalhar para você. Atendimento personalizado e resultados garantidos.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link to="/contato" className="btn-primary">
+              Agendar Consulta
+            </Link>
+            <Link to="/contato" className="border border-neutral-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-neutral-800 transition-colors">
+              Entrar em Contato
+            </Link>
           </div>
         </div>
       </section>
