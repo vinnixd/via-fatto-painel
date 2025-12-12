@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
@@ -29,10 +28,14 @@ const menuItems = [
   { icon: User, label: 'Meu Perfil', path: '/admin/perfil' },
 ];
 
-const AdminSidebar = () => {
+interface AdminSidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <aside
@@ -51,15 +54,26 @@ const AdminSidebar = () => {
             <span className="font-bold text-lg">Imobiliária</span>
           </Link>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className="text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800"
-        >
-          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-        </Button>
+        {collapsed && (
+          <Link to="/admin" className="mx-auto">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-primary-foreground" />
+            </div>
+          </Link>
+        )}
       </div>
+
+      {/* Toggle Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onToggle}
+        className={cn(
+          'absolute top-4 -right-3 h-6 w-6 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 z-50',
+        )}
+      >
+        {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </Button>
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
@@ -72,8 +86,10 @@ const AdminSidebar = () => {
               <li key={item.path}>
                 <Link
                   to={item.path}
+                  title={collapsed ? item.label : undefined}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                    collapsed && 'justify-center px-0',
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
@@ -98,6 +114,7 @@ const AdminSidebar = () => {
         <Button
           variant="ghost"
           onClick={signOut}
+          title={collapsed ? 'Sair' : undefined}
           className={cn(
             'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800',
             collapsed ? 'w-full justify-center px-0' : 'w-full justify-start'
