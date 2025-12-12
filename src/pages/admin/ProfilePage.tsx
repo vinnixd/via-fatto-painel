@@ -4,29 +4,30 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2, User, Mail, Phone, Shield, Camera } from 'lucide-react';
+import { Loader2, User, Mail, Phone, Shield, Camera, Lock, Check } from 'lucide-react';
 
 interface Profile {
   id: string;
   name: string;
   email: string;
-  phone: string;
-  creci: string;
-  avatar_url: string;
+  phone: string | null;
+  creci: string | null;
+  avatar_url: string | null;
 }
 
 const ProfilePage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [passwords, setPasswords] = useState({
-    current: '',
     new: '',
     confirm: '',
   });
@@ -50,7 +51,6 @@ const ProfilePage = () => {
       if (data) {
         setProfile(data);
       } else {
-        // Create profile if doesn't exist
         const { data: newProfile, error: insertError } = await supabase
           .from('profiles')
           .insert({
@@ -74,10 +74,11 @@ const ProfilePage = () => {
 
   const handleAvatarUpload = async (file: File) => {
     if (!profile) return;
+    setUploadingAvatar(true);
 
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `avatars/${profile.id}.${fileExt}`;
+      const fileName = `avatars/${profile.id}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('site-assets')
@@ -89,11 +90,23 @@ const ProfilePage = () => {
         .from('site-assets')
         .getPublicUrl(fileName);
 
-      setProfile({ ...profile, avatar_url: urlData.publicUrl });
-      toast.success('Foto atualizada!');
+      const newAvatarUrl = urlData.publicUrl;
+      
+      // Update in database immediately
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: newAvatarUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, avatar_url: newAvatarUrl });
+      toast.success('Foto atualizada com sucesso!');
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Erro ao enviar foto');
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -146,13 +159,24 @@ const ProfilePage = () => {
       if (error) throw error;
 
       toast.success('Senha alterada com sucesso!');
-      setPasswords({ current: '', new: '', confirm: '' });
+      setPasswords({ new: '', confirm: '' });
     } catch (error: any) {
       console.error('Error changing password:', error);
       toast.error(error.message || 'Erro ao alterar senha');
     } finally {
       setSaving(false);
     }
+  };
+
+  const getInitials = (name?: string | null, email?: string) => {
+    if (name && name.trim()) {
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+    return email?.substring(0, 2).toUpperCase() || 'AD';
   };
 
   if (loading) {
@@ -169,78 +193,121 @@ const ProfilePage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Meu Perfil" subtitle="Gerencie suas informações pessoais" />
+      <AdminHeader title="Meu Perfil" subtitle="Gerencie suas informações pessoais e segurança" />
       
-      <div className="p-6 max-w-3xl">
-        <div className="space-y-6">
-          {/* Profile Info */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                Informações Pessoais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Avatar */}
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={profile.avatar_url} />
-                    <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
-                      {profile.name?.substring(0, 2).toUpperCase() || 'AD'}
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Profile Header Card */}
+          <Card className="border-0 shadow-sm overflow-hidden">
+            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+            <CardContent className="relative pt-0 pb-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
+                {/* Avatar with upload */}
+                <div className="relative group">
+                  <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
+                    <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
+                    <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
+                      {getInitials(profile.name, profile.email)}
                     </AvatarFallback>
                   </Avatar>
-                  <label className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
-                    <Camera className="h-4 w-4 text-primary-foreground" />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-white" />
+                    )}
                     <input
                       type="file"
                       accept="image/*"
                       className="hidden"
+                      disabled={uploadingAvatar}
                       onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
                     />
                   </label>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">{profile.name || 'Sem nome'}</h3>
-                  <p className="text-muted-foreground">{profile.email}</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Name and email */}
+                <div className="flex-1 min-w-0 pb-1">
+                  <h2 className="text-2xl font-bold text-foreground truncate">
+                    {profile.name || 'Seu Nome'}
+                  </h2>
+                  <p className="text-muted-foreground flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    {profile.email}
+                  </p>
+                </div>
+
+                {/* Save button */}
+                <Button onClick={handleSaveProfile} disabled={saving} className="shrink-0">
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Check className="h-4 w-4 mr-2" />
+                  )}
+                  Salvar Alterações
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Personal Info Card */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Informações Pessoais
+                </CardTitle>
+                <CardDescription>
+                  Atualize seus dados pessoais e informações de contato
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nome Completo</Label>
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Nome Completo
+                  </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="name"
-                      className="pl-10"
-                      value={profile.name}
+                      className="pl-10 h-11"
+                      value={profile.name || ''}
                       onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                      placeholder="Digite seu nome completo"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email
+                  </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="email"
-                      className="pl-10 bg-muted"
+                      className="pl-10 h-11 bg-muted/50"
                       value={profile.email}
                       disabled
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    O email não pode ser alterado
+                  </p>
                 </div>
 
+                <Separator />
+
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    Telefone / WhatsApp
+                  </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="phone"
-                      className="pl-10"
+                      className="pl-10 h-11"
                       value={profile.phone || ''}
                       onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                       placeholder="(00) 00000-0000"
@@ -249,67 +316,81 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="creci">CRECI</Label>
+                  <Label htmlFor="creci" className="text-sm font-medium">
+                    CRECI
+                  </Label>
                   <div className="relative">
                     <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="creci"
-                      className="pl-10"
+                      className="pl-10 h-11"
                       value={profile.creci || ''}
                       onChange={(e) => setProfile({ ...profile, creci: e.target.value })}
-                      placeholder="000000-F"
+                      placeholder="CRECI-DF: 00000"
                     />
                   </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="flex justify-end">
-                <Button onClick={handleSaveProfile} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Salvar Alterações
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Security Card */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Lock className="h-5 w-5 text-primary" />
+                  Segurança
+                </CardTitle>
+                <CardDescription>
+                  Altere sua senha para manter sua conta segura
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="text-sm font-medium">
+                      Nova Senha
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="new-password"
+                        type="password"
+                        className="pl-10 h-11"
+                        value={passwords.new}
+                        onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
 
-          {/* Change Password */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Alterar Senha
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Nova Senha</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={passwords.new}
-                    onChange={(e) => setPasswords({ ...passwords, new: e.target.value })}
-                    placeholder="••••••••"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="text-sm font-medium">
+                      Confirmar Nova Senha
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        className="pl-10 h-11"
+                        value={passwords.confirm}
+                        onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      A senha deve ter pelo menos 6 caracteres
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={passwords.confirm}
-                    onChange={(e) => setPasswords({ ...passwords, confirm: e.target.value })}
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <Button type="submit" disabled={saving}>
-                  Alterar Senha
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <Button type="submit" disabled={saving || !passwords.new} className="w-full h-11">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Alterar Senha
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AdminLayout>
