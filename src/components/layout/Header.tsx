@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, MessageCircle } from 'lucide-react';
+import { Menu, X, Phone } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -72,7 +73,7 @@ const Header = () => {
               rel="noopener noreferrer"
               className="btn-primary flex items-center space-x-2"
             >
-              <MessageCircle size={18} />
+              <WhatsAppIcon size={18} />
               <span>WhatsApp</span>
             </a>
           </div>
@@ -116,7 +117,7 @@ const Header = () => {
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 px-3 py-2 text-primary"
                 >
-                  <MessageCircle size={18} />
+                  <WhatsAppIcon size={18} />
                   <span>WhatsApp</span>
                 </a>
               </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, Ch
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useProperty, useSiteConfig } from '@/hooks/useSupabaseData';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 const PropertyPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -284,8 +285,9 @@ const PropertyPage = () => {
                   href={getWhatsAppUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-primary w-full text-center block"
+                  className="btn-primary w-full text-center flex items-center justify-center gap-2"
                 >
+                  <WhatsAppIcon size={18} />
                   Falar no WhatsApp
                 </a>
               </div>

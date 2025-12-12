@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin, MessageCircle, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
+import { Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
+import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 
 const Footer = () => {
   const { data: siteConfig } = useSiteConfig();
@@ -136,7 +137,7 @@ const Footer = () => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors mt-4"
                 >
-                  <MessageCircle size={16} />
+                  <WhatsAppIcon size={16} />
                   <span>Falar no WhatsApp</span>
                 </a>
               </div>
