@@ -30,9 +30,9 @@ const Footer = () => {
                     <span className="text-primary-foreground font-bold text-xl">V</span>
                   </div>
                 )}
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm text-neutral-400">📍 CRECI-DF: 29588</p>
-                  <p className="text-sm text-neutral-400">📍 CRECI-GO: 42119</p>
+                <div className="mt-2 flex items-center gap-4">
+                  <p className="text-sm text-neutral-400">CRECI-DF: 29588</p>
+                  <p className="text-sm text-neutral-400">CRECI-GO: 42119</p>
                 </div>
               </div>
               <p className="text-neutral-300 mb-6 max-w-md">
