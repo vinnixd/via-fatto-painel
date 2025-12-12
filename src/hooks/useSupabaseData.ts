@@ -37,6 +37,7 @@ export interface PropertyFromDB {
 export interface SiteConfig {
   id: string;
   logo_url: string | null;
+  favicon_url: string | null;
   primary_color: string | null;
   secondary_color: string | null;
   accent_color: string | null;

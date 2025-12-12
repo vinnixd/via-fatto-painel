@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useFavicon } from "@/hooks/useFavicon";
 import Index from "./pages/Index";
 import PropertyPage from "./pages/PropertyPage";
 import PropertiesPage from "./pages/PropertiesPage";
@@ -27,9 +28,16 @@ import ImportPage from "./pages/admin/ImportPage";
 
 const queryClient = new QueryClient();
 
+// Component to apply favicon
+const FaviconManager = () => {
+  useFavicon();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <FaviconManager />
       <Toaster />
       <Sonner />
       <BrowserRouter>

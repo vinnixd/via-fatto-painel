@@ -41,6 +41,7 @@ import { Link } from 'react-router-dom';
 interface SiteConfig {
   id: string;
   logo_url: string;
+  favicon_url: string;
   primary_color: string;
   secondary_color: string;
   accent_color: string;
@@ -137,6 +138,7 @@ const DesignerPage = () => {
         .from('site_config')
         .update({
           logo_url: config.logo_url,
+          favicon_url: config.favicon_url,
           primary_color: config.primary_color,
           secondary_color: config.secondary_color,
           accent_color: config.accent_color,
@@ -360,6 +362,84 @@ const DesignerPage = () => {
                           />
                         </Label>
                         <p className="text-xs text-muted-foreground">PNG, JPG ou SVG. Máx 2MB.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Favicon Upload */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-orange-500/10 rounded-lg">
+                        <Globe className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div>
+                        <CardTitle>Ícone do Site (Favicon)</CardTitle>
+                        <CardDescription>O ícone que aparece na aba do navegador e nos favoritos</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="relative group">
+                          {config.favicon_url ? (
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
+                              <img src={config.favicon_url} alt="Favicon" className="w-12 h-12 object-contain" />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border-2 border-dashed border-border">
+                              <Globe className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Browser Preview */}
+                        {config.favicon_url && (
+                          <div className="bg-neutral-800 rounded-lg p-2 flex items-center gap-2">
+                            <div className="flex gap-1.5 px-2">
+                              <div className="w-3 h-3 rounded-full bg-neutral-600"></div>
+                              <div className="w-3 h-3 rounded-full bg-neutral-600"></div>
+                              <div className="w-3 h-3 rounded-full bg-neutral-600"></div>
+                            </div>
+                            <div className="bg-neutral-700 rounded px-3 py-1 flex items-center gap-2 text-white text-xs">
+                              <img src={config.favicon_url} alt="Favicon Preview" className="w-4 h-4 object-contain" />
+                              <span className="truncate max-w-[100px]">{config.seo_title || 'Via Fatto...'}</span>
+                              <span className="text-neutral-400">×</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="favicon-upload" className="cursor-pointer">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                              <Upload className="h-4 w-4" />
+                              {config.favicon_url ? 'Alterar ícone' : 'Enviar ícone'}
+                            </div>
+                            <Input
+                              id="favicon-upload"
+                              type="file"
+                              accept="image/png,image/x-icon,image/svg+xml"
+                              className="hidden"
+                              onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'favicon_url')}
+                            />
+                          </Label>
+                          {config.favicon_url && (
+                            <Button 
+                              variant="ghost" 
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setConfig({ ...config, favicon_url: '' })}
+                            >
+                              Remover ícone
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Deve ser quadrado e ter pelo menos <span className="font-mono bg-muted px-1 rounded">512</span> por <span className="font-mono bg-muted px-1 rounded">512</span> píxeis.
+                        </p>
                       </div>
                     </div>
                   </CardContent>

@@ -320,6 +320,7 @@ export type Database = {
           address: string | null
           created_at: string
           email: string | null
+          favicon_url: string | null
           footer_links: Json | null
           footer_text: string | null
           hero_background_url: string | null
@@ -350,6 +351,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          favicon_url?: string | null
           footer_links?: Json | null
           footer_text?: string | null
           hero_background_url?: string | null
@@ -380,6 +382,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           email?: string | null
+          favicon_url?: string | null
           footer_links?: Json | null
           footer_text?: string | null
           hero_background_url?: string | null
