@@ -23,12 +23,12 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
-  { icon: Upload, label: 'Importar CSV', path: '/admin/importar' },
+  { icon: Upload, label: 'Importar CSV', path: '/admin/importar', indent: true },
   { icon: FolderOpen, label: 'Categorias', path: '/admin/categorias' },
-  { icon: User, label: 'Meu Perfil', path: '/admin/perfil' },
   { icon: Globe, label: 'Configurações', path: '/admin/configuracoes' },
   { icon: Heart, label: 'Favoritos', path: '/admin/favoritos' },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
+  { icon: User, label: 'Meu Perfil', path: '/admin/perfil' },
 ];
 
 const AdminSidebar = () => {
@@ -76,12 +76,13 @@ const AdminSidebar = () => {
                   to={item.path}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                    item.indent && 'ml-4 text-sm',
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
                   )}
                 >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <item.icon className={cn('flex-shrink-0', item.indent ? 'h-4 w-4' : 'h-5 w-5')} />
                   {!collapsed && <span className="font-medium">{item.label}</span>}
                 </Link>
               </li>
