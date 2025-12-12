@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Search, Pencil, Trash2, Eye, Star, Loader2, Upload } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Eye, Star, Loader2, Upload, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Property {
@@ -39,6 +39,7 @@ interface Property {
   created_at: string;
   address_city: string;
   address_state: string;
+  thumbnail?: string;
 }
 
 const PropertiesListPage = () => {
@@ -70,7 +71,24 @@ const PropertiesListPage = () => {
 
       if (error) throw error;
 
-      setProperties(data || []);
+      // Fetch thumbnails for each property
+      const propertiesWithThumbnails = await Promise.all(
+        (data || []).map(async (property) => {
+          const { data: images } = await supabase
+            .from('property_images')
+            .select('url')
+            .eq('property_id', property.id)
+            .order('order_index', { ascending: true })
+            .limit(1);
+          
+          return {
+            ...property,
+            thumbnail: images?.[0]?.url || null
+          };
+        })
+      );
+
+      setProperties(propertiesWithThumbnails);
       setTotalPages(Math.ceil((count || 0) / itemsPerPage));
     } catch (error) {
       console.error('Error fetching properties:', error);
@@ -197,8 +215,23 @@ const PropertiesListPage = () => {
                       {properties.map((property) => (
                         <TableRow key={property.id}>
                           <TableCell>
-                            <p className="font-medium line-clamp-1">{property.title}</p>
-                            <p className="text-xs text-muted-foreground capitalize">{property.type}</p>
+                            <div className="flex items-center gap-3">
+                              {property.thumbnail ? (
+                                <img 
+                                  src={property.thumbnail} 
+                                  alt={property.title}
+                                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                                  <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium line-clamp-1">{property.title}</p>
+                                <p className="text-xs text-muted-foreground capitalize">{property.type}</p>
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <p className="text-sm">{property.address_city}, {property.address_state}</p>
