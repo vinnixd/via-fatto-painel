@@ -69,7 +69,7 @@ export const useProperties = (options?: { featured?: boolean; limit?: number; st
       let query = supabase
         .from('properties')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('order_index', { ascending: true });
 
       if (options?.featured) {
         query = query.eq('featured', true);
