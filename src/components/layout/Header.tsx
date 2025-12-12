@@ -28,17 +28,16 @@ const Header = () => {
       <div className="container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
-            {siteConfig?.logo_url ? (
+          <Link to="/" className="flex-shrink-0 flex items-center space-x-2">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-foreground font-bold text-xl">V</span>
+            </div>
+            {siteConfig?.logo_url && (
               <img 
                 src={siteConfig.logo_url} 
                 alt="Logo" 
-                className="h-12 max-w-[200px] w-auto object-contain"
+                className="h-10 max-w-[180px] w-auto object-contain"
               />
-            ) : (
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">V</span>
-              </div>
             )}
           </Link>
 
