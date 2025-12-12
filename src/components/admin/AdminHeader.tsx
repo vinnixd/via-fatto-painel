@@ -58,7 +58,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 hover:bg-muted/50">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={profile?.avatar_url || ''} alt={displayName} />
+                <AvatarImage src={profile?.avatar_url || ''} alt={displayName} className="object-cover" />
                 <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                   {getInitials(profile?.name, profile?.email)}
                 </AvatarFallback>
