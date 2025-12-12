@@ -77,6 +77,7 @@ interface FormData {
   financing: boolean;
   documentation: DocumentationStatus;
   featured: boolean;
+  active: boolean;
   features: string[];
   amenities: string[];
   reference: string;
@@ -126,6 +127,7 @@ const PropertyFormPage = () => {
     financing: false,
     documentation: 'regular',
     featured: false,
+    active: true,
     features: [],
     amenities: [],
     reference: '',
@@ -179,6 +181,7 @@ const PropertyFormPage = () => {
         financing: property.financing || false,
         documentation: property.documentation,
         featured: property.featured || false,
+        active: property.active !== false,
         features: property.features || [],
         amenities: property.amenities || [],
         reference: property.reference || '',
@@ -299,6 +302,7 @@ const PropertyFormPage = () => {
         financing: formData.financing,
         documentation: formData.documentation,
         featured: formData.featured,
+        active: formData.active,
         features: formData.features,
         amenities: formData.amenities,
         reference: formData.reference,
@@ -627,6 +631,19 @@ const PropertyFormPage = () => {
                     <Separator />
 
                     <div className="flex flex-wrap gap-6">
+                      <div className="flex items-center gap-3 p-4 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                        <Switch
+                          checked={formData.active}
+                          onCheckedChange={(v) => setFormData({ ...formData, active: v })}
+                        />
+                        <div>
+                          <Label className="flex items-center gap-2 cursor-pointer">
+                            <Check className="h-4 w-4 text-primary" />
+                            Imóvel Ativo
+                          </Label>
+                          <p className="text-xs text-muted-foreground">Visível no site público</p>
+                        </div>
+                      </div>
                       <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                         <Switch
                           checked={formData.featured}

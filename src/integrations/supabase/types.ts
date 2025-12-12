@@ -155,6 +155,7 @@ export type Database = {
       }
       properties: {
         Row: {
+          active: boolean
           address_city: string
           address_lat: number | null
           address_lng: number | null
@@ -191,6 +192,7 @@ export type Database = {
           views: number
         }
         Insert: {
+          active?: boolean
           address_city?: string
           address_lat?: number | null
           address_lng?: number | null
@@ -227,6 +229,7 @@ export type Database = {
           views?: number
         }
         Update: {
+          active?: boolean
           address_city?: string
           address_lat?: number | null
           address_lng?: number | null

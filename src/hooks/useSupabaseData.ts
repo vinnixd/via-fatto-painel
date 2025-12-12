@@ -69,6 +69,7 @@ export const useProperties = (options?: { featured?: boolean; limit?: number; st
       let query = supabase
         .from('properties')
         .select('*')
+        .eq('active', true)
         .order('order_index', { ascending: true });
 
       if (options?.featured) {
