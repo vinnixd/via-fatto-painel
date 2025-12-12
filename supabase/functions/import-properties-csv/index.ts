@@ -141,7 +141,7 @@ function parseInt(value: string): number {
 async function downloadAndUploadImage(
   supabase: any,
   imageUrl: string,
-  propertyId: string,
+  propertySlug: string,
   index: number
 ): Promise<string | null> {
   try {
@@ -162,14 +162,15 @@ async function downloadAndUploadImage(
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Extract file extension
+    // Extract file extension from original URL
     const urlPath = new URL(imageUrl).pathname;
     let ext = urlPath.split('.').pop()?.toLowerCase() || 'jpg';
     if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
       ext = 'jpg';
     }
     
-    const fileName = `${propertyId}/${Date.now()}-${index}.${ext}`;
+    // Use slug-based naming for cleaner file organization
+    const fileName = `${propertySlug}/${propertySlug}-${index}.${ext}`;
     
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('property-images')
@@ -382,7 +383,7 @@ serve(async (req) => {
         
         for (let imgIndex = 0; imgIndex < imageUrls.length; imgIndex++) {
           const imageUrl = imageUrls[imgIndex];
-          const uploadedUrl = await downloadAndUploadImage(supabase, imageUrl, propertyId, imgIndex);
+          const uploadedUrl = await downloadAndUploadImage(supabase, imageUrl, slug, imgIndex);
           
           if (uploadedUrl) {
             const { error: imageInsertError } = await supabase
