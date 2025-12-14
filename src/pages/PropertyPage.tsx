@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useProperty, useSiteConfig } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 const PropertyPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -13,6 +14,7 @@ const PropertyPage = () => {
   const { data: siteConfig } = useSiteConfig();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   useEffect(() => {
     if (property) {
@@ -116,29 +118,36 @@ const PropertyPage = () => {
                 <img
                   src={images[currentImageIndex]}
                   alt={property.title}
-                  className="w-full h-[400px] md:h-[500px] object-cover rounded-xl"
+                  className="w-full h-[400px] md:h-[500px] object-cover rounded-xl cursor-pointer"
+                  onClick={() => setIsGalleryOpen(true)}
                 />
                 
                 {/* Image Navigation */}
                 {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                    {images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`w-3 h-3 rounded-full ${
-                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
+                  <>
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+                    >
+                      <ChevronLeft size={24} />
+                    </button>
+                    <button
+                      onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
+                    >
+                      <ChevronRight size={24} />
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+                      {currentImageIndex + 1} / {images.length}
+                    </div>
+                  </>
                 )}
               </div>
 
               {/* Thumbnail Grid */}
               {images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {images.slice(0, 4).map((image, index) => (
+                <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                  {images.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
@@ -149,13 +158,8 @@ const PropertyPage = () => {
                       <img
                         src={image}
                         alt={`${property.title} - ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover hover:opacity-80 transition-opacity"
                       />
-                      {index === 3 && images.length > 4 && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white font-medium">
-                          +{images.length - 4}
-                        </div>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -312,6 +316,70 @@ const PropertyPage = () => {
           </div>
         </div>
       </main>
+
+      {/* Gallery Modal */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="max-w-5xl w-full p-0 bg-black/95 border-0">
+          <div className="relative">
+            <button
+              onClick={() => setIsGalleryOpen(false)}
+              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+            
+            <div className="relative flex items-center justify-center min-h-[60vh]">
+              <img
+                src={images[currentImageIndex]}
+                alt={property.title}
+                className="max-h-[80vh] max-w-full object-contain"
+              />
+              
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                    className="absolute left-4 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                    className="absolute right-4 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                </>
+              )}
+            </div>
+            
+            <div className="text-center text-white py-4">
+              {currentImageIndex + 1} / {images.length}
+            </div>
+            
+            {/* Thumbnails in modal */}
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto px-4 pb-4 justify-center">
+                {images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden ${
+                      index === currentImageIndex ? 'ring-2 ring-white' : 'opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${property.title} - ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>
