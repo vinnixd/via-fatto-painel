@@ -52,7 +52,10 @@ const PropertyPage = () => {
     ? property.images.map(img => img.url) 
     : ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=60'];
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (!price || price === 0) {
+      return 'Consulte';
+    }
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -73,7 +76,8 @@ const PropertyPage = () => {
 
   const getWhatsAppUrl = () => {
     const phone = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
-    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference || property.id} - ${formatPrice(property.price)}. Poderia me passar mais informações?`;
+    const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
+    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference || property.id}${priceText}. Poderia me passar mais informações?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 

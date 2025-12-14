@@ -12,7 +12,10 @@ interface PropertyCardProps {
 const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCardProps) => {
   const [imageError, setImageError] = useState(false);
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (!price || price === 0) {
+      return 'Consulte';
+    }
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
@@ -28,7 +31,8 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   };
 
   const getWhatsAppUrl = () => {
-    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference} - ${formatPrice(property.price)}. Poderia me passar mais informações?`;
+    const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
+    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference}${priceText}. Poderia me passar mais informações?`;
     return `https://wa.me/55${property.broker.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   };
 

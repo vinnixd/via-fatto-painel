@@ -123,6 +123,50 @@ function parseNumber(value: string): number | null {
   return isNaN(num) ? null : num;
 }
 
+/**
+ * Parse price from various formats:
+ * - R$ 1.350.000,00
+ * - 1.350.000,00
+ * - 1350000
+ * - 1350000.00
+ * - 1350000,00
+ */
+function parsePrice(value: string): number | null {
+  if (!value || !value.trim()) return null;
+  
+  // Remove R$, spaces and currency symbols
+  let cleaned = value.replace(/R\$|\s/g, '').trim();
+  
+  if (!cleaned) return null;
+  
+  // Check if it's Brazilian format (1.350.000,00) or standard (1350000.00)
+  const hasBrazilianFormat = cleaned.includes('.') && cleaned.includes(',');
+  const hasOnlyComma = !cleaned.includes('.') && cleaned.includes(',');
+  const hasOnlyDot = cleaned.includes('.') && !cleaned.includes(',');
+  
+  if (hasBrazilianFormat) {
+    // Brazilian format: remove dots (thousands separator), replace comma with dot
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (hasOnlyComma) {
+    // Comma as decimal separator: 1350000,00
+    cleaned = cleaned.replace(',', '.');
+  } else if (hasOnlyDot) {
+    // Could be thousands separator (1.350.000) or decimal (1350000.00)
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      // Multiple dots = thousands separators
+      cleaned = cleaned.replace(/\./g, '');
+    }
+    // Single dot with 2 decimals stays as is (1350000.00)
+  }
+  
+  // Remove any remaining non-numeric characters except decimal point
+  cleaned = cleaned.replace(/[^\d.]/g, '');
+  
+  const num = parseFloat(cleaned);
+  return isNaN(num) || num < 0 ? null : num;
+}
+
 function parseIntValue(value: string): number {
   if (!value) return 0;
   const num = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
@@ -208,13 +252,15 @@ async function processProperty(
     const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
     const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
     
-    const preco = parseNumber(row['Preço'] || row['preco'] || row['Price'] || '');
+    const precoRaw = row['Preço'] || row['preco'] || row['Price'] || row['price'] || '';
+    const preco = parsePrice(precoRaw);
     const quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
     const banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
     const vagas = parseIntValue(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
     const area = parseNumber(row['Área'] || row['area'] || row['Area'] || '');
     
-    const propertyData = {
+    // Build property data - only include price if it was parsed successfully
+    const propertyData: Record<string, unknown> = {
       title,
       slug,
       description,
@@ -224,7 +270,6 @@ async function processProperty(
       status: mapPropertyStatus(finalidade),
       featured: destaque,
       old_url: permalink,
-      price: preco || 0,
       bedrooms: quartos,
       bathrooms: banheiros,
       garages: vagas,
@@ -232,7 +277,12 @@ async function processProperty(
       updated_at: new Date().toISOString()
     };
     
-    console.log(`Processing: ${title} (${slug})`);
+    // Only set price if parsed successfully (don't overwrite existing with 0)
+    if (preco !== null) {
+      propertyData.price = preco;
+    }
+    
+    console.log(`Processing: ${title} (${slug}) - Price: ${preco !== null ? preco : 'not set'}`);
     
     // Check if property exists
     const { data: existingProperty } = await supabase

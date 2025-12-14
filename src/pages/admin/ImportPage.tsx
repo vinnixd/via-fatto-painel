@@ -153,7 +153,11 @@ const ImportPage = () => {
                   <Badge variant="secondary">Tipo do Imóvel</Badge>
                   <Badge variant="secondary">Finalidade</Badge>
                   <Badge variant="secondary">Destaque</Badge>
+                  <Badge variant="outline" className="border-primary text-primary">Preço (opcional)</Badge>
                 </div>
+                <p className="mt-2 text-xs">
+                  <strong>Formatos aceitos para Preço:</strong> R$ 1.350.000,00 | 1.350.000,00 | 1350000 | 1350000.00
+                </p>
               </li>
               <li>
                 <strong className="text-foreground">Faça upload do arquivo</strong> usando o formulário abaixo.
