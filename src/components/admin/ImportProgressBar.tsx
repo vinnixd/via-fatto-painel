@@ -26,22 +26,24 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Fetch current import job
+    // Fetch current import job (only if recent - last 5 minutes)
     const fetchCurrentJob = async () => {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      
       const { data } = await supabase
         .from('import_jobs')
         .select('*')
+        .gte('created_at', fiveMinutesAgo)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
+      // Only show if processing (not cancelled, not old completed jobs)
       if (data && data.status === 'processing') {
         setImportJob(data as ImportJob);
         setIsVisible(true);
-      } else if (data && data.status === 'completed' && !data.completed_at) {
-        // Just completed
-        setImportJob(data as ImportJob);
-        setIsVisible(true);
+      } else {
+        setIsVisible(false);
       }
     };
 
