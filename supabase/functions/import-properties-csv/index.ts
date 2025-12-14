@@ -236,6 +236,7 @@ async function processProperty(
   lineNumber: number
 ): Promise<{ success: boolean; created: boolean; updated: boolean; imagesCount: number; error?: string }> {
   try {
+    // ALWAYS use Title column - never generate from Content
     const title = row['Title'] || row['title'] || '';
     if (!title) {
       return { success: false, created: false, updated: false, imagesCount: 0, error: 'Título vazio' };
@@ -252,14 +253,16 @@ async function processProperty(
     const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
     const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
     
+    // Always try to parse price from multiple possible column names
     const precoRaw = row['Preço'] || row['preco'] || row['Price'] || row['price'] || '';
     const preco = parsePrice(precoRaw);
+    
     const quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
     const banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
     const vagas = parseIntValue(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
     const area = parseNumber(row['Área'] || row['area'] || row['Area'] || '');
     
-    // Build property data - only include price if it was parsed successfully
+    // Build property data
     const propertyData: Record<string, unknown> = {
       title,
       slug,
@@ -277,14 +280,14 @@ async function processProperty(
       updated_at: new Date().toISOString()
     };
     
-    // Only set price if parsed successfully (don't overwrite existing with 0)
+    // Always set price if parsed successfully (don't overwrite existing with 0)
     if (preco !== null) {
       propertyData.price = preco;
     }
     
     console.log(`Processing: ${title} (${slug}) - Price: ${preco !== null ? preco : 'not set'}`);
     
-    // Check if property exists
+    // Check if property exists by slug or old_url (permalink)
     const { data: existingProperty } = await supabase
       .from('properties')
       .select('id')
@@ -306,7 +309,7 @@ async function processProperty(
       propertyId = existingProperty.id;
       updated = true;
       
-      // Delete existing images
+      // Delete existing images for re-import
       await supabase.from('property_images').delete().eq('property_id', propertyId);
     } else {
       const { data: newProperty, error: insertError } = await supabase
@@ -321,7 +324,7 @@ async function processProperty(
       created = true;
     }
     
-    // Process images
+    // Process images - support multiple URLs separated by "|" (WP All Export format)
     const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || '';
     const imageUrls = imageUrlsRaw
       .split('|')
@@ -330,6 +333,7 @@ async function processProperty(
     
     console.log(`Found ${imageUrls.length} images for ${title}`);
     
+    // Process all images - first image is cover, rest are gallery
     let imagesCount = 0;
     for (let imgIndex = 0; imgIndex < imageUrls.length; imgIndex++) {
       const uploadedUrl = await downloadAndUploadImage(supabase, imageUrls[imgIndex], slug, imgIndex);
@@ -340,14 +344,15 @@ async function processProperty(
           .insert({
             property_id: propertyId,
             url: uploadedUrl,
-            order_index: imgIndex,
-            alt: `${title} - Imagem ${imgIndex + 1}`
+            order_index: imgIndex, // First image (index 0) is cover
+            alt: imgIndex === 0 ? `${title} - Capa` : `${title} - Imagem ${imgIndex + 1}`
           });
         
         if (!imgError) imagesCount++;
       }
     }
     
+    // Property can be saved even without images
     return { success: true, created, updated, imagesCount };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
