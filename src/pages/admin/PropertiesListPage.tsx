@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
+import ImportProgressBar from '@/components/admin/ImportProgressBar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -440,11 +441,18 @@ const PropertiesListPage = () => {
     return <Home className="h-3.5 w-3.5" />;
   };
 
+  const handleImportComplete = useCallback(() => {
+    fetchProperties();
+  }, []);
+
   return (
     <AdminLayout>
       <AdminHeader title="Imóveis" subtitle="Gerencie todos os imóveis cadastrados" />
 
       <div className="p-6 space-y-6">
+        {/* Import Progress Bar */}
+        <ImportProgressBar onComplete={handleImportComplete} />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">

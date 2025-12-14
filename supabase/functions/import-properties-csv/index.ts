@@ -419,6 +419,28 @@ serve(async (req) => {
     
     console.log(`Starting import of ${rows.length} properties`);
     
+    // Create import job record for tracking progress
+    const { data: importJob, error: jobError } = await supabase
+      .from('import_jobs')
+      .insert({
+        user_id: user.id,
+        status: 'processing',
+        total_items: rows.length,
+        processed_items: 0,
+        created_items: 0,
+        updated_items: 0,
+        error_count: 0,
+        errors: []
+      })
+      .select('id')
+      .single();
+    
+    if (jobError) {
+      console.error('Error creating import job:', jobError);
+    }
+    
+    const jobId = importJob?.id;
+    
     // Process in background using waitUntil
     const backgroundTask = async () => {
       let criados = 0;
@@ -443,6 +465,36 @@ serve(async (req) => {
             motivo: result.error || 'Erro desconhecido'
           });
         }
+        
+        // Update progress every 1 item or at the end
+        if (jobId && (i % 1 === 0 || i === rows.length - 1)) {
+          await supabase
+            .from('import_jobs')
+            .update({
+              processed_items: i + 1,
+              created_items: criados,
+              updated_items: atualizados,
+              error_count: erros.length,
+              errors: erros.slice(-10) // Keep last 10 errors
+            })
+            .eq('id', jobId);
+        }
+      }
+      
+      // Mark as completed
+      if (jobId) {
+        await supabase
+          .from('import_jobs')
+          .update({
+            status: 'completed',
+            processed_items: rows.length,
+            created_items: criados,
+            updated_items: atualizados,
+            error_count: erros.length,
+            errors: erros,
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', jobId);
       }
       
       console.log(`Import completed: ${criados} created, ${atualizados} updated, ${imagensImportadas} images, ${erros.length} errors`);
@@ -457,7 +509,8 @@ serve(async (req) => {
         message: 'Importação iniciada em segundo plano',
         total_linhas: rows.length,
         status: 'processing',
-        info: 'A importação está sendo processada. Verifique a lista de imóveis em alguns minutos.'
+        job_id: jobId,
+        info: 'A importação está sendo processada. Acompanhe o progresso na barra de status.'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

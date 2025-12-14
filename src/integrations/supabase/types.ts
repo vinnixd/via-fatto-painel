@@ -120,6 +120,48 @@ export type Database = {
           },
         ]
       }
+      import_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_items: number
+          error_count: number
+          errors: Json | null
+          id: string
+          processed_items: number
+          status: string
+          total_items: number
+          updated_items: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_items?: number
+          error_count?: number
+          errors?: Json | null
+          id?: string
+          processed_items?: number
+          status?: string
+          total_items?: number
+          updated_items?: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_items?: number
+          error_count?: number
+          errors?: Json | null
+          id?: string
+          processed_items?: number
+          status?: string
+          total_items?: number
+          updated_items?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
