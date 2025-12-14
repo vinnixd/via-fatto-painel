@@ -129,10 +129,16 @@ const SortablePropertyCard = ({
     <Card
       ref={setNodeRef}
       style={style}
-      className={`border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 ${
+      className={`border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 cursor-pointer ${
         isDragging ? 'ring-2 ring-primary z-50' : ''
       } ${isSelected ? 'ring-2 ring-destructive' : ''}`}
-      onClick={isSelectMode ? () => onSelectToggle(property.id) : undefined}
+      onClick={() => {
+        if (isSelectMode) {
+          onSelectToggle(property.id);
+        } else if (!isReorderMode) {
+          window.location.href = `/admin/imoveis/${property.id}`;
+        }
+      }}
     >
       {/* Image */}
       <div className="relative aspect-[16/10] bg-muted overflow-hidden">
