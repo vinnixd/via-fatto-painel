@@ -34,7 +34,10 @@ import {
   MoreVertical,
   GripVertical,
   ArrowUpDown,
-  Check
+  Check,
+  CheckSquare,
+  Square,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -85,6 +88,9 @@ interface Property {
 interface SortablePropertyCardProps {
   property: Property;
   isReorderMode: boolean;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onSelectToggle: (id: string) => void;
   getStatusBadge: (status: string) => React.ReactNode;
   getTypeIcon: (type: string) => React.ReactNode;
   formatPrice: (price: number) => string;
@@ -95,6 +101,9 @@ interface SortablePropertyCardProps {
 const SortablePropertyCard = ({
   property,
   isReorderMode,
+  isSelectMode,
+  isSelected,
+  onSelectToggle,
   getStatusBadge,
   getTypeIcon,
   formatPrice,
@@ -122,7 +131,8 @@ const SortablePropertyCard = ({
       style={style}
       className={`border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 ${
         isDragging ? 'ring-2 ring-primary z-50' : ''
-      }`}
+      } ${isSelected ? 'ring-2 ring-destructive' : ''}`}
+      onClick={isSelectMode ? () => onSelectToggle(property.id) : undefined}
     >
       {/* Image */}
       <div className="relative aspect-[16/10] bg-muted overflow-hidden">
@@ -148,9 +158,19 @@ const SortablePropertyCard = ({
           )}
         </div>
 
-        {/* Drag Handle or Actions */}
+        {/* Drag Handle, Select checkbox, or Actions */}
         <div className="absolute top-2 right-2">
-          {isReorderMode ? (
+          {isSelectMode ? (
+            <div className={`h-6 w-6 rounded flex items-center justify-center ${
+              isSelected ? 'bg-destructive text-destructive-foreground' : 'bg-background/80 backdrop-blur-sm'
+            }`}>
+              {isSelected ? (
+                <CheckSquare className="h-4 w-4" />
+              ) : (
+                <Square className="h-4 w-4" />
+              )}
+            </div>
+          ) : isReorderMode ? (
             <Button
               size="icon"
               variant="secondary"
@@ -258,6 +278,11 @@ const PropertiesListPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isReorderMode, setIsReorderMode] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
   const itemsPerPage = 24;
 
@@ -368,6 +393,96 @@ const PropertiesListPage = () => {
       toast.error('Erro ao salvar ordem');
     } finally {
       setSavingOrder(false);
+    }
+  };
+
+  const toggleSelectProperty = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(properties.map(p => p.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkDelete = async () => {
+    if (bulkDeleteConfirmText !== 'EXCLUIR') return;
+    
+    setBulkDeleting(true);
+    let deletedCount = 0;
+    let imagesDeleted = 0;
+    let favoritesDeleted = 0;
+    
+    try {
+      for (const propertyId of selectedIds) {
+        // 1. Get images from database to delete from storage
+        const { data: images } = await supabase
+          .from('property_images')
+          .select('url')
+          .eq('property_id', propertyId);
+        
+        // 2. Delete images from storage
+        if (images && images.length > 0) {
+          for (const image of images) {
+            try {
+              // Extract path from URL
+              const url = new URL(image.url);
+              const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/property-images\/(.+)/);
+              if (pathMatch) {
+                await supabase.storage.from('property-images').remove([pathMatch[1]]);
+              }
+            } catch (e) {
+              console.warn('Could not delete image from storage:', e);
+            }
+          }
+          imagesDeleted += images.length;
+        }
+        
+        // 3. Delete images from database
+        await supabase.from('property_images').delete().eq('property_id', propertyId);
+        
+        // 4. Delete favorites
+        const { error: favError } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('property_id', propertyId);
+        
+        if (!favError) favoritesDeleted++;
+        
+        // 5. Delete property
+        const { error } = await supabase.from('properties').delete().eq('id', propertyId);
+        
+        if (!error) {
+          deletedCount++;
+        }
+      }
+      
+      toast.success(
+        `Exclusão concluída: ${deletedCount} imóveis, ${imagesDeleted} imagens, ${favoritesDeleted} favoritos removidos.`,
+        { duration: 8000 }
+      );
+      
+      setSelectedIds(new Set());
+      setIsSelectMode(false);
+      setShowBulkDeleteDialog(false);
+      setBulkDeleteConfirmText('');
+      fetchProperties();
+    } catch (error) {
+      console.error('Error in bulk delete:', error);
+      toast.error('Erro durante a exclusão em massa');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -505,7 +620,34 @@ const PropertiesListPage = () => {
                 />
               </div>
               <div className="flex gap-2">
-                {isReorderMode ? (
+                {isSelectMode ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsSelectMode(false);
+                        setSelectedIds(new Set());
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={selectedIds.size === properties.length ? deselectAll : selectAll}
+                    >
+                      {selectedIds.size === properties.length ? 'Desmarcar Todos' : 'Selecionar Todos'}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setShowBulkDeleteDialog(true)}
+                      disabled={selectedIds.size === 0}
+                      className="gap-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir ({selectedIds.size})
+                    </Button>
+                  </>
+                ) : isReorderMode ? (
                   <>
                     <Button
                       variant="outline"
@@ -533,6 +675,14 @@ const PropertiesListPage = () => {
                   <>
                     <Button
                       variant="outline"
+                      onClick={() => setIsSelectMode(true)}
+                      className="gap-2 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline">Excluir Vários</span>
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={() => setIsReorderMode(true)}
                       className="gap-2"
                     >
@@ -555,6 +705,12 @@ const PropertiesListPage = () => {
                 )}
               </div>
             </div>
+            {isSelectMode && (
+              <div className="mt-3 p-2 bg-destructive/10 rounded-lg text-sm text-destructive flex items-center gap-2">
+                <CheckSquare className="h-4 w-4" />
+                Clique nos imóveis para selecionar. Use "Selecionar Todos" para marcar todos da página.
+              </div>
+            )}
             {isReorderMode && (
               <div className="mt-3 p-2 bg-primary/10 rounded-lg text-sm text-primary flex items-center gap-2">
                 <GripVertical className="h-4 w-4" />
@@ -610,6 +766,9 @@ const PropertiesListPage = () => {
                       key={property.id}
                       property={property}
                       isReorderMode={isReorderMode}
+                      isSelectMode={isSelectMode}
+                      isSelected={selectedIds.has(property.id)}
+                      onSelectToggle={toggleSelectProperty}
                       getStatusBadge={getStatusBadge}
                       getTypeIcon={getTypeIcon}
                       formatPrice={formatPrice}
@@ -695,6 +854,64 @@ const PropertiesListPage = () => {
             >
               Excluir
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Delete Confirmation */}
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Excluir {selectedIds.size} imóveis
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Esta ação irá excluir permanentemente:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li><strong>{selectedIds.size}</strong> imóveis selecionados</li>
+                <li>Todas as imagens associadas (banco e storage)</li>
+                <li>Todos os favoritos relacionados</li>
+              </ul>
+              <p className="font-semibold text-destructive">
+                Esta ação NÃO pode ser desfeita!
+              </p>
+              <div className="pt-2">
+                <p className="text-sm mb-2">Digite <strong>EXCLUIR</strong> para confirmar:</p>
+                <Input
+                  placeholder="Digite EXCLUIR"
+                  value={bulkDeleteConfirmText}
+                  onChange={(e) => setBulkDeleteConfirmText(e.target.value.toUpperCase())}
+                  className="font-mono"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setBulkDeleteConfirmText('');
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={bulkDeleteConfirmText !== 'EXCLUIR' || bulkDeleting}
+            >
+              {bulkDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Excluindo...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Excluir Permanentemente
+                </>
+              )}
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
