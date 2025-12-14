@@ -648,12 +648,25 @@ const PropertyFormPage = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="reference">Código de Referência</Label>
-                        <Input
-                          id="reference"
-                          value={formData.reference}
-                          onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                          placeholder="REF-001"
-                        />
+                        <div className="flex gap-2">
+                          <Input
+                            id="reference"
+                            value={formData.reference}
+                            onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
+                            placeholder="REF-001"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              const randomNum = Math.floor(100000 + Math.random() * 900000);
+                              setFormData({ ...formData, reference: `REF-${randomNum}` });
+                            }}
+                            className="shrink-0"
+                          >
+                            Gerar
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
