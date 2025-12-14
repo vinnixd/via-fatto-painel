@@ -36,10 +36,28 @@ import {
   FileText,
   Image as ImageIcon,
   Sparkles,
-  Check
+  Check,
+  GripVertical
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type PropertyStatus = Database['public']['Enums']['property_status'];
 type PropertyType = Database['public']['Enums']['property_type'];
@@ -84,6 +102,72 @@ interface FormData {
   category_id: string;
 }
 
+// Sortable Image Component for drag-and-drop
+interface SortableImageProps {
+  image: PropertyImage;
+  index: number;
+  onRemove: (index: number) => void;
+}
+
+const SortableImage = ({ image, index, onRemove }: SortableImageProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: image.id || `new-${index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 'auto',
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative group aspect-square rounded-xl overflow-hidden bg-muted ring-2 ${
+        isDragging ? 'ring-primary shadow-lg' : 'ring-transparent hover:ring-primary/50'
+      } transition-all`}
+    >
+      <img
+        src={image.url}
+        alt={image.alt}
+        className="w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+      
+      {/* Drag Handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 p-1.5 rounded-md bg-black/50 text-white cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <GripVertical className="h-4 w-4" />
+      </div>
+
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+        onClick={() => onRemove(index)}
+      >
+        <X className="h-4 w-4" />
+      </Button>
+      {index === 0 && (
+        <span className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-md">
+          Capa
+        </span>
+      )}
+    </div>
+  );
+};
+
 const PropertyFormPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -96,6 +180,27 @@ const PropertyFormPage = () => {
   const [newFeature, setNewFeature] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [activeStep, setActiveStep] = useState(0);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setImages((items) => {
+        const oldIndex = items.findIndex((item) => (item.id || `new-${items.indexOf(item)}`) === active.id);
+        const newIndex = items.findIndex((item) => (item.id || `new-${items.indexOf(item)}`) === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        // Update order_index
+        return newItems.map((item, idx) => ({ ...item, order_index: idx }));
+      });
+    }
+  };
   
   const steps = [
     { id: 'basic', title: 'Informações Básicas', icon: Home },
@@ -378,6 +483,14 @@ const PropertyFormPage = () => {
             // Delete from database
             await supabase.from('property_images').delete().eq('id', existing.id);
           }
+        }
+
+        // Update order_index for existing images
+        for (const image of images.filter(img => img.id)) {
+          await supabase
+            .from('property_images')
+            .update({ order_index: image.order_index })
+            .eq('id', image.id);
         }
       }
 
@@ -1001,34 +1114,31 @@ const PropertyFormPage = () => {
                     </div>
 
                     {images.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {images.map((image, index) => (
-                          <div 
-                            key={index} 
-                            className="relative group aspect-square rounded-xl overflow-hidden bg-muted ring-2 ring-transparent hover:ring-primary/50 transition-all"
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Arraste as imagens para reordenar. A primeira será a capa.
+                        </p>
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={images.map((img, idx) => img.id || `new-${idx}`)}
+                            strategy={rectSortingStrategy}
                           >
-                            <img
-                              src={image.url}
-                              alt={image.alt}
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => removeImage(index)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                            {index === 0 && (
-                              <span className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-md">
-                                Capa
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                              {images.map((image, index) => (
+                                <SortableImage
+                                  key={image.id || `new-${index}`}
+                                  image={image}
+                                  index={index}
+                                  onRemove={removeImage}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     )}
                   </CardContent>
