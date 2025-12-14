@@ -208,6 +208,19 @@ const PropertyPage = () => {
                 <div className="text-3xl font-bold text-primary mb-2">
                   {formatPrice(property.price)}
                 </div>
+                
+                {/* Condo fee and IPTU */}
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2">
+                  {(property.condo_exempt || (property.condo_fee !== null && property.condo_fee !== undefined)) && (
+                    <span>
+                      Condomínio: {property.condo_exempt ? 'Isento' : formatPrice(property.condo_fee)}
+                    </span>
+                  )}
+                  {property.iptu !== null && property.iptu !== undefined && property.iptu > 0 && (
+                    <span>IPTU: {formatPrice(property.iptu)}/ano</span>
+                  )}
+                </div>
+
                 <div className="text-sm text-muted-foreground">
                   Ref: {property.reference || property.id.substring(0, 8)}
                 </div>

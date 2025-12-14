@@ -7,6 +7,9 @@ export interface PropertyFromDB {
   slug: string;
   description: string | null;
   price: number;
+  condo_fee: number | null;
+  condo_exempt: boolean;
+  iptu: number | null;
   status: 'venda' | 'aluguel' | 'vendido' | 'alugado';
   type: string;
   profile: string;

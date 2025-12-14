@@ -78,6 +78,9 @@ interface FormData {
   slug: string;
   description: string;
   price: number;
+  condo_fee: number;
+  condo_exempt: boolean;
+  iptu: number;
   status: PropertyStatus;
   type: PropertyType;
   profile: PropertyProfile;
@@ -215,6 +218,9 @@ const PropertyFormPage = () => {
     slug: '',
     description: '',
     price: 0,
+    condo_fee: 0,
+    condo_exempt: false,
+    iptu: 0,
     status: 'venda',
     type: 'casa',
     profile: 'residencial',
@@ -269,6 +275,9 @@ const PropertyFormPage = () => {
         slug: property.slug || '',
         description: property.description || '',
         price: property.price || 0,
+        condo_fee: property.condo_fee || 0,
+        condo_exempt: property.condo_exempt || false,
+        iptu: property.iptu || 0,
         status: property.status,
         type: property.type,
         profile: property.profile,
@@ -390,6 +399,9 @@ const PropertyFormPage = () => {
         slug: formData.slug,
         description: formData.description,
         price: Number(formData.price),
+        condo_fee: formData.condo_exempt ? 0 : Number(formData.condo_fee),
+        condo_exempt: formData.condo_exempt,
+        iptu: Number(formData.iptu),
         status: formData.status,
         type: formData.type,
         profile: formData.profile,
@@ -693,6 +705,46 @@ const PropertyFormPage = () => {
                             <SelectItem value="galpao">Galpão</SelectItem>
                           </SelectContent>
                         </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          Valor do Condomínio (R$)
+                        </Label>
+                        <div className="flex gap-3 items-center">
+                          <Input
+                            type="number"
+                            value={formData.condo_exempt ? 0 : formData.condo_fee}
+                            onChange={(e) => setFormData({ ...formData, condo_fee: Number(e.target.value) })}
+                            placeholder="0"
+                            className="h-12"
+                            disabled={formData.condo_exempt}
+                          />
+                          <div className="flex items-center gap-2 whitespace-nowrap">
+                            <Switch
+                              id="condo_exempt"
+                              checked={formData.condo_exempt}
+                              onCheckedChange={(checked) => setFormData({ ...formData, condo_exempt: checked, condo_fee: checked ? 0 : formData.condo_fee })}
+                            />
+                            <Label htmlFor="condo_exempt" className="text-sm cursor-pointer">Isento</Label>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2">
+                          <DollarSign className="h-4 w-4 text-muted-foreground" />
+                          Valor do IPTU (R$/ano)
+                        </Label>
+                        <Input
+                          type="number"
+                          value={formData.iptu}
+                          onChange={(e) => setFormData({ ...formData, iptu: Number(e.target.value) })}
+                          placeholder="0"
+                          className="h-12"
+                        />
                       </div>
                     </div>
 

@@ -211,6 +211,8 @@ export type Database = {
           bedrooms: number
           built_area: number | null
           category_id: string | null
+          condo_exempt: boolean | null
+          condo_fee: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -220,6 +222,7 @@ export type Database = {
           financing: boolean
           garages: number
           id: string
+          iptu: number | null
           old_url: string | null
           order_index: number | null
           price: number
@@ -248,6 +251,8 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
+          condo_exempt?: boolean | null
+          condo_fee?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -257,6 +262,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          iptu?: number | null
           old_url?: string | null
           order_index?: number | null
           price?: number
@@ -285,6 +291,8 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
+          condo_exempt?: boolean | null
+          condo_fee?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -294,6 +302,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          iptu?: number | null
           old_url?: string | null
           order_index?: number | null
           price?: number
