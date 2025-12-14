@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import AdminHeader from "@/components/admin/AdminHeader";
+import ImportProgressBar from "@/components/admin/ImportProgressBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -126,6 +127,9 @@ const ImportPage = () => {
       />
       
       <div className="space-y-6">
+        {/* Import Progress Bar */}
+        <ImportProgressBar />
+        
         {/* Instructions Card */}
         <Card>
           <CardHeader>
