@@ -61,6 +61,14 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
         },
         (payload) => {
           const job = payload.new as ImportJob;
+          
+          // Ignore cancelled jobs - hide progress bar immediately
+          if (job.status === 'cancelled') {
+            setIsVisible(false);
+            setImportJob(null);
+            return;
+          }
+          
           setImportJob(job);
           setIsVisible(true);
 
