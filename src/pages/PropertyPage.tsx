@@ -359,65 +359,66 @@ const PropertyPage = () => {
 
       {/* Gallery Modal */}
       <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-        <DialogContent className="max-w-5xl w-full p-0 bg-black/95 border-0">
-          <div className="relative">
-            <button
-              onClick={() => setIsGalleryOpen(false)}
-              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors"
-            >
-              <X size={24} />
-            </button>
+        <DialogContent className="max-w-[95vw] md:max-w-5xl w-full h-[90vh] p-0 bg-black border-0 flex flex-col [&>button]:hidden">
+          {/* Close Button */}
+          <button
+            onClick={() => setIsGalleryOpen(false)}
+            className="absolute top-4 right-4 z-50 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+          
+          {/* Main Image Container */}
+          <div className="flex-1 relative flex items-center justify-center p-4">
+            <img
+              src={images[currentImageIndex]}
+              alt={property.title}
+              className="max-h-full max-w-full object-contain"
+            />
             
-            <div className="relative flex items-center justify-center min-h-[60vh]">
-              <img
-                src={images[currentImageIndex]}
-                alt={property.title}
-                className="max-h-[80vh] max-w-full object-contain"
-              />
-              
-              {images.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
-                    className="absolute left-4 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors"
-                  >
-                    <ChevronLeft size={28} />
-                  </button>
-                  <button
-                    onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
-                    className="absolute right-4 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors"
-                  >
-                    <ChevronRight size={28} />
-                  </button>
-                </>
-              )}
-            </div>
-            
-            <div className="text-center text-white py-4">
-              {currentImageIndex + 1} / {images.length}
-            </div>
-            
-            {/* Thumbnails in modal */}
             {images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto px-4 pb-4 justify-center">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden ${
-                      index === currentImageIndex ? 'ring-2 ring-white' : 'opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${property.title} - ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              <>
+                <button
+                  onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
+                  className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-full transition-colors"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-full transition-colors"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </>
             )}
           </div>
+          
+          {/* Counter */}
+          <div className="text-center text-white py-2">
+            {currentImageIndex + 1} / {images.length}
+          </div>
+          
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto px-4 pb-4 justify-start md:justify-center">
+              {images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentImageIndex(index)}
+                  className={`flex-shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden transition-opacity ${
+                    index === currentImageIndex ? 'ring-2 ring-white' : 'opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${property.title} - ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
