@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { PropertyFilter as PropertyFilterType } from '@/types/property';
+import { useAvailableCities } from '@/hooks/useSupabaseData';
 
 interface PropertyFilterProps {
   onFilterChange: (filters: PropertyFilterType) => void;
@@ -10,6 +11,7 @@ interface PropertyFilterProps {
 const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<PropertyFilterType>({});
+  const { data: availableCities = [] } = useAvailableCities();
 
   const propertyTypes = [
     { value: '', label: 'Selecione' },
@@ -18,14 +20,9 @@ const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
     { value: 'terreno', label: 'Terreno' },
     { value: 'comercial', label: 'Comercial' },
     { value: 'rural', label: 'Rural' },
-  ];
-
-  const cities = [
-    { value: '', label: 'Selecione' },
-    { value: 'São Paulo', label: 'São Paulo' },
-    { value: 'Barueri', label: 'Barueri' },
-    { value: 'Osasco', label: 'Osasco' },
-    { value: 'Guarulhos', label: 'Guarulhos' },
+    { value: 'cobertura', label: 'Cobertura' },
+    { value: 'flat', label: 'Flat' },
+    { value: 'galpao', label: 'Galpão' },
   ];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -132,9 +129,10 @@ const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
               onChange={(e) => handleFilterChange({ city: e.target.value || undefined })}
               className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             >
-              {cities.map((city) => (
-                <option key={city.value} value={city.value}>
-                  {city.label}
+              <option value="">Todas as cidades</option>
+              {availableCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
                 </option>
               ))}
             </select>

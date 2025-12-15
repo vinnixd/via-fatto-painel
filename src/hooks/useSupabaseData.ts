@@ -174,6 +174,28 @@ export const useCategories = () => {
   });
 };
 
+export const useAvailableCities = () => {
+  return useQuery({
+    queryKey: ['available-cities'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('address_city')
+        .eq('active', true)
+        .not('address_city', 'is', null)
+        .not('address_city', 'eq', '');
+
+      if (error) throw error;
+
+      // Get unique cities and sort alphabetically
+      const uniqueCities = [...new Set(data?.map(p => p.address_city).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      return uniqueCities;
+    },
+  });
+};
+
 export const useSimilarProperties = (property: PropertyFromDB | null, limit: number = 4) => {
   return useQuery({
     queryKey: ['similar-properties', property?.id, property?.address_city, property?.status, property?.type],
