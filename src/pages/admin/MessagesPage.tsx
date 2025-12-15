@@ -23,6 +23,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, MessageSquare, Mail, Phone, Eye, Trash2, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 interface Contact {
   id: string;
@@ -258,7 +259,7 @@ const MessagesPage = () => {
                 </Button>
                 {selectedContact.phone && (
                   <Button variant="outline" asChild className="flex-1">
-                    <a href={`https://wa.me/${selectedContact.phone.replace(/\D/g, '')}`} target="_blank">
+                    <a href={buildWhatsAppUrl({ phone: selectedContact.phone })} target="_blank" rel="noopener noreferrer">
                       <Phone className="h-4 w-4 mr-2" />
                       WhatsApp
                     </a>
