@@ -560,7 +560,10 @@ const PropertyFormPage = () => {
                       <button
                         key={step.id}
                         type="button"
-                        onClick={() => setActiveStep(index)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setActiveStep(index);
+                        }}
                         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
                           isActive 
                             ? 'bg-primary text-primary-foreground' 
@@ -607,7 +610,16 @@ const PropertyFormPage = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-6"
+              onKeyDown={(e) => {
+                // Prevent form submission on Enter key except when on submit button
+                if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+                  e.preventDefault();
+                }
+              }}
+            >
               {/* Step 0: Basic Info */}
               {activeStep === 0 && (
                 <Card className="border-0 shadow-sm">
@@ -1215,19 +1227,36 @@ const PropertyFormPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setActiveStep(Math.max(0, activeStep - 1));
+                  }}
                   disabled={activeStep === 0}
                 >
                   Anterior
                 </Button>
 
                 <div className="flex gap-3">
-                  <Button type="button" variant="ghost" onClick={() => navigate('/admin/imoveis')}>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate('/admin/imoveis');
+                    }}
+                  >
                     Cancelar
                   </Button>
                   
                   {activeStep < steps.length - 1 ? (
-                    <Button type="button" onClick={() => setActiveStep(activeStep + 1)}>
+                    <Button 
+                      type="button" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setActiveStep(activeStep + 1);
+                      }}
+                    >
                       Próximo
                     </Button>
                   ) : (
