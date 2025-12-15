@@ -4,7 +4,7 @@ import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, Tr
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import PropertyCard from '@/components/ui/PropertyCard';
-import { useProperties, useCategories, useSiteConfig, PropertyFromDB } from '@/hooks/useSupabaseData';
+import { useProperties, useCategories, useSiteConfig, useAvailableCities, PropertyFromDB } from '@/hooks/useSupabaseData';
 import heroHouse from '@/assets/hero-house.jpg';
 
 const Home = () => {
@@ -21,6 +21,7 @@ const Home = () => {
   const { data: featuredProperties = [] } = useProperties({ featured: true });
   const { data: categories = [] } = useCategories();
   const { data: siteConfig } = useSiteConfig();
+  const { data: availableCities = [] } = useAvailableCities();
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -190,13 +191,18 @@ const Home = () => {
                   <label className="block text-sm font-medium text-neutral-600 mb-2">
                     Localização
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Cidade, bairro..."
+                  <select
                     value={heroSearch.location}
                     onChange={(e) => setHeroSearch({ ...heroSearch, location: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                  />
+                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  >
+                    <option value="">Todas as cidades</option>
+                    {availableCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
