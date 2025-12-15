@@ -1,1 +1,7 @@
 project_id = "lwxrneoeoqzlekusqgml"
+
+[functions.import-properties-csv]
+verify_jwt = true
+
+[functions.improve-description]
+verify_jwt = true

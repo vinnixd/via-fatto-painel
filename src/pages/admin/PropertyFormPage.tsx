@@ -183,6 +183,7 @@ const PropertyFormPage = () => {
   const [newFeature, setNewFeature] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [activeStep, setActiveStep] = useState(0);
+  const [isImprovingDescription, setIsImprovingDescription] = useState(false);
 
   // DnD sensors
   const sensors = useSensors(
@@ -804,18 +805,75 @@ const PropertyFormPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="description" className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        Descrição
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="description" className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          Descrição
+                        </Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            setIsImprovingDescription(true);
+                            try {
+                              const { data, error } = await supabase.functions.invoke('improve-description', {
+                                body: {
+                                  description: formData.description,
+                                  propertyInfo: {
+                                    type: formData.type,
+                                    status: formData.status,
+                                    bedrooms: formData.bedrooms,
+                                    suites: formData.suites,
+                                    bathrooms: formData.bathrooms,
+                                    garages: formData.garages,
+                                    area: formData.area,
+                                    neighborhood: formData.address_neighborhood,
+                                    city: formData.address_city,
+                                  }
+                                }
+                              });
+                              
+                              if (error) throw error;
+                              if (data?.improvedDescription) {
+                                setFormData({ ...formData, description: data.improvedDescription });
+                                toast.success('Descrição melhorada com IA!');
+                              }
+                            } catch (err: any) {
+                              console.error('Error improving description:', err);
+                              toast.error(err.message || 'Erro ao melhorar descrição');
+                            } finally {
+                              setIsImprovingDescription(false);
+                            }
+                          }}
+                          disabled={isImprovingDescription}
+                          className="gap-2"
+                        >
+                          {isImprovingDescription ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Melhorando...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4" />
+                              Melhorar com IA
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <Textarea
                         id="description"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Descreva o imóvel com detalhes..."
-                        rows={6}
+                        rows={8}
                         className="resize-none"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Use o botão "Melhorar com IA" para gerar uma descrição otimizada para SEO e conversão.
+                      </p>
                     </div>
 
                     <Separator />

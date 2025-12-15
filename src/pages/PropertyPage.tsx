@@ -204,6 +204,40 @@ const PropertyPage = () => {
                   )}
                 </div>
               )}
+
+              {/* Description Section - Below Gallery */}
+              {property.description && (
+                <div className="mt-8 p-6 bg-card rounded-xl border border-border">
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span className="w-1 h-6 bg-primary rounded-full"></span>
+                    Sobre este Imóvel
+                  </h2>
+                  <div className="prose prose-sm max-w-none text-muted-foreground">
+                    {property.description.split('\n\n').map((paragraph, index) => (
+                      paragraph.trim() && (
+                        <p key={index} className="mb-4 leading-relaxed">
+                          {paragraph}
+                        </p>
+                      )
+                    ))}
+                  </div>
+                  
+                  {/* Features inline if available */}
+                  {property.features && property.features.length > 0 && (
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <h3 className="font-semibold mb-3 text-foreground">Destaques do Imóvel</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {property.features.slice(0, 9).map((feature, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Property Info */}
@@ -295,30 +329,6 @@ const PropertyPage = () => {
                   <span>{property.area}m²</span>
                 </div>
               </div>
-
-              {/* Description */}
-              {property.description && (
-                <div>
-                  <h3 className="font-semibold mb-2">Descrição</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {property.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Features */}
-              {property.features && property.features.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-2">Características</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {property.features.map((feature, index) => (
-                      <span key={index} className="badge-feature">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Documentation */}
               <div className="flex items-center space-x-2">
