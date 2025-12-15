@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search } from 'lucide-react';
 import { PropertyFilter as PropertyFilterType } from '@/types/property';
 import { useAvailableCities } from '@/hooks/useSupabaseData';
@@ -13,13 +13,6 @@ const PropertyFilter = ({ onFilterChange, onSearch, initialFilters }: PropertyFi
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<PropertyFilterType>(initialFilters || {});
   const { data: availableCities = [] } = useAvailableCities();
-
-  // Update filters when initialFilters change
-  useEffect(() => {
-    if (initialFilters) {
-      setFilters(initialFilters);
-    }
-  }, [initialFilters]);
 
   const propertyTypes = [
     { value: '', label: 'Selecione' },

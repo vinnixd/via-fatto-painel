@@ -2,12 +2,13 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import { formatWhatsAppNumber } from '@/lib/utils';
 
 const Footer = () => {
   const { data: siteConfig } = useSiteConfig();
 
   const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
-  const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+  const whatsappNumber = formatWhatsAppNumber(siteConfig?.whatsapp);
   const email = siteConfig?.email || 'contato@viafatto.com.br';
   const address = siteConfig?.address || 'SCLRN 714 Bloco G\nAsa Norte - Brasília/DF\nCEP: 70760-507';
   const footerText = siteConfig?.footer_text || '© 2024 Via Fatto Imóveis. Todos os direitos reservados.';

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -21,21 +21,23 @@ const PropertiesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Initialize filters from URL params
-  const [filters, setFilters] = useState<PropertyFilterType>(() => {
-    const initialFilters: PropertyFilterType = {};
+  // Initialize filters from URL params - only once
+  const initialFilters = useMemo(() => {
+    const filters: PropertyFilterType = {};
     const type = searchParams.get('type');
     const location = searchParams.get('location');
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     
-    if (type) initialFilters.type = type;
-    if (location) initialFilters.city = location;
-    if (minPrice) initialFilters.minPrice = Number(minPrice.replace(/\D/g, ''));
-    if (maxPrice) initialFilters.maxPrice = Number(maxPrice.replace(/\D/g, ''));
+    if (type) filters.type = type;
+    if (location) filters.city = location;
+    if (minPrice) filters.minPrice = Number(minPrice.replace(/\D/g, ''));
+    if (maxPrice) filters.maxPrice = Number(maxPrice.replace(/\D/g, ''));
     
-    return initialFilters;
-  });
+    return filters;
+  }, [searchParams]);
+
+  const [filters, setFilters] = useState<PropertyFilterType>(initialFilters);
 
   // Load favorites from localStorage
   useEffect(() => {

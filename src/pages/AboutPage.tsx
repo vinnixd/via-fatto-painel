@@ -2,11 +2,12 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Star, Users, Home, Trophy, Phone, Mail } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { formatWhatsAppNumber } from '@/lib/utils';
 
 const AboutPage = () => {
   const { data: siteConfig } = useSiteConfig();
 
-  const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+  const whatsappNumber = formatWhatsAppNumber(siteConfig?.whatsapp);
   const imagePosition = siteConfig?.about_image_position || 'center';
 
   return (
