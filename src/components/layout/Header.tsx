@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,7 +23,10 @@ const Header = () => {
   };
 
   const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
-  const whatsappNumber = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
+  const whatsappUrl = buildWhatsAppUrl({
+    phone: siteConfig?.whatsapp,
+    message: 'Olá! Gostaria de saber mais sobre os imóveis disponíveis.',
+  });
 
   return (
     <header className="bg-background border-b border-border sticky top-0 z-50 shadow-sm">
@@ -68,7 +72,7 @@ const Header = () => {
               <span className="text-sm font-medium">{phoneNumber}</span>
             </a>
             <a
-              href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis.`}
+              href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary flex items-center space-x-2"
@@ -112,7 +116,7 @@ const Header = () => {
                   <span>{phoneNumber}</span>
                 </a>
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de saber mais sobre os imóveis disponíveis.`}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-2 px-3 py-2 text-primary"

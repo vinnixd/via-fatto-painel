@@ -5,6 +5,7 @@ import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/ui/PropertyCard';
 import { useProperties, useSiteConfig, PropertyFromDB } from '@/hooks/useSupabaseData';
 import { Heart, Home, Loader2 } from 'lucide-react';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const FavoritesPage = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -136,7 +137,10 @@ const FavoritesPage = () => {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <a
-                      href={`https://wa.me/55${siteConfig?.whatsapp?.replace(/\D/g, '') || '11999887766'}?text=Olá! Gostaria de agendar visitas aos imóveis que favoritei.`}
+                      href={buildWhatsAppUrl({
+                        phone: siteConfig?.whatsapp,
+                        message: 'Olá! Gostaria de agendar visitas aos imóveis que favoritei.',
+                      })}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="btn-primary"

@@ -2,12 +2,13 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Star, Users, Home, Trophy, Phone, Mail } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
-import { formatWhatsAppNumber } from '@/lib/utils';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const AboutPage = () => {
   const { data: siteConfig } = useSiteConfig();
 
-  const whatsappNumber = formatWhatsAppNumber(siteConfig?.whatsapp);
+  const whatsappUrlAgendar = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de agendar uma consulta.' });
+  const whatsappUrlConversar = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de conversar sobre imóveis.' });
   const imagePosition = siteConfig?.about_image_position || 'center';
 
   return (
@@ -30,7 +31,7 @@ const AboutPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de agendar uma consulta.`}
+                  href={whatsappUrlAgendar}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"
@@ -221,7 +222,7 @@ const AboutPage = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de conversar sobre imóveis.`}
+                  href={whatsappUrlConversar}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-primary"

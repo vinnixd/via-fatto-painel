@@ -6,7 +6,7 @@ import Footer from '@/components/layout/Footer';
 import { useProperty, useSiteConfig, useSimilarProperties } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { formatWhatsAppNumber } from '@/lib/utils';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const PropertyPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -81,10 +81,9 @@ const PropertyPage = () => {
   };
 
   const getWhatsAppUrl = () => {
-    const phone = formatWhatsAppNumber(siteConfig?.whatsapp);
     const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
     const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference || property.id}${priceText}. Poderia me passar mais informações?`;
-    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    return buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message });
   };
 
   const handleShare = () => {

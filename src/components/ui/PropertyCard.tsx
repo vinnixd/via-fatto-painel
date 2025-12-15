@@ -2,6 +2,7 @@ import { Heart, Bed, Bath, Car, Maximize, MapPin, Eye } from 'lucide-react';
 import { Property } from '@/types/property';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;
@@ -33,7 +34,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   const getWhatsAppUrl = () => {
     const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
     const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference}${priceText}. Poderia me passar mais informações?`;
-    return `https://wa.me/55${property.broker.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    return buildWhatsAppUrl({ phone: property.broker.phone, message });
   };
 
   return (

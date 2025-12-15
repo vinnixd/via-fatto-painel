@@ -5,6 +5,7 @@ import { Phone, Mail, MapPin, MessageCircle, Clock, User, Send, Loader2 } from '
 import { supabase } from '@/integrations/supabase/client';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const ContactPage = () => {
   const { data: siteConfig } = useSiteConfig();
@@ -33,10 +34,9 @@ const ContactPage = () => {
       if (error) throw error;
 
       // Create WhatsApp message
-      const whatsappPhone = siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766';
       const whatsappMessage = `Olá!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
-      
-      const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(whatsappMessage)}`;
+
+      const whatsappUrl = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: whatsappMessage });
       window.open(whatsappUrl, '_blank');
       
       toast.success('Mensagem enviada com sucesso!');
@@ -224,7 +224,7 @@ const ContactPage = () => {
                       <MessageCircle className="text-primary flex-shrink-0" size={20} />
                       <div>
                         <a 
-                          href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}`}
+                          href={buildWhatsAppUrl({ phone: siteConfig?.whatsapp })}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-foreground hover:text-primary transition-colors font-medium"
@@ -302,7 +302,7 @@ const ContactPage = () => {
                 {/* Quick Actions */}
                 <div className="grid grid-cols-1 gap-4">
                   <a
-                    href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de agendar uma visita.`}
+                    href={buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de agendar uma visita.' })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-primary text-center"
@@ -310,7 +310,7 @@ const ContactPage = () => {
                     Agendar Visita
                   </a>
                   <a
-                    href={`https://wa.me/${siteConfig?.whatsapp?.replace(/\D/g, '') || '5511999887766'}?text=Olá! Gostaria de uma avaliação do meu imóvel.`}
+                    href={buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de uma avaliação do meu imóvel.' })}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn-secondary text-center"

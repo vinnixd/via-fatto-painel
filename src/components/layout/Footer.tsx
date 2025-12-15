@@ -2,13 +2,13 @@ import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
-import { formatWhatsAppNumber } from '@/lib/utils';
+import { buildWhatsAppUrl } from '@/lib/utils';
 
 const Footer = () => {
   const { data: siteConfig } = useSiteConfig();
 
   const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
-  const whatsappNumber = formatWhatsAppNumber(siteConfig?.whatsapp);
+  const whatsappUrl = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de saber mais sobre os imóveis.' });
   const email = siteConfig?.email || 'contato@viafatto.com.br';
   const address = siteConfig?.address || 'SCLRN 714 Bloco G\nAsa Norte - Brasília/DF\nCEP: 70760-507';
   const footerText = siteConfig?.footer_text || '© 2024 Via Fatto Imóveis. Todos os direitos reservados.';
@@ -133,7 +133,7 @@ const Footer = () => {
                   <span className="whitespace-pre-line">{address}</span>
                 </div>
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=Olá! Gostaria de saber mais sobre os imóveis.`}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center space-x-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors mt-4"
