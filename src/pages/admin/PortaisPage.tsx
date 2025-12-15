@@ -25,18 +25,25 @@ import {
 
 // Portal logos
 import olxLogo from '@/assets/portal-logos/olx.png';
+import vivarealLogo from '@/assets/portal-logos/vivareal.png';
+import zapLogo from '@/assets/portal-logos/zap.png';
+import imovelwebLogo from '@/assets/portal-logos/imovelweb.png';
+import dfimoveisLogo from '@/assets/portal-logos/dfimoveis.jpg';
+import imoveisLogo62 from '@/assets/portal-logos/62imoveis.png';
+import chavemaoLogo from '@/assets/portal-logos/chavemao.png';
+import trovitLogo from '@/assets/portal-logos/trovit.jpg';
 
 // Map of portal slugs to their logos/colors
-const portalBranding: Record<string, { logo?: string; bgColor: string; textColor?: string }> = {
+const portalBranding: Record<string, { logo?: string; bgColor: string; noBg?: boolean }> = {
   olx: { logo: olxLogo, bgColor: '#6E0AD6' },
-  vivareal: { bgColor: '#FF5A00' },
-  zap: { bgColor: '#FF5A00' },
-  imovelweb: { bgColor: '#1A1A1A' },
-  dfimoveis: { bgColor: '#2563EB' },
-  '62imoveis': { bgColor: '#16A34A' },
+  vivareal: { logo: vivarealLogo, bgColor: '#00A0FF' },
+  zap: { logo: zapLogo, bgColor: '#FF5A00' },
+  imovelweb: { logo: imovelwebLogo, bgColor: '#FF5A00' },
+  dfimoveis: { logo: dfimoveisLogo, bgColor: '#FFFFFF', noBg: true },
+  '62imoveis': { logo: imoveisLogo62, bgColor: '#FFFFFF', noBg: true },
   facebook: { bgColor: '#1877F2' },
-  chavemao: { bgColor: '#F59E0B' },
-  trovit: { bgColor: '#00B5AD' },
+  chavemao: { logo: chavemaoLogo, bgColor: '#FF2D55' },
+  trovit: { logo: trovitLogo, bgColor: '#2D3E50' },
 };
 
 interface Portal {
@@ -292,13 +299,13 @@ const PortaisPage = () => {
                       <div className="flex items-center gap-3">
                         {portalBranding[portal.slug]?.logo ? (
                           <div 
-                            className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden"
-                            style={{ backgroundColor: portalBranding[portal.slug]?.bgColor }}
+                            className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden border border-border/50"
+                            style={{ backgroundColor: portalBranding[portal.slug]?.noBg ? '#FFFFFF' : portalBranding[portal.slug]?.bgColor }}
                           >
                             <img 
                               src={portalBranding[portal.slug].logo} 
                               alt={portal.nome}
-                              className="w-10 h-10 object-contain"
+                              className={portalBranding[portal.slug]?.noBg ? "w-11 h-11 object-contain" : "w-full h-full object-cover"}
                             />
                           </div>
                         ) : (
