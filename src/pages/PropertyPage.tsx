@@ -1,9 +1,9 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { useProperty, useSiteConfig } from '@/hooks/useSupabaseData';
+import { useProperty, useSiteConfig, useSimilarProperties } from '@/hooks/useSupabaseData';
 import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
@@ -12,6 +12,7 @@ const PropertyPage = () => {
   const navigate = useNavigate();
   const { data: property, isLoading } = useProperty(slug || '');
   const { data: siteConfig } = useSiteConfig();
+  const { data: similarProperties } = useSimilarProperties(property);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -431,6 +432,73 @@ const PropertyPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Similar Properties Section */}
+      {similarProperties && similarProperties.length > 0 && (
+        <section className="bg-muted py-12">
+          <div className="container">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-primary rounded-full"></span>
+              Imóveis Semelhantes
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarProperties.map((similarProperty) => (
+                <Link 
+                  key={similarProperty.id} 
+                  to={`/imovel/${similarProperty.slug}`}
+                  className="group bg-card rounded-xl overflow-hidden border border-border hover:shadow-lg transition-shadow"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden">
+                    <img
+                      src={similarProperty.images?.[0]?.url || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400'}
+                      alt={similarProperty.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${
+                      similarProperty.status === 'venda' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-info text-white'
+                    }`}>
+                      {similarProperty.status === 'venda' ? 'Venda' : 'Aluguel'}
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-sm mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                      {similarProperty.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                      <MapPin size={12} />
+                      {similarProperty.address_neighborhood}, {similarProperty.address_city}
+                    </p>
+                    <p className="font-bold text-primary">
+                      {similarProperty.price && similarProperty.price > 0
+                        ? formatPrice(similarProperty.price)
+                        : 'Consulte'}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                      {similarProperty.bedrooms > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Bed size={12} /> {similarProperty.bedrooms}
+                        </span>
+                      )}
+                      {similarProperty.bathrooms > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Bath size={12} /> {similarProperty.bathrooms}
+                        </span>
+                      )}
+                      {similarProperty.area > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Maximize size={12} /> {similarProperty.area}m²
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>

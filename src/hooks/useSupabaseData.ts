@@ -173,3 +173,58 @@ export const useCategories = () => {
     },
   });
 };
+
+export const useSimilarProperties = (property: PropertyFromDB | null, limit: number = 4) => {
+  return useQuery({
+    queryKey: ['similar-properties', property?.id, property?.address_city, property?.status, property?.type],
+    queryFn: async () => {
+      if (!property) return [];
+
+      // Fetch similar properties: same city, same status, exclude current
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('active', true)
+        .eq('address_city', property.address_city)
+        .eq('status', property.status)
+        .neq('id', property.id)
+        .order('order_index', { ascending: true })
+        .limit(limit);
+
+      if (error) throw error;
+
+      // If not enough results, fetch more from same city only
+      let results = data || [];
+      if (results.length < limit) {
+        const { data: moreData } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('active', true)
+          .eq('address_city', property.address_city)
+          .neq('id', property.id)
+          .not('id', 'in', `(${results.map(p => p.id).join(',') || property.id})`)
+          .order('order_index', { ascending: true })
+          .limit(limit - results.length);
+
+        results = [...results, ...(moreData || [])];
+      }
+
+      // Fetch images for each property
+      const propertiesWithImages = await Promise.all(
+        results.map(async (p) => {
+          const { data: images } = await supabase
+            .from('property_images')
+            .select('*')
+            .eq('property_id', p.id)
+            .order('order_index')
+            .limit(1);
+
+          return { ...p, images: images || [] };
+        })
+      );
+
+      return propertiesWithImages as PropertyFromDB[];
+    },
+    enabled: !!property,
+  });
+};
