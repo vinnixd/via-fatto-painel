@@ -23,6 +23,22 @@ import {
   Loader2,
 } from 'lucide-react';
 
+// Portal logos
+import olxLogo from '@/assets/portal-logos/olx.png';
+
+// Map of portal slugs to their logos/colors
+const portalBranding: Record<string, { logo?: string; bgColor: string; textColor?: string }> = {
+  olx: { logo: olxLogo, bgColor: '#6E0AD6' },
+  vivareal: { bgColor: '#FF5A00' },
+  zap: { bgColor: '#FF5A00' },
+  imovelweb: { bgColor: '#1A1A1A' },
+  dfimoveis: { bgColor: '#2563EB' },
+  '62imoveis': { bgColor: '#16A34A' },
+  facebook: { bgColor: '#1877F2' },
+  chavemao: { bgColor: '#F59E0B' },
+  trovit: { bgColor: '#00B5AD' },
+};
+
 interface Portal {
   id: string;
   slug: string;
@@ -274,9 +290,27 @@ const PortaisPage = () => {
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <Globe className="h-5 w-5 text-primary" />
-                        </div>
+                        {portalBranding[portal.slug]?.logo ? (
+                          <div 
+                            className="w-12 h-12 rounded-lg flex items-center justify-center overflow-hidden"
+                            style={{ backgroundColor: portalBranding[portal.slug]?.bgColor }}
+                          >
+                            <img 
+                              src={portalBranding[portal.slug].logo} 
+                              alt={portal.nome}
+                              className="w-10 h-10 object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div 
+                            className="w-12 h-12 rounded-lg flex items-center justify-center"
+                            style={{ backgroundColor: portalBranding[portal.slug]?.bgColor || 'hsl(var(--primary) / 0.1)' }}
+                          >
+                            <span className="text-white font-bold text-lg">
+                              {portal.nome.substring(0, 2).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <CardTitle className="text-lg">{portal.nome}</CardTitle>
                           <CardDescription>{portal.slug}</CardDescription>
