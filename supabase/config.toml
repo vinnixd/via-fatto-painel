@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.improve-description]
 verify_jwt = true
+
+[functions.batch-improve-descriptions]
+verify_jwt = false
