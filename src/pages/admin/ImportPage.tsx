@@ -7,10 +7,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, Loader2 } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, Loader2, Info, DollarSign, FileText, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+
+interface ImportStats {
+  withPrice: number;
+  withDescription: number;
+  withSpecs: number;
+  totalProcessed: number;
+  imagensImportadas?: number;
+}
+
+interface ProblemProperty {
+  title: string;
+  permalink: string;
+  issues: string[];
+}
 
 interface ImportResult {
   total_linhas: number;
@@ -18,6 +32,8 @@ interface ImportResult {
   imoveis_atualizados: number;
   imagens_importadas: number;
   erros: Array<{ linha: number; titulo: string; motivo: string }>;
+  stats?: ImportStats;
+  problemProperties?: ProblemProperty[];
 }
 
 const ImportPage = () => {
@@ -82,15 +98,15 @@ const ImportPage = () => {
       }
 
       // Check if it's a background processing response
-      if (data.status === 'processing') {
+      if (data.success && data.jobId) {
         setResult({
-          total_linhas: data.total_linhas,
+          total_linhas: data.totalRows,
           imoveis_criados: 0,
           imoveis_atualizados: 0,
           imagens_importadas: 0,
           erros: []
         });
-        toast.success(`Importação de ${data.total_linhas} imóveis iniciada em segundo plano!`);
+        toast.success(`Importação de ${data.totalRows} imóveis iniciada em segundo plano!`);
       } else {
         setResult(data);
         
@@ -127,7 +143,7 @@ const ImportPage = () => {
       />
       
       <div className="space-y-6">
-        {/* Import Progress Bar */}
+        {/* Import Progress Bar - shows real-time stats */}
         <ImportProgressBar />
         
         {/* Instructions Card */}
@@ -147,36 +163,65 @@ const ImportPage = () => {
                 <strong className="text-foreground">Exporte seus imóveis do WordPress</strong> usando o plugin WP All Export em formato CSV.
               </li>
               <li>
-                <strong className="text-foreground">Certifique-se que o CSV contém as colunas:</strong>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Badge variant="secondary">Title</Badge>
-                  <Badge variant="secondary">Content</Badge>
-                  <Badge variant="secondary">Permalink</Badge>
-                  <Badge variant="secondary">Image URL</Badge>
-                  <Badge variant="secondary">Estado e Cidade</Badge>
-                  <Badge variant="secondary">Tipo do Imóvel</Badge>
-                  <Badge variant="secondary">Finalidade</Badge>
-                  <Badge variant="secondary">Destaque</Badge>
-                  <Badge variant="outline" className="border-primary text-primary">Preço (opcional)</Badge>
+                <strong className="text-foreground">Colunas suportadas:</strong>
+                <div className="mt-2 space-y-2">
+                  <div>
+                    <span className="text-xs font-medium text-foreground">Obrigatórias:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <Badge variant="secondary">Title</Badge>
+                      <Badge variant="secondary">Permalink</Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-foreground">Opcionais (recomendadas):</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <Badge variant="outline">Content</Badge>
+                      <Badge variant="outline">Image URL</Badge>
+                      <Badge variant="outline">Estado e Cidade</Badge>
+                      <Badge variant="outline">Tipo do Imóvel</Badge>
+                      <Badge variant="outline">Finalidade</Badge>
+                      <Badge variant="outline">Destaque</Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-medium text-foreground">Preço e Especificações:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <Badge variant="outline" className="border-primary text-primary">Preço</Badge>
+                      <Badge variant="outline">Quartos</Badge>
+                      <Badge variant="outline">Suítes</Badge>
+                      <Badge variant="outline">Banheiros</Badge>
+                      <Badge variant="outline">Vagas</Badge>
+                      <Badge variant="outline">Área</Badge>
+                      <Badge variant="outline">Área Construída</Badge>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-2 text-xs">
-                  <strong>Formatos aceitos para Preço:</strong> R$ 1.350.000,00 | 1.350.000,00 | 1350000 | 1350000.00
+              </li>
+              <li>
+                <strong className="text-foreground">Extração automática do Content:</strong>
+                <p className="mt-1 text-xs">
+                  Se não houver colunas específicas, o sistema extrai automaticamente do campo Content:
                 </p>
+                <ul className="mt-1 text-xs list-disc list-inside ml-4 space-y-0.5">
+                  <li><strong>Preço:</strong> R$ 480.000,00 ou "Valor: R$ 480.000"</li>
+                  <li><strong>Quartos:</strong> "3 quartos", "quartos: 3"</li>
+                  <li><strong>Suítes:</strong> "2 suítes", "suítes: 2"</li>
+                  <li><strong>Banheiros:</strong> "2 banheiros"</li>
+                  <li><strong>Vagas:</strong> "2 vagas", "garagem: 2"</li>
+                  <li><strong>Área:</strong> "Área total: 1.000 m²", "1000m2"</li>
+                </ul>
               </li>
               <li>
-                <strong className="text-foreground">Faça upload do arquivo</strong> usando o formulário abaixo.
-              </li>
-              <li>
-                <strong className="text-foreground">Clique em "Importar imóveis"</strong> e aguarde o processamento.
+                <strong className="text-foreground">Faça upload do arquivo</strong> e clique em "Importar imóveis".
               </li>
             </ol>
             
             <Alert className="mt-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>Dica importante</AlertTitle>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Atualização automática</AlertTitle>
               <AlertDescription>
-                Se um imóvel com o mesmo slug ou URL já existir, ele será atualizado em vez de duplicado. 
-                As imagens serão baixadas automaticamente e salvas no storage do sistema.
+                Se um imóvel com o mesmo slug ou URL já existir, ele será atualizado em vez de duplicado.
+                A descrição do Content é limpa de HTML e formatada automaticamente.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -278,7 +323,7 @@ const ImportPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Stats */}
+              {/* Main Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-muted rounded-lg p-4 text-center">
                   <p className="text-2xl font-bold">{result.total_linhas}</p>
@@ -297,6 +342,39 @@ const ImportPage = () => {
                   <p className="text-sm text-muted-foreground">Imagens importadas</p>
                 </div>
               </div>
+
+              {/* Data Quality Stats */}
+              {result.stats && (
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-green-500/20 rounded-full">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{result.stats.withPrice}</p>
+                      <p className="text-xs text-muted-foreground">Com preço</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-blue-500/20 rounded-full">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{result.stats.withDescription}</p>
+                      <p className="text-xs text-muted-foreground">Com descrição</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="p-2 bg-purple-500/20 rounded-full">
+                      <ListChecks className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold">{result.stats.withSpecs}</p>
+                      <p className="text-xs text-muted-foreground">Com especificações</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Success message */}
               {result.erros.length === 0 ? (
@@ -320,11 +398,43 @@ const ImportPage = () => {
                 </Alert>
               )}
 
+              {/* Problem Properties (imported but with missing data) */}
+              {result.problemProperties && result.problemProperties.length > 0 && (
+                <div className="border border-yellow-500/30 rounded-lg overflow-hidden">
+                  <div className="bg-yellow-500/10 px-4 py-2 font-medium text-sm flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    Imóveis com dados incompletos ({result.problemProperties.length})
+                  </div>
+                  <div className="divide-y max-h-64 overflow-y-auto">
+                    {result.problemProperties.map((prop, index) => (
+                      <div key={index} className="px-4 py-3 text-sm">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{prop.title}</p>
+                            {prop.permalink && (
+                              <p className="text-xs text-muted-foreground truncate">{prop.permalink}</p>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-1 justify-end">
+                            {prop.issues.map((issue, i) => (
+                              <Badge key={i} variant="outline" className="text-xs border-yellow-500/50 text-yellow-600">
+                                {issue}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Errors list */}
               {result.erros.length > 0 && (
-                <div className="border rounded-lg overflow-hidden">
-                  <div className="bg-muted px-4 py-2 font-medium text-sm">
-                    Erros encontrados
+                <div className="border border-destructive/30 rounded-lg overflow-hidden">
+                  <div className="bg-destructive/10 px-4 py-2 font-medium text-sm flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-destructive" />
+                    Erros encontrados ({result.erros.length})
                   </div>
                   <div className="divide-y max-h-64 overflow-y-auto">
                     {result.erros.map((erro, index) => (

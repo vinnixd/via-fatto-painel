@@ -2,8 +2,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Loader2, XCircle, Upload } from 'lucide-react';
+import { CheckCircle2, Loader2, XCircle, DollarSign, FileText, ListChecks } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface ImportStats {
+  withPrice: number;
+  withDescription: number;
+  withSpecs: number;
+  totalProcessed: number;
+  imagensImportadas?: number;
+}
 
 interface ImportJob {
   id: string;
@@ -13,6 +21,11 @@ interface ImportJob {
   created_items: number;
   updated_items: number;
   error_count: number;
+  errors: {
+    erros?: Array<{ linha: number; titulo: string; motivo: string }>;
+    stats?: ImportStats;
+    problemProperties?: Array<{ title: string; permalink: string; issues: string[] }>;
+  } | null;
   created_at: string;
   completed_at: string | null;
 }
@@ -40,7 +53,7 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
 
       // Only show if processing (not cancelled, not old completed jobs)
       if (data && data.status === 'processing') {
-        setImportJob(data as ImportJob);
+        setImportJob(data as unknown as ImportJob);
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -60,7 +73,7 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
           table: 'import_jobs',
         },
         (payload) => {
-          const job = payload.new as ImportJob;
+          const job = payload.new as unknown as ImportJob;
           
           // Ignore cancelled jobs - hide progress bar immediately
           if (job.status === 'cancelled') {
@@ -73,9 +86,12 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
           setIsVisible(true);
 
           if (job.status === 'completed') {
-            // Show notification
+            const stats = job.errors?.stats;
+            // Show notification with stats
             toast.success(
-              `Importação concluída! ${job.created_items} criados, ${job.updated_items} atualizados`,
+              `Importação concluída! ${job.created_items} criados, ${job.updated_items} atualizados${
+                stats ? ` • ${stats.withPrice} com preço, ${stats.withSpecs} com specs` : ''
+              }`,
               {
                 icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
                 duration: 10000,
@@ -87,10 +103,10 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
               onComplete();
             }
 
-            // Hide after 5 seconds
+            // Hide after 10 seconds
             setTimeout(() => {
               setIsVisible(false);
-            }, 5000);
+            }, 10000);
           }
         }
       )
@@ -111,6 +127,7 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
 
   const isCompleted = importJob.status === 'completed';
   const hasErrors = importJob.error_count > 0;
+  const stats = importJob.errors?.stats;
 
   return (
     <Card className={`border-0 shadow-sm transition-all duration-500 ${
@@ -163,7 +180,7 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
               }`}
             />
             
-            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
               <span>{importJob.processed_items} de {importJob.total_items} processados</span>
               {importJob.created_items > 0 && (
                 <span className="text-green-600">+{importJob.created_items} criados</span>
@@ -175,6 +192,24 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
                 <span className="text-red-600">✕{importJob.error_count} erros</span>
               )}
             </div>
+
+            {/* Stats row */}
+            {stats && (
+              <div className="flex items-center gap-4 mt-2 text-xs">
+                <span className="flex items-center gap-1 text-green-600">
+                  <DollarSign className="h-3 w-3" />
+                  {stats.withPrice} preço
+                </span>
+                <span className="flex items-center gap-1 text-blue-600">
+                  <FileText className="h-3 w-3" />
+                  {stats.withDescription} descrição
+                </span>
+                <span className="flex items-center gap-1 text-purple-600">
+                  <ListChecks className="h-3 w-3" />
+                  {stats.withSpecs} specs
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

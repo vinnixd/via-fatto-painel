@@ -11,6 +11,18 @@ interface CSVRow {
   [key: string]: string;
 }
 
+interface ImportStats {
+  totalProcessed: number;
+  withPrice: number;
+  withDescription: number;
+  withSpecs: number;
+  problems: Array<{
+    title: string;
+    permalink: string;
+    issues: string[];
+  }>;
+}
+
 function parseCSV(csvText: string): CSVRow[] {
   const lines = csvText.split('\n');
   if (lines.length < 2) return [];
@@ -117,9 +129,37 @@ function generateSlug(title: string): string {
     .trim();
 }
 
-function parseNumber(value: string): number | null {
+/**
+ * Parse Brazilian number format (1.000,50 -> 1000.50)
+ */
+function parseBrazilianNumber(value: string): number | null {
   if (!value) return null;
-  const num = parseFloat(value.replace(/[^\d.,]/g, '').replace(',', '.'));
+  
+  // Remove everything except digits, dots, and commas
+  let cleaned = value.replace(/[^\d.,]/g, '');
+  if (!cleaned) return null;
+  
+  // Check format
+  const hasBrazilianFormat = cleaned.includes('.') && cleaned.includes(',');
+  const hasOnlyComma = !cleaned.includes('.') && cleaned.includes(',');
+  const hasOnlyDot = cleaned.includes('.') && !cleaned.includes(',');
+  
+  if (hasBrazilianFormat) {
+    // Brazilian: 1.000,50 -> remove dots, replace comma
+    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+  } else if (hasOnlyComma) {
+    // 1000,50 -> replace comma with dot
+    cleaned = cleaned.replace(',', '.');
+  } else if (hasOnlyDot) {
+    const dotCount = (cleaned.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      // Multiple dots = thousands: 1.000.000 -> 1000000
+      cleaned = cleaned.replace(/\./g, '');
+    }
+    // Single dot stays as decimal
+  }
+  
+  const num = parseFloat(cleaned);
   return isNaN(num) ? null : num;
 }
 
@@ -135,36 +175,188 @@ function parsePrice(value: string): number | null {
   if (!value || !value.trim()) return null;
   
   // Remove R$, spaces and currency symbols
-  let cleaned = value.replace(/R\$|\s/g, '').trim();
-  
+  const cleaned = value.replace(/R\$|\s/g, '').trim();
   if (!cleaned) return null;
   
-  // Check if it's Brazilian format (1.350.000,00) or standard (1350000.00)
-  const hasBrazilianFormat = cleaned.includes('.') && cleaned.includes(',');
-  const hasOnlyComma = !cleaned.includes('.') && cleaned.includes(',');
-  const hasOnlyDot = cleaned.includes('.') && !cleaned.includes(',');
+  const num = parseBrazilianNumber(cleaned);
+  return num !== null && num >= 0 ? num : null;
+}
+
+/**
+ * Extract price from Content/description text using regex
+ */
+function extractPriceFromContent(content: string): number | null {
+  if (!content) return null;
   
-  if (hasBrazilianFormat) {
-    // Brazilian format: remove dots (thousands separator), replace comma with dot
-    cleaned = cleaned.replace(/\./g, '').replace(',', '.');
-  } else if (hasOnlyComma) {
-    // Comma as decimal separator: 1350000,00
-    cleaned = cleaned.replace(',', '.');
-  } else if (hasOnlyDot) {
-    // Could be thousands separator (1.350.000) or decimal (1350000.00)
-    const dotCount = (cleaned.match(/\./g) || []).length;
-    if (dotCount > 1) {
-      // Multiple dots = thousands separators
-      cleaned = cleaned.replace(/\./g, '');
+  // Match patterns like "R$ 480.000,00" or "R$ 1.350.000" or "Valor: R$ 480.000"
+  const patterns = [
+    /R\$\s*([\d.,]+)/gi,
+    /(?:valor|preço|price)[\s:]*R?\$?\s*([\d.,]+)/gi,
+  ];
+  
+  for (const pattern of patterns) {
+    const matches = content.matchAll(pattern);
+    for (const match of matches) {
+      const price = parsePrice(match[1]);
+      if (price && price > 1000) { // Minimum reasonable price
+        return price;
+      }
     }
-    // Single dot with 2 decimals stays as is (1350000.00)
   }
   
-  // Remove any remaining non-numeric characters except decimal point
-  cleaned = cleaned.replace(/[^\d.]/g, '');
+  return null;
+}
+
+/**
+ * Clean HTML and convert to readable text with line breaks
+ */
+function cleanHtmlToText(html: string): string {
+  if (!html) return '';
   
-  const num = parseFloat(cleaned);
-  return isNaN(num) || num < 0 ? null : num;
+  let text = html;
+  
+  // Convert block elements to line breaks
+  text = text.replace(/<\/p>/gi, '\n\n');
+  text = text.replace(/<br\s*\/?>/gi, '\n');
+  text = text.replace(/<\/div>/gi, '\n');
+  text = text.replace(/<\/li>/gi, '\n');
+  text = text.replace(/<\/h[1-6]>/gi, '\n\n');
+  
+  // Add line break before list items
+  text = text.replace(/<li[^>]*>/gi, '• ');
+  
+  // Remove all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+  
+  // Decode HTML entities
+  text = text.replace(/&nbsp;/gi, ' ');
+  text = text.replace(/&amp;/gi, '&');
+  text = text.replace(/&lt;/gi, '<');
+  text = text.replace(/&gt;/gi, '>');
+  text = text.replace(/&quot;/gi, '"');
+  text = text.replace(/&#39;/gi, "'");
+  text = text.replace(/&apos;/gi, "'");
+  
+  // Clean up whitespace
+  text = text.replace(/[ \t]+/g, ' ');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  text = text.trim();
+  
+  return text;
+}
+
+/**
+ * Extract specifications from Content text
+ */
+function extractSpecsFromContent(content: string): {
+  quartos: number;
+  suites: number;
+  banheiros: number;
+  vagas: number;
+  area: number | null;
+  areaConstructed: number | null;
+} {
+  const specs = {
+    quartos: 0,
+    suites: 0,
+    banheiros: 0,
+    vagas: 0,
+    area: null as number | null,
+    areaConstructed: null as number | null,
+  };
+  
+  if (!content) return specs;
+  
+  // Normalize text for matching
+  const text = content.toLowerCase();
+  
+  // Quartos patterns
+  const quartosPatterns = [
+    /(\d+)\s*(?:quartos?|dormit[oó]rios?|dorms?)/i,
+    /(?:quartos?|dormit[oó]rios?)[\s:]*(\d+)/i,
+  ];
+  for (const pattern of quartosPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      specs.quartos = parseInt(match[1], 10);
+      break;
+    }
+  }
+  
+  // Suítes patterns
+  const suitesPatterns = [
+    /(\d+)\s*su[ií]tes?/i,
+    /su[ií]tes?[\s:]*(\d+)/i,
+  ];
+  for (const pattern of suitesPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      specs.suites = parseInt(match[1], 10);
+      break;
+    }
+  }
+  
+  // Banheiros patterns
+  const banheirosPatterns = [
+    /(\d+)\s*(?:banheiros?|wc|lavabos?)/i,
+    /(?:banheiros?|wc)[\s:]*(\d+)/i,
+  ];
+  for (const pattern of banheirosPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      specs.banheiros = parseInt(match[1], 10);
+      break;
+    }
+  }
+  
+  // Vagas patterns
+  const vagasPatterns = [
+    /(\d+)\s*(?:vagas?|garagens?)/i,
+    /(?:vagas?|garagem|garagens?)[\s:]*(\d+)/i,
+  ];
+  for (const pattern of vagasPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      specs.vagas = parseInt(match[1], 10);
+      break;
+    }
+  }
+  
+  // Área total patterns - support "1.000 m²", "1000m2", "1000 m2", "Área: 1.000m²"
+  const areaPatterns = [
+    /[áa]rea\s*(?:total)?[\s:]*([0-9.,]+)\s*(?:m[²2]|metros?)/i,
+    /([0-9.,]+)\s*(?:m[²2]|metros?)\s*(?:de\s+)?(?:total|terreno)/i,
+    /terreno[\s:]*([0-9.,]+)\s*(?:m[²2]|metros?)/i,
+  ];
+  for (const pattern of areaPatterns) {
+    const match = content.match(pattern);
+    if (match) {
+      const area = parseBrazilianNumber(match[1]);
+      if (area && area > 0) {
+        specs.area = area;
+        break;
+      }
+    }
+  }
+  
+  // Área construída patterns
+  const areaConstPatterns = [
+    /[áa]rea\s*constru[ií]da[\s:]*([0-9.,]+)\s*(?:m[²2]|metros?)/i,
+    /constru[ií]da[\s:]*([0-9.,]+)\s*(?:m[²2]|metros?)/i,
+    /([0-9.,]+)\s*(?:m[²2]|metros?)\s*constru[ií]d[ao]s?/i,
+  ];
+  for (const pattern of areaConstPatterns) {
+    const match = content.match(pattern);
+    if (match) {
+      const area = parseBrazilianNumber(match[1]);
+      if (area && area > 0) {
+        specs.areaConstructed = area;
+        break;
+      }
+    }
+  }
+  
+  return specs;
 }
 
 function parseIntValue(value: string): number {
@@ -234,17 +426,41 @@ async function processProperty(
   supabase: any,
   row: CSVRow,
   lineNumber: number
-): Promise<{ success: boolean; created: boolean; updated: boolean; imagesCount: number; error?: string }> {
+): Promise<{ 
+  success: boolean; 
+  created: boolean; 
+  updated: boolean; 
+  imagesCount: number; 
+  hasPrice: boolean;
+  hasDescription: boolean;
+  hasSpecs: boolean;
+  issues: string[];
+  error?: string;
+}> {
+  const issues: string[] = [];
+  
   try {
     // ALWAYS use Title column - never generate from Content
     const title = row['Title'] || row['title'] || '';
     if (!title) {
-      return { success: false, created: false, updated: false, imagesCount: 0, error: 'Título vazio' };
+      return { 
+        success: false, created: false, updated: false, imagesCount: 0, 
+        hasPrice: false, hasDescription: false, hasSpecs: false,
+        issues: ['Título vazio'], error: 'Título vazio' 
+      };
     }
     
     const permalink = row['Permalink'] || row['permalink'] || '';
     const slug = row['Slug'] || row['slug'] || generateSlug(title);
-    const description = row['Content'] || row['content'] || row['Excerpt'] || row['excerpt'] || '';
+    
+    // Get Content and clean HTML
+    const contentRaw = row['Content'] || row['content'] || row['Excerpt'] || row['excerpt'] || '';
+    const description = cleanHtmlToText(contentRaw);
+    const hasDescription = description.length > 0;
+    
+    if (!hasDescription) {
+      issues.push('Sem descrição');
+    }
     
     const estadoCidade = row['Estado e Cidade'] || row['estado_cidade'] || '';
     const { estado, cidade } = parseLocation(estadoCidade);
@@ -253,14 +469,54 @@ async function processProperty(
     const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
     const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
     
-    // Always try to parse price from multiple possible column names
+    // === PRICE HANDLING ===
+    // 1. Try explicit price column first
     const precoRaw = row['Preço'] || row['preco'] || row['Price'] || row['price'] || '';
-    const preco = parsePrice(precoRaw);
+    let preco = parsePrice(precoRaw);
     
-    const quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
-    const banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
-    const vagas = parseIntValue(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
-    const area = parseNumber(row['Área'] || row['area'] || row['Area'] || '');
+    // 2. If no price column, try to extract from Content
+    if (preco === null && contentRaw) {
+      preco = extractPriceFromContent(contentRaw);
+      if (preco) {
+        console.log(`Extracted price from content: ${preco}`);
+      }
+    }
+    
+    const hasPrice = preco !== null && preco > 0;
+    if (!hasPrice) {
+      issues.push('Sem preço');
+    }
+    
+    // === SPECS HANDLING ===
+    // Try explicit columns first, then extract from Content
+    let quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
+    let suites = parseIntValue(row['Suítes'] || row['suites'] || row['Suites'] || '');
+    let banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
+    let vagas = parseIntValue(row['Vagas'] || row['vagas'] || row['Garages'] || row['Garagem'] || '');
+    let area = parseBrazilianNumber(row['Área'] || row['area'] || row['Area'] || row['Área Total'] || '');
+    let areaConstructed = parseBrazilianNumber(row['Área Construída'] || row['area_construida'] || row['Built Area'] || '');
+    
+    // If no explicit specs, try extracting from Content
+    if (quartos === 0 && suites === 0 && banheiros === 0 && vagas === 0 && !area) {
+      const extractedSpecs = extractSpecsFromContent(contentRaw);
+      
+      if (quartos === 0) quartos = extractedSpecs.quartos;
+      if (suites === 0) suites = extractedSpecs.suites;
+      if (banheiros === 0) banheiros = extractedSpecs.banheiros;
+      if (vagas === 0) vagas = extractedSpecs.vagas;
+      if (!area && extractedSpecs.area) area = extractedSpecs.area;
+      if (!areaConstructed && extractedSpecs.areaConstructed) areaConstructed = extractedSpecs.areaConstructed;
+      
+      if (extractedSpecs.quartos || extractedSpecs.suites || extractedSpecs.banheiros || 
+          extractedSpecs.vagas || extractedSpecs.area) {
+        console.log(`Extracted specs from content: quartos=${quartos}, suítes=${suites}, banheiros=${banheiros}, vagas=${vagas}, area=${area}`);
+      }
+    }
+    
+    const hasSpecs = quartos > 0 || suites > 0 || banheiros > 0 || vagas > 0 || (area !== null && area > 0);
+    if (!hasSpecs) {
+      issues.push('Sem especificações');
+    }
     
     // Build property data
     const propertyData: Record<string, unknown> = {
@@ -274,9 +530,11 @@ async function processProperty(
       featured: destaque,
       old_url: permalink,
       bedrooms: quartos,
+      suites: suites,
       bathrooms: banheiros,
       garages: vagas,
       area: area || 0,
+      built_area: areaConstructed,
       updated_at: new Date().toISOString()
     };
     
@@ -285,7 +543,7 @@ async function processProperty(
       propertyData.price = preco;
     }
     
-    console.log(`Processing: ${title} (${slug}) - Price: ${preco !== null ? preco : 'not set'}`);
+    console.log(`Processing: ${title} (${slug}) - Price: ${preco !== null ? preco : 'not set'}, Description: ${description.length} chars, Specs: q=${quartos} s=${suites} b=${banheiros} v=${vagas} a=${area}`);
     
     // Check if property exists by slug or old_url (permalink)
     const { data: existingProperty } = await supabase
@@ -353,11 +611,18 @@ async function processProperty(
     }
     
     // Property can be saved even without images
-    return { success: true, created, updated, imagesCount };
+    return { 
+      success: true, created, updated, imagesCount, 
+      hasPrice, hasDescription, hasSpecs, issues 
+    };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`Error line ${lineNumber}: ${errorMessage}`);
-    return { success: false, created: false, updated: false, imagesCount: 0, error: errorMessage };
+    return { 
+      success: false, created: false, updated: false, imagesCount: 0, 
+      hasPrice: false, hasDescription: false, hasSpecs: false,
+      issues, error: errorMessage 
+    };
   }
 }
 
@@ -451,7 +716,11 @@ serve(async (req) => {
       let criados = 0;
       let atualizados = 0;
       let imagensImportadas = 0;
+      let withPrice = 0;
+      let withDescription = 0;
+      let withSpecs = 0;
       const erros: Array<{ linha: number; titulo: string; motivo: string }> = [];
+      const problemProperties: Array<{ title: string; permalink: string; issues: string[] }> = [];
       
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -463,6 +732,18 @@ serve(async (req) => {
           if (result.created) criados++;
           if (result.updated) atualizados++;
           imagensImportadas += result.imagesCount;
+          if (result.hasPrice) withPrice++;
+          if (result.hasDescription) withDescription++;
+          if (result.hasSpecs) withSpecs++;
+          
+          // Track properties with issues even if successfully imported
+          if (result.issues.length > 0) {
+            problemProperties.push({
+              title: row['Title'] || row['title'] || 'Desconhecido',
+              permalink: row['Permalink'] || row['permalink'] || '',
+              issues: result.issues
+            });
+          }
         } else {
           erros.push({
             linha: lineNumber,
@@ -480,13 +761,22 @@ serve(async (req) => {
               created_items: criados,
               updated_items: atualizados,
               error_count: erros.length,
-              errors: erros.slice(-10) // Keep last 10 errors
+              errors: {
+                erros: erros.slice(-10),
+                stats: {
+                  withPrice,
+                  withDescription,
+                  withSpecs,
+                  totalProcessed: i + 1
+                },
+                problemProperties: problemProperties.slice(-20)
+              }
             })
             .eq('id', jobId);
         }
       }
       
-      // Mark as completed
+      // Mark as completed with full stats
       if (jobId) {
         await supabase
           .from('import_jobs')
@@ -496,26 +786,35 @@ serve(async (req) => {
             created_items: criados,
             updated_items: atualizados,
             error_count: erros.length,
-            errors: erros,
+            errors: {
+              erros,
+              stats: {
+                withPrice,
+                withDescription,
+                withSpecs,
+                totalProcessed: rows.length,
+                imagensImportadas
+              },
+              problemProperties
+            },
             completed_at: new Date().toISOString()
           })
           .eq('id', jobId);
       }
       
       console.log(`Import completed: ${criados} created, ${atualizados} updated, ${imagensImportadas} images, ${erros.length} errors`);
+      console.log(`Stats: ${withPrice} with price, ${withDescription} with description, ${withSpecs} with specs`);
     };
     
     // Start background processing
     EdgeRuntime.waitUntil(backgroundTask());
     
-    // Return immediate response
     return new Response(
-      JSON.stringify({
-        message: 'Importação iniciada em segundo plano',
-        total_linhas: rows.length,
-        status: 'processing',
-        job_id: jobId,
-        info: 'A importação está sendo processada. Acompanhe o progresso na barra de status.'
+      JSON.stringify({ 
+        success: true, 
+        message: 'Importação iniciada',
+        jobId,
+        totalRows: rows.length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -523,7 +822,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('Import error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Erro interno' }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'Erro ao processar arquivo' 
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
