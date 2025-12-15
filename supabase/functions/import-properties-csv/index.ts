@@ -453,13 +453,24 @@ async function processProperty(
     const permalink = row['Permalink'] || row['permalink'] || '';
     const slug = row['Slug'] || row['slug'] || generateSlug(title);
     
-    // Get Content and clean HTML
-    const contentRaw = row['Content'] || row['content'] || row['Excerpt'] || row['excerpt'] || '';
-    const description = cleanHtmlToText(contentRaw);
-    const hasDescription = description.length > 0;
+    // Get Content and clean HTML - check multiple column names
+    // Priority: Content (WordPress post_content) > descricao > Description > Excerpt
+    const contentRaw = row['Content'] || row['content'] || row['post_content'] || 
+                       row['Descricao'] || row['descricao'] || row['Descrição'] || row['descrição'] ||
+                       row['Description'] || row['description'] ||
+                       row['Excerpt'] || row['excerpt'] || '';
     
+    const description = cleanHtmlToText(contentRaw);
+    const hasDescription = description.length > 10; // Minimum 10 chars for meaningful description
+    
+    // Log if Content column exists but is empty
     if (!hasDescription) {
+      if (row['Content'] !== undefined || row['content'] !== undefined) {
+        console.log(`Content column found but empty/short for: ${title}`);
+      }
       issues.push('Sem descrição');
+    } else {
+      console.log(`Description imported: ${description.length} chars for ${title}`);
     }
     
     const estadoCidade = row['Estado e Cidade'] || row['estado_cidade'] || '';
