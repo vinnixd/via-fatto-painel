@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { PropertyFilter as PropertyFilterType } from '@/types/property';
 import { useAvailableCities } from '@/hooks/useSupabaseData';
@@ -6,12 +6,20 @@ import { useAvailableCities } from '@/hooks/useSupabaseData';
 interface PropertyFilterProps {
   onFilterChange: (filters: PropertyFilterType) => void;
   onSearch: (query: string) => void;
+  initialFilters?: PropertyFilterType;
 }
 
-const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
+const PropertyFilter = ({ onFilterChange, onSearch, initialFilters }: PropertyFilterProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<PropertyFilterType>({});
+  const [filters, setFilters] = useState<PropertyFilterType>(initialFilters || {});
   const { data: availableCities = [] } = useAvailableCities();
+
+  // Update filters when initialFilters change
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(initialFilters);
+    }
+  }, [initialFilters]);
 
   const propertyTypes = [
     { value: '', label: 'Selecione' },
@@ -46,8 +54,8 @@ const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
     handleFilterChange({ maxPrice: numValue });
   };
 
-  const formatCurrency = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
+  const formatCurrency = (value: string | number) => {
+    const numbers = String(value).replace(/\D/g, '');
     if (!numbers) return '';
     const formatted = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -99,7 +107,7 @@ const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
             <input
               type="text"
               placeholder="R$ 0,00"
-              value={filters.minPrice ? formatCurrency(filters.minPrice.toString()) : ''}
+              value={filters.minPrice ? formatCurrency(filters.minPrice) : ''}
               onChange={(e) => handleMinPriceChange(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             />
@@ -113,7 +121,7 @@ const PropertyFilter = ({ onFilterChange, onSearch }: PropertyFilterProps) => {
             <input
               type="text"
               placeholder="R$ 0,00"
-              value={filters.maxPrice ? formatCurrency(filters.maxPrice.toString()) : ''}
+              value={filters.maxPrice ? formatCurrency(filters.maxPrice) : ''}
               onChange={(e) => handleMaxPriceChange(e.target.value)}
               className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-neutral-700 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             />

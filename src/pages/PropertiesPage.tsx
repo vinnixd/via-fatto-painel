@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PropertyCard from '@/components/ui/PropertyCard';
@@ -8,17 +9,33 @@ import { PropertyFilter as PropertyFilterType } from '@/types/property';
 import { Grid, List, Loader2 } from 'lucide-react';
 
 const PropertiesPage = () => {
+  const [searchParams] = useSearchParams();
   const { data: properties = [], isLoading } = useProperties();
   const { data: siteConfig } = useSiteConfig();
   
   const [filteredProperties, setFilteredProperties] = useState<PropertyFromDB[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<PropertyFilterType>({});
   const [favorites, setFavorites] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  // Initialize filters from URL params
+  const [filters, setFilters] = useState<PropertyFilterType>(() => {
+    const initialFilters: PropertyFilterType = {};
+    const type = searchParams.get('type');
+    const location = searchParams.get('location');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    
+    if (type) initialFilters.type = type;
+    if (location) initialFilters.city = location;
+    if (minPrice) initialFilters.minPrice = Number(minPrice.replace(/\D/g, ''));
+    if (maxPrice) initialFilters.maxPrice = Number(maxPrice.replace(/\D/g, ''));
+    
+    return initialFilters;
+  });
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -178,6 +195,7 @@ const PropertiesPage = () => {
             <PropertyFilter
               onFilterChange={setFilters}
               onSearch={setSearchQuery}
+              initialFilters={filters}
             />
           </div>
 
