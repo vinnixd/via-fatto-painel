@@ -180,8 +180,11 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
     queryFn: async () => {
       if (!property) return [];
 
-      // Fetch similar properties: same city, same status, exclude current
-      const { data, error } = await supabase
+      const existingIds = [property.id];
+      let results: any[] = [];
+
+      // 1. Same city + same status
+      const { data: sameCityStatus } = await supabase
         .from('properties')
         .select('*')
         .eq('active', true)
@@ -191,22 +194,59 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
         .order('order_index', { ascending: true })
         .limit(limit);
 
-      if (error) throw error;
+      if (sameCityStatus) {
+        results = [...sameCityStatus];
+        existingIds.push(...sameCityStatus.map(p => p.id));
+      }
 
-      // If not enough results, fetch more from same city only
-      let results = data || [];
+      // 2. Same city, different status
       if (results.length < limit) {
-        const { data: moreData } = await supabase
+        const { data: sameCityOther } = await supabase
           .from('properties')
           .select('*')
           .eq('active', true)
           .eq('address_city', property.address_city)
-          .neq('id', property.id)
-          .not('id', 'in', `(${results.map(p => p.id).join(',') || property.id})`)
+          .not('id', 'in', `(${existingIds.join(',')})`)
           .order('order_index', { ascending: true })
           .limit(limit - results.length);
 
-        results = [...results, ...(moreData || [])];
+        if (sameCityOther) {
+          results = [...results, ...sameCityOther];
+          existingIds.push(...sameCityOther.map(p => p.id));
+        }
+      }
+
+      // 3. Same type + status from any city
+      if (results.length < limit) {
+        const { data: sameTypeStatus } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('active', true)
+          .eq('type', property.type as any)
+          .eq('status', property.status)
+          .not('id', 'in', `(${existingIds.join(',')})`)
+          .order('order_index', { ascending: true })
+          .limit(limit - results.length);
+
+        if (sameTypeStatus) {
+          results = [...results, ...sameTypeStatus];
+          existingIds.push(...sameTypeStatus.map(p => p.id));
+        }
+      }
+
+      // 4. Any other active properties
+      if (results.length < limit) {
+        const { data: anyOther } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('active', true)
+          .not('id', 'in', `(${existingIds.join(',')})`)
+          .order('order_index', { ascending: true })
+          .limit(limit - results.length);
+
+        if (anyOther) {
+          results = [...results, ...anyOther];
+        }
       }
 
       // Fetch images for each property
