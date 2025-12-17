@@ -27,12 +27,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
+      .eq('user_id', userId);
     
-    const role = data?.role;
-    setIsAdmin(role === 'admin');
-    setIsCorretor(role === 'corretor');
+    const roles = data?.map(r => r.role) || [];
+    setIsAdmin(roles.includes('admin'));
+    setIsCorretor(roles.includes('corretor'));
   };
 
   useEffect(() => {
