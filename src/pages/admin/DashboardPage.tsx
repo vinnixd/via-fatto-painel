@@ -72,89 +72,49 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Total properties
-        const { count: totalProperties } = await supabase
-          .from('properties')
-          .select('*', { count: 'exact', head: true });
+        // Run all queries in parallel for better performance
+        const [
+          totalPropertiesResult,
+          forSaleResult,
+          forRentResult,
+          featuredCountResult,
+          totalMessagesResult,
+          unreadMessagesResult,
+          totalFavoritesResult,
+          viewsDataResult,
+          recentResult,
+          topResult,
+          messagesResult,
+        ] = await Promise.all([
+          supabase.from('properties').select('*', { count: 'exact', head: true }),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'venda'),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'aluguel'),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('featured', true),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('read', false),
+          supabase.from('favorites').select('*', { count: 'exact', head: true }),
+          supabase.from('properties').select('views'),
+          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').order('created_at', { ascending: false }).limit(5),
+          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').order('views', { ascending: false }).limit(5),
+          supabase.from('contacts').select('id, name, email, message, read, created_at').order('created_at', { ascending: false }).limit(5),
+        ]);
 
-        // For sale
-        const { count: forSale } = await supabase
-          .from('properties')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'venda');
-
-        // For rent
-        const { count: forRent } = await supabase
-          .from('properties')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'aluguel');
-
-        // Featured count
-        const { count: featuredCount } = await supabase
-          .from('properties')
-          .select('*', { count: 'exact', head: true })
-          .eq('featured', true);
-
-        // Total messages
-        const { count: totalMessages } = await supabase
-          .from('contacts')
-          .select('*', { count: 'exact', head: true });
-
-        // Unread messages
-        const { count: unreadMessages } = await supabase
-          .from('contacts')
-          .select('*', { count: 'exact', head: true })
-          .eq('read', false);
-
-        // Total favorites
-        const { count: totalFavorites } = await supabase
-          .from('favorites')
-          .select('*', { count: 'exact', head: true });
-
-        // Total views
-        const { data: viewsData } = await supabase
-          .from('properties')
-          .select('views');
-        
-        const totalViews = viewsData?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
+        const totalViews = viewsDataResult.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
 
         setStats({
-          totalProperties: totalProperties || 0,
-          forSale: forSale || 0,
-          forRent: forRent || 0,
-          totalMessages: totalMessages || 0,
-          unreadMessages: unreadMessages || 0,
-          totalFavorites: totalFavorites || 0,
+          totalProperties: totalPropertiesResult.count || 0,
+          forSale: forSaleResult.count || 0,
+          forRent: forRentResult.count || 0,
+          totalMessages: totalMessagesResult.count || 0,
+          unreadMessages: unreadMessagesResult.count || 0,
+          totalFavorites: totalFavoritesResult.count || 0,
           totalViews,
-          featuredCount: featuredCount || 0,
+          featuredCount: featuredCountResult.count || 0,
         });
 
-        // Recent properties
-        const { data: recent } = await supabase
-          .from('properties')
-          .select('id, title, slug, price, status, views, featured, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        setRecentProperties(recent || []);
-
-        // Top viewed properties
-        const { data: top } = await supabase
-          .from('properties')
-          .select('id, title, slug, price, status, views, featured, created_at')
-          .order('views', { ascending: false })
-          .limit(5);
-
-        setTopProperties(top || []);
-
-        // Recent messages
-        const { data: messages } = await supabase
-          .from('contacts')
-          .select('id, name, email, message, read, created_at')
-          .order('created_at', { ascending: false })
-          .limit(5);
-
-        setRecentMessages(messages || []);
+        setRecentProperties(recentResult.data || []);
+        setTopProperties(topResult.data || []);
+        setRecentMessages(messagesResult.data || []);
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
