@@ -38,7 +38,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   };
 
   return (
-    <div className="card-property group">
+    <Link to={`/imovel/${property.slug}`} className="card-property group block cursor-pointer">
       {/* Image Container */}
       <div className="relative h-48 md:h-56 overflow-hidden">
         <img
@@ -142,23 +142,21 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
 
         {/* Action Buttons */}
         <div className="flex space-x-2">
-          <Link
-            to={`/imovel/${property.slug}`}
-            className="flex-1 btn-secondary text-sm py-2 text-center"
-          >
+          <span className="flex-1 btn-secondary text-sm py-2 text-center">
             Ver Detalhes
-          </Link>
+          </span>
           <a
             href={getWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             className="flex-1 btn-primary text-sm py-2 text-center"
           >
             WhatsApp
           </a>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
