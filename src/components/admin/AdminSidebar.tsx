@@ -93,12 +93,12 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-screen bg-neutral-900 text-neutral-100 transition-all duration-300 z-50 flex flex-col',
+        'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 z-50 flex flex-col',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-800">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
           <Link to="/admin" className="flex items-center gap-2">
             {siteConfig?.logo_url ? (
@@ -140,7 +140,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         size="icon"
         onClick={onToggle}
         className={cn(
-          'absolute top-4 -right-3 h-6 w-6 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-neutral-100 hover:bg-neutral-700 z-50',
+          'absolute top-4 -right-3 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent z-50',
         )}
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -162,8 +162,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                     collapsed && 'justify-center px-0',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
+                      ? 'bg-sidebar-accent text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
                   )}
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -182,8 +182,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 className={cn(
                   'flex items-center justify-center py-2.5 rounded-lg transition-colors',
                   isSettingsActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
+                    ? 'bg-sidebar-accent text-sidebar-foreground'
+                    : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
                 )}
               >
                 <settingsMenu.icon className="h-5 w-5 flex-shrink-0" />
@@ -194,8 +194,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors w-full',
                     isSettingsActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
+                      ? 'bg-sidebar-accent/50 text-sidebar-foreground'
+                      : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
                   )}
                 >
                   <settingsMenu.icon className="h-5 w-5 flex-shrink-0" />
@@ -217,8 +217,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                         className={cn(
                           'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm',
                           isSubActive
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
+                            ? 'bg-sidebar-accent text-sidebar-foreground'
+                            : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
                         )}
                       >
                         <subItem.icon className="h-4 w-4 flex-shrink-0" />
@@ -240,8 +240,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                 collapsed && 'justify-center px-0',
                 isProfileActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800'
+                  ? 'bg-sidebar-accent text-sidebar-foreground'
+                  : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
               )}
             >
               <profileItem.icon className="h-5 w-5 flex-shrink-0" />
@@ -252,9 +252,9 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       </nav>
 
       {/* User & Logout */}
-      <div className="border-t border-neutral-800 p-4">
+      <div className="border-t border-sidebar-border p-4">
         {!collapsed && (
-          <div className="mb-3 text-sm text-neutral-400 truncate">
+          <div className="mb-3 text-sm text-sidebar-muted truncate">
             {user?.email}
           </div>
         )}
@@ -263,7 +263,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
           onClick={signOut}
           title={collapsed ? 'Sair' : undefined}
           className={cn(
-            'text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800',
+            'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent',
             collapsed ? 'w-full justify-center px-0' : 'w-full justify-start'
           )}
         >
