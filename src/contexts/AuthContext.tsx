@@ -7,6 +7,8 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isCorretor: boolean;
+  canAccessAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -19,16 +21,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCorretor, setIsCorretor] = useState(false);
 
-  const checkAdminRole = async (userId: string) => {
+  const checkUserRole = async (userId: string) => {
     const { data } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .eq('role', 'admin')
       .maybeSingle();
     
-    setIsAdmin(!!data);
+    const role = data?.role;
+    setIsAdmin(role === 'admin');
+    setIsCorretor(role === 'corretor');
   };
 
   useEffect(() => {
@@ -40,10 +44,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (session?.user) {
           setTimeout(() => {
-            checkAdminRole(session.user.id);
+            checkUserRole(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsCorretor(false);
         }
       }
     );
@@ -54,12 +59,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
 
       if (session?.user) {
-        checkAdminRole(session.user.id);
+        checkUserRole(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const canAccessAdmin = isAdmin || isCorretor;
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -84,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isCorretor, canAccessAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
