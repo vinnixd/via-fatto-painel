@@ -50,7 +50,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-100">
+    <div className="min-h-screen bg-admin">
       <AdminSidebar collapsed={sidebarCollapsed} onToggle={handleToggleSidebar} />
       <main 
         className={cn(

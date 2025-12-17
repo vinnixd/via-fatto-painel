@@ -77,7 +77,17 @@ export default {
 					accent: 'hsl(var(--sidebar-accent))',
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
+					ring: 'hsl(var(--sidebar-ring))',
+					muted: 'hsl(var(--sidebar-muted))'
+				},
+				admin: {
+					DEFAULT: 'hsl(var(--admin-background))',
+					card: 'hsl(var(--admin-card))',
+					border: 'hsl(var(--admin-border))',
+					muted: 'hsl(var(--admin-muted))',
+					'muted-foreground': 'hsl(var(--admin-muted-foreground))',
+					accent: 'hsl(var(--admin-accent))',
+					'accent-foreground': 'hsl(var(--admin-accent-foreground))'
 				}
 			},
 			borderRadius: {
