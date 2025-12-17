@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, User, Mail, Phone, Shield, Camera, Lock, Check } from 'lucide-react';
+import bannerProfile from '@/assets/banner-profile.png';
 
 interface Profile {
   id: string;
@@ -199,7 +200,10 @@ const ProfilePage = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Profile Header Card */}
           <Card className="border-0 shadow-sm overflow-hidden">
-            <div className="h-24 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+            <div 
+              className="h-24 bg-cover bg-center" 
+              style={{ backgroundImage: `url(${bannerProfile})` }} 
+            />
             <CardContent className="relative pt-0 pb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
                 {/* Avatar with upload */}
