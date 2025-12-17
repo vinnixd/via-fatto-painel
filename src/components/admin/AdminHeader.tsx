@@ -11,6 +11,7 @@ import {
 import { Bell, ExternalLink, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface AdminHeaderProps {
   title: string;
@@ -20,6 +21,20 @@ interface AdminHeaderProps {
 const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   const { signOut } = useAuth();
   const { profile } = useProfile();
+  const { role } = usePermissions();
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'gestor':
+        return 'Gestor';
+      case 'corretor':
+        return 'Corretor';
+      default:
+        return 'Usuário';
+    }
+  };
 
   const getInitials = (name?: string | null, email?: string) => {
     if (name && name.trim()) {
@@ -65,7 +80,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
               </Avatar>
               <div className="hidden md:flex flex-col items-start">
                 <span className="text-sm font-medium leading-none">{displayName}</span>
-                <span className="text-xs text-muted-foreground leading-none mt-0.5">Administrador</span>
+                <span className="text-xs text-muted-foreground leading-none mt-0.5">{getRoleLabel(role)}</span>
               </div>
               <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
             </Button>
