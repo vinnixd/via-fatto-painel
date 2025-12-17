@@ -11,7 +11,7 @@ interface AdminLayoutProps {
 }
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, canAccessAdmin } = useAuth();
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // Persist sidebar state in localStorage
@@ -32,10 +32,10 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (!loading && user && !isAdmin) {
+    if (!loading && user && !canAccessAdmin) {
       navigate('/admin/login');
     }
-  }, [user, loading, isAdmin, navigate]);
+  }, [user, loading, canAccessAdmin, navigate]);
 
   if (loading) {
     return (
@@ -45,7 +45,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user || !canAccessAdmin) {
     return null;
   }
 

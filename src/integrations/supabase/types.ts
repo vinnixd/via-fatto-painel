@@ -162,6 +162,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          expires_at: string
+          id: string
+          name: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          name?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          name?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       portais: {
         Row: {
           ativo: boolean
@@ -302,6 +338,7 @@ export type Database = {
           id: string
           name: string
           phone: string | null
+          status: string
           updated_at: string
         }
         Insert: {
@@ -312,6 +349,7 @@ export type Database = {
           id: string
           name?: string
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -322,6 +360,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string | null
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -626,6 +665,21 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      use_invite: {
+        Args: { invite_token: string; user_id: string }
+        Returns: boolean
+      }
+      validate_invite: {
+        Args: { invite_token: string }
+        Returns: {
+          email: string
+          error_message: string
+          id: string
+          is_valid: boolean
+          name: string
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
       }
     }
     Enums: {

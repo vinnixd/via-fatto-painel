@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 
 // Admin Pages
 import AuthPage from "./pages/admin/AuthPage";
+import InviteSignupPage from "./pages/admin/InviteSignupPage";
 import DashboardPage from "./pages/admin/DashboardPage";
 import PropertiesListPage from "./pages/admin/PropertiesListPage";
 import PropertyFormPage from "./pages/admin/PropertyFormPage";
@@ -28,6 +29,7 @@ import MessagesPage from "./pages/admin/MessagesPage";
 import ImportPage from "./pages/admin/ImportPage";
 import PortaisPage from "./pages/admin/PortaisPage";
 import PortalConfigPage from "./pages/admin/PortalConfigPage";
+import UsersPage from "./pages/admin/UsersPage";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,7 @@ const App = () => (
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AuthPage />} />
+            <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
             <Route path="/admin" element={<DashboardPage />} />
             <Route path="/admin/designer" element={<DesignerPage />} />
             <Route path="/admin/imoveis" element={<PropertiesListPage />} />
@@ -70,6 +73,7 @@ const App = () => (
             <Route path="/admin/importar" element={<ImportPage />} />
             <Route path="/admin/portais" element={<PortaisPage />} />
             <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
+            <Route path="/admin/usuarios" element={<UsersPage />} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -5,11 +5,11 @@ import {
   Palette,
   Building2,
   FolderOpen,
-  Settings,
   Globe,
   Heart,
   MessageSquare,
   User,
+  Users,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -18,7 +18,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 
-const menuItems = [
+interface MenuItem {
+  icon: typeof LayoutDashboard;
+  label: string;
+  path: string;
+  adminOnly?: boolean;
+}
+
+const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
@@ -26,6 +33,7 @@ const menuItems = [
   { icon: Globe, label: 'Portais', path: '/admin/portais' },
   { icon: Heart, label: 'Favoritos', path: '/admin/favoritos' },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
+  { icon: Users, label: 'Usuários', path: '/admin/usuarios', adminOnly: true },
   { icon: User, label: 'Meu Perfil', path: '/admin/perfil' },
 ];
 
@@ -36,8 +44,16 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
-  const { signOut, user } = useAuth();
+  const { signOut, user, isAdmin } = useAuth();
   const { data: siteConfig } = useSiteConfig();
+
+  // Filter menu items based on user role
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (item.adminOnly && !isAdmin) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <aside
@@ -98,7 +114,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const isActive = location.pathname === item.path || 
               (item.path !== '/admin' && location.pathname.startsWith(item.path));
             
