@@ -257,7 +257,7 @@ const PropertyPage = () => {
             </div>
 
             {/* Property Info */}
-            <div className="space-y-6">
+            <div className="space-y-6 lg:sticky lg:top-8 lg:self-start">
               {/* Header */}
               <div>
                 <div className="flex items-start justify-between mb-2">
