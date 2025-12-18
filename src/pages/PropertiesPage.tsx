@@ -17,7 +17,7 @@ const PropertiesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [sortBy, setSortBy] = useState<string>('newest');
+  const [sortBy, setSortBy] = useState<string>('custom');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -103,6 +103,10 @@ const PropertiesPage = () => {
 
     // Apply sorting
     switch (sortBy) {
+      case 'custom':
+        // Keep database order (order_index)
+        filtered.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+        break;
       case 'price_asc':
         filtered.sort((a, b) => a.price - b.price);
         break;
@@ -228,6 +232,7 @@ const PropertiesPage = () => {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="input-field"
               >
+                <option value="custom">Ordem personalizada</option>
                 <option value="newest">Mais recentes</option>
                 <option value="oldest">Mais antigos</option>
                 <option value="price_asc">Menor preço</option>
