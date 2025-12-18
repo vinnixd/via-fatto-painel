@@ -131,7 +131,7 @@ const SignIn1 = ({ onSubmit, loading = false, logoUrl, error }: SignIn1Props) =>
 
             <Button
               type="submit"
-              className="w-full h-12 bg-white text-neutral-900 hover:bg-white/90 font-semibold rounded-xl transition-all group"
+              className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold rounded-xl transition-all group"
               disabled={loading}
             >
               {loading ? (
