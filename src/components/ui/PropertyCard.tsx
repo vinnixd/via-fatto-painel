@@ -1,6 +1,6 @@
 import { Heart, Bed, Bath, Car, Maximize, MapPin, Eye } from 'lucide-react';
 import { Property } from '@/types/property';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { buildWhatsAppUrl } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ interface PropertyCardProps {
 
 const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCardProps) => {
   const [imageError, setImageError] = useState(false);
+  const navigate = useNavigate();
 
   const formatPrice = (price: number | null | undefined) => {
     if (!price || price === 0) {
@@ -25,20 +26,26 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
     }).format(price);
   };
 
+  const handleCardClick = () => {
+    navigate(`/imovel/${property.slug}`);
+  };
+
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     onFavorite?.(property.id);
   };
 
-  const getWhatsAppUrl = () => {
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
     const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference}${priceText}. Poderia me passar mais informações?`;
-    return buildWhatsAppUrl({ phone: property.broker.phone, message });
+    const url = buildWhatsAppUrl({ phone: property.broker.phone, message });
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <Link to={`/imovel/${property.slug}`} className="card-property group block cursor-pointer">
+    <div onClick={handleCardClick} className="card-property group block cursor-pointer">
       {/* Image Container */}
       <div className="relative h-48 md:h-56 overflow-hidden">
         <img
@@ -145,18 +152,15 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
           <span className="flex-1 btn-secondary text-sm py-2 text-center">
             Ver Detalhes
           </span>
-          <a
-            href={getWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+          <button
+            onClick={handleWhatsAppClick}
             className="flex-1 btn-primary text-sm py-2 text-center"
           >
             WhatsApp
-          </a>
+          </button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
