@@ -30,7 +30,7 @@ const menuItems: MenuItem[] = [
   { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
   { icon: Globe, label: 'Portais', path: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
-  { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin'] },
+  { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin', 'marketing'] },
   { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
   { icon: Users, label: 'Usuários', path: '/admin/usuarios', roles: ['admin'] },
