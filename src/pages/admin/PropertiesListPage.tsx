@@ -604,19 +604,21 @@ const PropertiesListPage = () => {
     }
   };
 
-  const toggleFeatured = async (id: string, featured: boolean) => {
+  const toggleFeatured = async (id: string, currentFeatured: boolean) => {
     try {
+      const newFeatured = !currentFeatured;
+      
       const { error } = await supabase
         .from('properties')
-        .update({ featured: !featured })
+        .update({ featured: newFeatured })
         .eq('id', id);
 
       if (error) throw error;
 
-      setProperties(
-        properties.map((p) => (p.id === id ? { ...p, featured: !featured } : p))
+      setProperties(prev =>
+        prev.map((p) => (p.id === id ? { ...p, featured: newFeatured } : p))
       );
-      toast.success(featured ? 'Destaque removido' : 'Imóvel destacado');
+      toast.success(currentFeatured ? 'Destaque removido' : 'Imóvel destacado');
     } catch (error) {
       console.error('Error toggling featured:', error);
       toast.error('Erro ao atualizar destaque');
