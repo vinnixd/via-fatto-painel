@@ -12,11 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { address } = await req.json();
+    const { address, zipcode } = await req.json();
 
-    if (!address) {
+    // Prioritize CEP (zipcode) for geocoding
+    const searchQuery = zipcode ? `${zipcode}, Brasil` : address;
+
+    if (!searchQuery) {
       return new Response(
-        JSON.stringify({ error: "Address is required" }),
+        JSON.stringify({ error: "Address or zipcode is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -30,9 +33,12 @@ serve(async (req) => {
       );
     }
 
-    // Call Mapbox Geocoding API
+    console.log("Geocoding query:", searchQuery);
+
+    // Call Mapbox Geocoding API - prioritize postal code type if using zipcode
+    const types = zipcode ? "postcode,place" : "address,place";
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}&country=br&limit=1`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${MAPBOX_TOKEN}&country=br&limit=1&types=${types}`
     );
 
     if (!response.ok) {
@@ -43,6 +49,7 @@ serve(async (req) => {
 
     if (data.features && data.features.length > 0) {
       const [lng, lat] = data.features[0].center;
+      console.log("Geocoding result:", { lng, lat, placeName: data.features[0].place_name });
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -51,6 +58,30 @@ serve(async (req) => {
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Fallback: if zipcode search failed, try with full address
+    if (zipcode && address) {
+      console.log("Zipcode search failed, trying full address:", address);
+      const fallbackResponse = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${MAPBOX_TOKEN}&country=br&limit=1`
+      );
+
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        if (fallbackData.features && fallbackData.features.length > 0) {
+          const [lng, lat] = fallbackData.features[0].center;
+          console.log("Fallback result:", { lng, lat, placeName: fallbackData.features[0].place_name });
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              coordinates: { lng, lat },
+              placeName: fallbackData.features[0].place_name 
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
     }
 
     return new Response(

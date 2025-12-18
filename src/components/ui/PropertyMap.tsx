@@ -6,11 +6,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface PropertyMapProps {
   address: string;
+  zipcode?: string;
   locationType: 'exact' | 'approximate' | 'hidden';
   className?: string;
 }
 
-const PropertyMap: React.FC<PropertyMapProps> = ({ address, locationType, className = '' }) => {
+const PropertyMap: React.FC<PropertyMapProps> = ({ address, zipcode, locationType, className = '' }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
@@ -58,11 +59,11 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ address, locationType, classN
 
         setMapboxToken(tokenData.token);
 
-        // Geocode address
+        // Geocode address - prioritize CEP (zipcode)
         let geoData, geoError;
         try {
           const result = await supabase.functions.invoke('geocode-address', {
-            body: { address }
+            body: { address, zipcode }
           });
           geoData = result.data;
           geoError = result.error;
@@ -98,7 +99,7 @@ const PropertyMap: React.FC<PropertyMapProps> = ({ address, locationType, classN
     };
 
     fetchTokenAndGeocode();
-  }, [address, locationType]);
+  }, [address, zipcode, locationType]);
 
   // Initialize map when we have coordinates and token
   useEffect(() => {
