@@ -307,13 +307,57 @@ const PropertyPage = () => {
                     Sobre este Imóvel
                   </h2>
                   <div className="prose prose-sm max-w-none text-muted-foreground">
-                    {property.description.split('\n\n').map((paragraph, index) => (
-                      paragraph.trim() && (
-                        <p key={index} className="mb-4 leading-relaxed">
-                          {paragraph}
-                        </p>
-                      )
-                    ))}
+                    {(() => {
+                      // Split description into lines and group them
+                      const lines = property.description.split('\n').map(l => l.trim()).filter(l => l);
+                      const elements: React.ReactNode[] = [];
+                      let checkmarkItems: string[] = [];
+                      let paragraphBuffer: string[] = [];
+
+                      const flushParagraph = () => {
+                        if (paragraphBuffer.length > 0) {
+                          elements.push(
+                            <p key={`p-${elements.length}`} className="mb-4 leading-relaxed">
+                              {paragraphBuffer.join(' ')}
+                            </p>
+                          );
+                          paragraphBuffer = [];
+                        }
+                      };
+
+                      const flushCheckmarks = () => {
+                        if (checkmarkItems.length > 0) {
+                          elements.push(
+                            <ul key={`ul-${elements.length}`} className="mb-4 space-y-2 list-none pl-0">
+                              {checkmarkItems.map((item, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <CheckCircle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                  <span>{item.replace(/^[✓✔]\s*/, '')}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          );
+                          checkmarkItems = [];
+                        }
+                      };
+
+                      lines.forEach((line) => {
+                        const isCheckmark = /^[✓✔]/.test(line);
+                        if (isCheckmark) {
+                          flushParagraph();
+                          checkmarkItems.push(line);
+                        } else {
+                          flushCheckmarks();
+                          paragraphBuffer.push(line);
+                        }
+                      });
+
+                      // Flush remaining items
+                      flushParagraph();
+                      flushCheckmarks();
+
+                      return elements;
+                    })()}
                   </div>
                   
                   {/* Features inline if available */}
