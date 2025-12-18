@@ -220,7 +220,6 @@ const DesignerPage = () => {
     { id: 'contact', label: 'Contato', icon: Phone, description: 'Informações' },
     { id: 'social', label: 'Redes', icon: Share2, description: 'Mídias sociais' },
     { id: 'seo', label: 'SEO', icon: Globe, description: 'Otimização' },
-    { id: 'domains', label: 'Domínios', icon: Globe2, description: 'Endereços do site' },
   ];
 
   return (
