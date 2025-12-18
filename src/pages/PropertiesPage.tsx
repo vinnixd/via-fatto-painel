@@ -184,9 +184,18 @@ const PropertiesPage = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentProperties = filteredProperties.slice(startIndex, endIndex);
 
+  // Scroll to top when page changes (but not on initial load)
+  const [hasInteracted, setHasInteracted] = useState(false);
+  
+  useEffect(() => {
+    if (hasInteracted) {
+      window.scrollTo(0, 0);
+    }
+  }, [currentPage, hasInteracted]);
+
   const handlePageChange = (page: number) => {
+    setHasInteracted(true);
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
