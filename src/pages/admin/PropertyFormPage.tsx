@@ -371,14 +371,18 @@ const PropertyFormPage = () => {
   };
 
   const generateSlug = (title: string) => {
-    return title
+    const slug = title
       .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '')
       .trim();
+    
+    // Fallback if slug is empty
+    return slug || `imovel-${Date.now()}`;
   };
 
   const handleTitleChange = (value: string) => {
@@ -489,14 +493,17 @@ const PropertyFormPage = () => {
     try {
       // Validate required fields
       if (!formData.title || !formData.address_city || !formData.address_state) {
-        toast.error('Preencha os campos obrigatórios');
+        toast.error('Preencha os campos obrigatórios: título, cidade e estado');
         setSaving(false);
         return;
       }
 
+      // Ensure slug is not empty
+      const finalSlug = formData.slug || generateSlug(formData.title) || `imovel-${Date.now()}`;
+
       const propertyData = {
         title: formData.title,
-        slug: formData.slug,
+        slug: finalSlug,
         description: formData.description,
         price: Number(formData.price),
         condo_fee: formData.condo_exempt ? 0 : Number(formData.condo_fee),
@@ -611,9 +618,15 @@ const PropertyFormPage = () => {
 
       toast.success(isEditing ? 'Imóvel atualizado com sucesso!' : 'Imóvel criado com sucesso!');
       navigate('/admin/imoveis');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving property:', error);
-      toast.error('Erro ao salvar imóvel');
+      if (error?.code === '23505') {
+        toast.error('Já existe um imóvel com este slug. Altere o título.');
+      } else if (error?.message) {
+        toast.error(`Erro ao salvar: ${error.message}`);
+      } else {
+        toast.error('Erro ao salvar imóvel. Verifique os dados e tente novamente.');
+      }
     } finally {
       setSaving(false);
     }
