@@ -33,6 +33,7 @@ export interface PropertyFromDB {
   amenities: string[] | null;
   reference: string | null;
   category_id: string | null;
+  order_index: number | null;
   created_at: string;
   updated_at: string;
   images?: { id: string; url: string; alt: string; order_index: number }[];
