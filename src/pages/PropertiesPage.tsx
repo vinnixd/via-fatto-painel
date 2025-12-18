@@ -184,6 +184,11 @@ const PropertiesPage = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentProperties = filteredProperties.slice(startIndex, endIndex);
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -285,7 +290,7 @@ const PropertiesPage = () => {
             <div className="flex justify-center mt-12">
               <div className="flex space-x-2">
                 <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                   className="px-4 py-2 rounded-lg border border-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 >
@@ -295,7 +300,7 @@ const PropertiesPage = () => {
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
-                    onClick={() => setCurrentPage(page)}
+                    onClick={() => handlePageChange(page)}
                     className={`px-4 py-2 rounded-lg ${
                       page === currentPage
                         ? 'bg-primary text-primary-foreground'
@@ -307,7 +312,7 @@ const PropertiesPage = () => {
                 ))}
                 
                 <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                   className="px-4 py-2 rounded-lg border border-border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 >
