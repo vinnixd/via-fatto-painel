@@ -25,9 +25,14 @@ const propertyTypeLabels: Record<string, string> = {
 const PropertyPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { data: property, isLoading } = useProperty(slug || '');
+  const {
+    data: property,
+    isLoading,
+    isError,
+    error,
+  } = useProperty(slug || '');
   const { data: siteConfig } = useSiteConfig();
-  const { data: similarProperties } = useSimilarProperties(property);
+  const { data: similarProperties } = useSimilarProperties(property ?? null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -38,38 +43,34 @@ const PropertyPage = () => {
   const breadcrumbItems = useMemo(() => {
     if (!property) return [];
     const baseUrl = window.location.origin;
-    const items = [
-      { name: 'Imóveis', url: `${baseUrl}/imoveis` },
-    ];
-    
+    const items = [{ name: 'Imóveis', url: `${baseUrl}/imoveis` }];
+
     if (property.address_city) {
-      items.push({ 
-        name: property.address_city, 
-        url: `${baseUrl}/imoveis?city=${encodeURIComponent(property.address_city)}` 
+      items.push({
+        name: property.address_city,
+        url: `${baseUrl}/imoveis?city=${encodeURIComponent(property.address_city)}`,
       });
     }
-    
+
     items.push({ name: property.title, url: window.location.href });
-    
+
     return items;
   }, [property]);
 
   const breadcrumbsUI = useMemo(() => {
     if (!property) return [];
-    const items: { label: string; href?: string }[] = [
-      { label: 'Imóveis', href: '/imoveis' },
-    ];
-    
+    const items: { label: string; href?: string }[] = [{ label: 'Imóveis', href: '/imoveis' }];
+
     if (property.address_city) {
-      items.push({ 
-        label: property.address_city, 
-        href: `/imoveis?city=${encodeURIComponent(property.address_city)}` 
+      items.push({
+        label: property.address_city,
+        href: `/imoveis?city=${encodeURIComponent(property.address_city)}`,
       });
     }
-    
+
     const typeLabel = propertyTypeLabels[property.type] || property.type;
     items.push({ label: `${typeLabel} em ${property.address_neighborhood || property.address_city}` });
-    
+
     return items;
   }, [property]);
 
@@ -86,6 +87,30 @@ const PropertyPage = () => {
         <Header />
         <main className="container py-16 flex justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (isError) {
+    console.error('[PropertyPage] failed to load property:', error);
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container py-16 text-center">
+          <h1 className="text-2xl font-bold mb-3">Não foi possível carregar o imóvel</h1>
+          <p className="text-muted-foreground mb-6">
+            Houve um erro ao buscar os dados. Tente recarregar a página.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={() => window.location.reload()} className="btn-primary">
+              Recarregar
+            </button>
+            <button onClick={() => navigate('/imoveis')} className="btn-secondary">
+              Ver todos os imóveis
+            </button>
+          </div>
         </main>
         <Footer />
       </div>

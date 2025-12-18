@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { useFavicon } from "@/hooks/useFavicon";
 import { useBrandColors } from "@/hooks/useBrandColors";
 import ScrollToTop from "@/components/ScrollToTop";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import Index from "./pages/Index";
 import PropertyPage from "./pages/PropertyPage";
 import PropertiesPage from "./pages/PropertiesPage";
@@ -33,7 +34,6 @@ import PortaisPage from "./pages/admin/PortaisPage";
 import PortalConfigPage from "./pages/admin/PortalConfigPage";
 import UsersPage from "./pages/admin/UsersPage";
 
-
 const queryClient = new QueryClient();
 
 // Component to apply favicon and brand colors
@@ -52,36 +52,38 @@ const App = () => (
         <ScrollToTop />
         <BrandManager />
         <AuthProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/imoveis" element={<PropertiesPage />} />
-            <Route path="/imoveis/localizacao" element={<LocationPage />} />
-            <Route path="/imovel/:slug" element={<PropertyPage />} />
-            <Route path="/sobre" element={<AboutPage />} />
-            <Route path="/contato" element={<ContactPage />} />
-            <Route path="/favoritos" element={<FavoritesPage />} />
+          <AppErrorBoundary>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/imoveis" element={<PropertiesPage />} />
+              <Route path="/imoveis/localizacao" element={<LocationPage />} />
+              <Route path="/imovel/:slug" element={<PropertyPage />} />
+              <Route path="/sobre" element={<AboutPage />} />
+              <Route path="/contato" element={<ContactPage />} />
+              <Route path="/favoritos" element={<FavoritesPage />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AuthPage />} />
-            <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
-            <Route path="/admin" element={<DashboardPage />} />
-            <Route path="/admin/designer" element={<DesignerPage />} />
-            <Route path="/admin/imoveis" element={<PropertiesListPage />} />
-            <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
-            <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
-            <Route path="/admin/categorias" element={<CategoriesPage />} />
-            <Route path="/admin/perfil" element={<ProfilePage />} />
-            <Route path="/admin/configuracoes" element={<SettingsPage />} />
-            <Route path="/admin/favoritos" element={<FavoritesListPage />} />
-            <Route path="/admin/mensagens" element={<MessagesPage />} />
-            <Route path="/admin/importar" element={<ImportPage />} />
-            <Route path="/admin/portais" element={<PortaisPage />} />
-            <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
-            <Route path="/admin/usuarios" element={<UsersPage />} />
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AuthPage />} />
+              <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
+              <Route path="/admin" element={<DashboardPage />} />
+              <Route path="/admin/designer" element={<DesignerPage />} />
+              <Route path="/admin/imoveis" element={<PropertiesListPage />} />
+              <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
+              <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
+              <Route path="/admin/categorias" element={<CategoriesPage />} />
+              <Route path="/admin/perfil" element={<ProfilePage />} />
+              <Route path="/admin/configuracoes" element={<SettingsPage />} />
+              <Route path="/admin/favoritos" element={<FavoritesListPage />} />
+              <Route path="/admin/mensagens" element={<MessagesPage />} />
+              <Route path="/admin/importar" element={<ImportPage />} />
+              <Route path="/admin/portais" element={<PortaisPage />} />
+              <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
+              <Route path="/admin/usuarios" element={<UsersPage />} />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
