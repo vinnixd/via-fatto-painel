@@ -367,21 +367,6 @@ const PropertyPage = () => {
                       return elements;
                     })()}
                   </div>
-                  
-                  {/* Features inline if available */}
-                  {property.features && property.features.length > 0 && (
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <h3 className="font-semibold mb-3 text-foreground">Destaques do Imóvel</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {property.features.slice(0, 9).map((feature, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
-                            <span>{feature}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Map Section */}
                   {property.location_type !== 'hidden' && (
