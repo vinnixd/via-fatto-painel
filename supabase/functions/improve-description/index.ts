@@ -18,41 +18,65 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Você é um especialista em marketing imobiliário e SEO. Sua tarefa é melhorar descrições de imóveis para maximizar conversão e otimização para mecanismos de busca.
+    const typeLabel = {
+      casa: 'Casa',
+      apartamento: 'Apartamento',
+      terreno: 'Terreno',
+      comercial: 'Imóvel Comercial',
+      rural: 'Imóvel Rural',
+      cobertura: 'Cobertura',
+      flat: 'Flat',
+      galpao: 'Galpão'
+    }[propertyInfo?.type] || 'Imóvel';
 
-Diretrizes:
-1. Use linguagem persuasiva e profissional
-2. Destaque os principais benefícios e diferenciais
-3. Inclua palavras-chave relevantes para SEO (imóvel, casa, apartamento, venda, aluguel, localização)
-4. Organize em parágrafos claros e concisos
-5. Crie senso de urgência e exclusividade
-6. Mantenha o texto em português brasileiro
-7. Limite a aproximadamente 200-300 palavras
-8. Inclua chamadas para ação sutis
-9. Destaque a localização e infraestrutura da região
+    const statusLabel = propertyInfo?.status === 'venda' ? 'à venda' : 'para alugar';
 
-Formato de saída:
-- Primeiro parágrafo: gancho emocional e visão geral
-- Segundo parágrafo: características principais e diferenciais  
-- Terceiro parágrafo: localização e benefícios da região
-- Quarto parágrafo: chamada para ação`;
+    const systemPrompt = `Você é um especialista em marketing imobiliário. Gere descrições de imóveis SEMPRE neste formato EXATO:
 
-    const userPrompt = `Melhore esta descrição de imóvel para conversão e SEO:
+FORMATO OBRIGATÓRIO (siga exatamente esta estrutura):
 
-Descrição atual: ${description || 'Sem descrição'}
+[SUBTÍTULO] - Uma linha curta e impactante sobre o imóvel (ex: "Apartamento impecável à venda — 157m² de puro conforto e sofisticação")
+
+[INTRODUÇÃO] - Um parágrafo curto e envolvente (2-3 linhas) apresentando o imóvel.
+
+[DESTAQUES] - Lista de 5 a 7 itens com "✓" no início de cada linha. Cada item deve ser curto (até 6 palavras). Exemplos:
+✓ 2 suítes espaçosas
+✓ 3 vagas de garagem
+✓ Acabamentos de alto padrão
+✓ Mobiliário de excelente qualidade
+✓ Living integrado e iluminado
+✓ Pronto para morar — é entrar e se apaixonar!
+
+[FECHAMENTO] - Uma frase curta destacando o valor do imóvel (1-2 linhas).
+
+[CTA] - Chamada para ação (ex: "Agende sua visita e surpreenda-se!")
+
+REGRAS:
+- NÃO use títulos como "Subtítulo:", "Introdução:", "Destaques:", etc.
+- NÃO escreva parágrafos longos
+- Os itens da lista DEVEM começar com "✓ " (checkmark)
+- Mantenha o texto CONCISO e ORGANIZADO
+- Use português brasileiro`;
+
+    const userPrompt = `Gere uma descrição de imóvel seguindo EXATAMENTE o formato especificado.
 
 Informações do imóvel:
-- Tipo: ${propertyInfo?.type || 'Não informado'}
-- Status: ${propertyInfo?.status === 'venda' ? 'À venda' : 'Para alugar'}
+- Tipo: ${typeLabel}
+- Status: ${statusLabel}
 - Quartos: ${propertyInfo?.bedrooms || 0}
 - Suítes: ${propertyInfo?.suites || 0}
 - Banheiros: ${propertyInfo?.bathrooms || 0}
 - Vagas: ${propertyInfo?.garages || 0}
-- Área: ${propertyInfo?.area || 0}m²
+- Área total: ${propertyInfo?.area || 0}m²
+- Área construída: ${propertyInfo?.built_area || 0}m²
 - Bairro: ${propertyInfo?.neighborhood || 'Não informado'}
 - Cidade: ${propertyInfo?.city || 'Não informado'}
+- Características: ${propertyInfo?.features?.join(', ') || 'Não informado'}
+- Comodidades: ${propertyInfo?.amenities?.join(', ') || 'Não informado'}
 
-Gere uma descrição otimizada, profissional e persuasiva.`;
+${description ? `Descrição original para referência: ${description}` : ''}
+
+Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista de destaques com ✓, fechamento e CTA.`;
 
     console.log("Calling Lovable AI Gateway...");
 

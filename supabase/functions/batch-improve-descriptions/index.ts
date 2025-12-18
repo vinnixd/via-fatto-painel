@@ -25,43 +25,75 @@ serve(async (req) => {
     // Get properties without descriptions
     const { data: properties, error: fetchError } = await supabase
       .from('properties')
-      .select('id, title, type, status, bedrooms, suites, bathrooms, garages, area, address_neighborhood, address_city, description')
+      .select('id, title, type, status, bedrooms, suites, bathrooms, garages, area, built_area, address_neighborhood, address_city, description, features, amenities')
       .or('description.is.null,description.eq.');
 
     if (fetchError) throw fetchError;
 
     console.log(`Found ${properties?.length || 0} properties to update`);
 
-    const systemPrompt = `Você é um especialista em marketing imobiliário e SEO. Sua tarefa é criar descrições de imóveis para maximizar conversão e otimização para mecanismos de busca.
+    const typeLabels: Record<string, string> = {
+      casa: 'Casa',
+      apartamento: 'Apartamento',
+      terreno: 'Terreno',
+      comercial: 'Imóvel Comercial',
+      rural: 'Imóvel Rural',
+      cobertura: 'Cobertura',
+      flat: 'Flat',
+      galpao: 'Galpão'
+    };
 
-Diretrizes:
-1. Use linguagem persuasiva e profissional
-2. Destaque os principais benefícios e diferenciais
-3. Inclua palavras-chave relevantes para SEO
-4. Organize em parágrafos claros e concisos
-5. Crie senso de urgência e exclusividade
-6. Mantenha o texto em português brasileiro
-7. Limite a aproximadamente 150-200 palavras
-8. Inclua chamadas para ação sutis
+    const systemPrompt = `Você é um especialista em marketing imobiliário. Gere descrições de imóveis SEMPRE neste formato EXATO:
 
-Formato: Retorne APENAS o texto da descrição, sem títulos ou formatação extra.`;
+FORMATO OBRIGATÓRIO (siga exatamente esta estrutura):
+
+[SUBTÍTULO] - Uma linha curta e impactante sobre o imóvel (ex: "Apartamento impecável à venda — 157m² de puro conforto e sofisticação")
+
+[INTRODUÇÃO] - Um parágrafo curto e envolvente (2-3 linhas) apresentando o imóvel.
+
+[DESTAQUES] - Lista de 5 a 7 itens com "✓" no início de cada linha. Cada item deve ser curto (até 6 palavras). Exemplos:
+✓ 2 suítes espaçosas
+✓ 3 vagas de garagem
+✓ Acabamentos de alto padrão
+✓ Mobiliário de excelente qualidade
+✓ Living integrado e iluminado
+✓ Pronto para morar — é entrar e se apaixonar!
+
+[FECHAMENTO] - Uma frase curta destacando o valor do imóvel (1-2 linhas).
+
+[CTA] - Chamada para ação (ex: "Agende sua visita e surpreenda-se!")
+
+REGRAS:
+- NÃO use títulos como "Subtítulo:", "Introdução:", "Destaques:", etc.
+- NÃO escreva parágrafos longos
+- Os itens da lista DEVEM começar com "✓ " (checkmark)
+- Mantenha o texto CONCISO e ORGANIZADO
+- Use português brasileiro`;
 
     const results = { updated: 0, errors: [] as string[] };
 
     for (const property of properties || []) {
       try {
-        const userPrompt = `Crie uma descrição otimizada para este imóvel:
+        const typeLabel = typeLabels[property.type] || 'Imóvel';
+        const statusLabel = property.status === 'venda' ? 'à venda' : 'para alugar';
 
-Título: ${property.title}
-Tipo: ${property.type}
-Status: ${property.status === 'venda' ? 'À venda' : 'Para alugar'}
-Quartos: ${property.bedrooms || 0}
-Suítes: ${property.suites || 0}
-Banheiros: ${property.bathrooms || 0}
-Vagas: ${property.garages || 0}
-Área: ${property.area || 0}m²
-Bairro: ${property.address_neighborhood || 'Não informado'}
-Cidade: ${property.address_city || 'Não informado'}`;
+        const userPrompt = `Gere uma descrição de imóvel seguindo EXATAMENTE o formato especificado.
+
+Informações do imóvel:
+- Tipo: ${typeLabel}
+- Status: ${statusLabel}
+- Quartos: ${property.bedrooms || 0}
+- Suítes: ${property.suites || 0}
+- Banheiros: ${property.bathrooms || 0}
+- Vagas: ${property.garages || 0}
+- Área total: ${property.area || 0}m²
+- Área construída: ${property.built_area || 0}m²
+- Bairro: ${property.address_neighborhood || 'Não informado'}
+- Cidade: ${property.address_city || 'Não informado'}
+- Características: ${property.features?.join(', ') || 'Não informado'}
+- Comodidades: ${property.amenities?.join(', ') || 'Não informado'}
+
+Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista de destaques com ✓, fechamento e CTA.`;
 
         console.log(`Processing: ${property.title}`);
 
