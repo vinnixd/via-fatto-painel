@@ -8,7 +8,7 @@ import { buildWhatsAppUrl } from '@/lib/utils';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig, isLoading } = useSiteConfig();
 
   const navigation = [
     { name: 'Início', href: '/' },
@@ -43,7 +43,9 @@ const Header = () => {
               }
             }}
           >
-            {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
+            {isLoading ? (
+              <div className="h-12 w-[150px]" />
+            ) : (siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
                 alt="Logo" 
