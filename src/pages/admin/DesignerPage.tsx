@@ -21,6 +21,7 @@ import {
   Save, 
   RefreshCw,
   Globe,
+  Globe2,
   Phone,
   Mail,
   MapPin,
@@ -34,7 +35,18 @@ import {
   Layout,
   Share2,
   Settings2,
-  Sparkles
+  Sparkles,
+  Plus,
+  Link as LinkIcon,
+  Calendar,
+  Shield,
+  Trash2,
+  Star,
+  CheckCircle,
+  ExternalLink,
+  Copy,
+  Info,
+  AlertCircle,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ImagePositionPicker } from '@/components/ui/ImagePositionPicker';
@@ -208,6 +220,7 @@ const DesignerPage = () => {
     { id: 'contact', label: 'Contato', icon: Phone, description: 'Informações' },
     { id: 'social', label: 'Redes', icon: Share2, description: 'Mídias sociais' },
     { id: 'seo', label: 'SEO', icon: Globe, description: 'Otimização' },
+    { id: 'domains', label: 'Domínios', icon: Globe2, description: 'Endereços do site' },
   ];
 
   return (
@@ -1110,6 +1123,103 @@ const DesignerPage = () => {
                           {config.seo_description || 'Descrição do seu site aparecerá aqui nos resultados de busca...'}
                         </p>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Domains Tab */}
+            {activeTab === 'domains' && (
+              <div className="space-y-6 animate-fade-in">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Globe2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>Domínios do Site</CardTitle>
+                        <CardDescription>O domínio é o endereço do seu site na Internet. Gerencie seus domínios aqui.</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium text-amber-800 dark:text-amber-200">Gerenciamento de Domínios</p>
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                            Para adicionar ou gerenciar domínios personalizados, acesse as configurações do projeto através do painel Lovable.
+                          </p>
+                          <Button variant="outline" size="sm" className="mt-3 gap-2" asChild>
+                            <a href="https://docs.lovable.dev/features/custom-domain" target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                              Ver documentação
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Help Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 border-transparent hover:border-primary/20">
+                        <CardContent className="p-5">
+                          <div className="flex gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110">
+                              <Settings2 className="h-6 w-6" />
+                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <h3 className="font-semibold">Configure seu domínio</h3>
+                              <p className="text-sm text-muted-foreground">Use um domínio próprio para destacar a identidade da sua marca.</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 border-transparent hover:border-primary/20">
+                        <CardContent className="p-5">
+                          <div className="flex gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110">
+                              <LinkIcon className="h-6 w-6" />
+                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <h3 className="font-semibold">Verifique a configuração</h3>
+                              <p className="text-sm text-muted-foreground">Siga os passos para revisar se seu domínio ficou corretamente vinculado.</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 border-transparent hover:border-primary/20">
+                        <CardContent className="p-5">
+                          <div className="flex gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110">
+                              <Calendar className="h-6 w-6" />
+                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <h3 className="font-semibold">Consulte o vencimento</h3>
+                              <p className="text-sm text-muted-foreground">Identifique se o registro do seu domínio deve ser renovado em breve.</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 border-transparent hover:border-primary/20">
+                        <CardContent className="p-5">
+                          <div className="flex gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110">
+                              <Shield className="h-6 w-6" />
+                            </div>
+                            <div className="space-y-1 min-w-0">
+                              <h3 className="font-semibold">Certificado de segurança</h3>
+                              <p className="text-sm text-muted-foreground">Saiba se seu certificado de segurança está ativo.</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </CardContent>
                 </Card>
