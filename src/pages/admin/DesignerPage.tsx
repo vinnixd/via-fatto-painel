@@ -553,7 +553,7 @@ const DesignerPage = () => {
                             <Input
                               id="favicon-upload"
                               type="file"
-                              accept="image/png,image/x-icon,image/svg+xml"
+                              accept="image/*"
                               className="hidden"
                               onChange={(e) => e.target.files?.[0] && handleFaviconUpload(e.target.files[0])}
                             />
