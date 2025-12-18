@@ -252,6 +252,7 @@ const PropertyPage = () => {
                       </h3>
                       <PropertyMap
                         address={`${property.address_street || ''} ${property.address_neighborhood || ''}, ${property.address_city}, ${property.address_state}, Brasil`}
+                        zipcode={property.address_zipcode || undefined}
                         locationType={property.location_type as 'exact' | 'approximate' | 'hidden'}
                       />
                     </div>
