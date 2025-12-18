@@ -34,6 +34,45 @@ const PropertyPage = () => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const thumbnailsPerPage = 4;
 
+  // Generate breadcrumb data - hooks must be called before any early returns
+  const breadcrumbItems = useMemo(() => {
+    if (!property) return [];
+    const baseUrl = window.location.origin;
+    const items = [
+      { name: 'Imóveis', url: `${baseUrl}/imoveis` },
+    ];
+    
+    if (property.address_city) {
+      items.push({ 
+        name: property.address_city, 
+        url: `${baseUrl}/imoveis?city=${encodeURIComponent(property.address_city)}` 
+      });
+    }
+    
+    items.push({ name: property.title, url: window.location.href });
+    
+    return items;
+  }, [property]);
+
+  const breadcrumbsUI = useMemo(() => {
+    if (!property) return [];
+    const items: { label: string; href?: string }[] = [
+      { label: 'Imóveis', href: '/imoveis' },
+    ];
+    
+    if (property.address_city) {
+      items.push({ 
+        label: property.address_city, 
+        href: `/imoveis?city=${encodeURIComponent(property.address_city)}` 
+      });
+    }
+    
+    const typeLabel = propertyTypeLabels[property.type] || property.type;
+    items.push({ label: `${typeLabel} em ${property.address_neighborhood || property.address_city}` });
+    
+    return items;
+  }, [property]);
+
   useEffect(() => {
     if (property) {
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
@@ -112,43 +151,6 @@ const PropertyPage = () => {
       alert('Link copiado para a área de transferência!');
     }
   };
-
-  // Generate breadcrumb data
-  const breadcrumbItems = useMemo(() => {
-    const baseUrl = window.location.origin;
-    const items = [
-      { name: 'Imóveis', url: `${baseUrl}/imoveis` },
-    ];
-    
-    if (property.address_city) {
-      items.push({ 
-        name: property.address_city, 
-        url: `${baseUrl}/imoveis?city=${encodeURIComponent(property.address_city)}` 
-      });
-    }
-    
-    items.push({ name: property.title, url: window.location.href });
-    
-    return items;
-  }, [property]);
-
-  const breadcrumbsUI = useMemo(() => {
-    const items: { label: string; href?: string }[] = [
-      { label: 'Imóveis', href: '/imoveis' },
-    ];
-    
-    if (property.address_city) {
-      items.push({ 
-        label: property.address_city, 
-        href: `/imoveis?city=${encodeURIComponent(property.address_city)}` 
-      });
-    }
-    
-    const typeLabel = propertyTypeLabels[property.type] || property.type;
-    items.push({ label: `${typeLabel} em ${property.address_neighborhood || property.address_city}` });
-    
-    return items;
-  }, [property]);
 
   return (
     <div className="min-h-screen bg-background">
