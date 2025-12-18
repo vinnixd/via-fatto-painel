@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
+import loginPattern from '@/assets/login-pattern.png';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -60,22 +61,20 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-neutral-900">
         {/* Pattern overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="1"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
-        </div>
+        <div 
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage: `url(${loginPattern})`,
+            backgroundSize: 'auto',
+            backgroundRepeat: 'repeat',
+          }}
+        />
         
         {/* Floating shapes */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute bottom-32 right-16 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute top-20 left-20 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+        <div className="absolute bottom-32 right-16 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
         <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-white/5 rounded-full blur-xl" />
         
         {/* Content */}
@@ -100,9 +99,9 @@ const AuthPage = () => {
             <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
               Gerencie seus<br />
               imóveis com<br />
-              <span className="text-white/80">eficiência</span>
+              <span className="text-white/70">eficiência</span>
             </h1>
-            <p className="text-white/70 text-lg max-w-md">
+            <p className="text-white/60 text-lg max-w-md">
               Painel administrativo completo para gerenciar seu portfólio imobiliário, 
               clientes e muito mais.
             </p>
@@ -110,7 +109,7 @@ const AuthPage = () => {
 
           {/* Footer */}
           <div className="flex items-center gap-8">
-            <div className="text-white/60 text-sm">
+            <div className="text-white/50 text-sm">
               © {new Date().getFullYear()} Via Fatto Imóveis
             </div>
           </div>
