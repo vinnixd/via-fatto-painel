@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import SubscriptionsLayout from './SubscriptionsLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { 
   Check, 
   Sparkles, 
@@ -24,7 +26,8 @@ interface PlanFeature {
 
 interface Plan {
   name: string;
-  price: string;
+  monthlyPrice: number;
+  annualPrice: number;
   description: string;
   features: PlanFeature[];
   highlighted?: boolean;
@@ -36,7 +39,8 @@ interface Plan {
 const plans: Plan[] = [
   {
     name: 'Essencial',
-    price: '79',
+    monthlyPrice: 79,
+    annualPrice: 63, // ~20% discount
     description: 'Plano ideal para corretores que estão crescendo.',
     icon: Sparkles,
     gradient: 'from-blue-500/10 to-cyan-500/10',
@@ -54,7 +58,8 @@ const plans: Plan[] = [
   },
   {
     name: 'Impulso',
-    price: '129',
+    monthlyPrice: 129,
+    annualPrice: 103, // ~20% discount
     description: 'Plano ideal para imobiliárias em expansão em ritmo acelerado.',
     icon: Zap,
     gradient: 'from-primary/10 to-violet-500/10',
@@ -73,7 +78,8 @@ const plans: Plan[] = [
   },
   {
     name: 'Escala',
-    price: '199',
+    monthlyPrice: 199,
+    annualPrice: 159, // ~20% discount
     description: 'Plano completo para imobiliárias com grandes equipes.',
     icon: Crown,
     gradient: 'from-amber-500/10 to-orange-500/10',
@@ -92,21 +98,47 @@ const plans: Plan[] = [
 ];
 
 const PlansPage = () => {
+  const [isAnnual, setIsAnnual] = useState(false);
+
   return (
     <SubscriptionsLayout>
       <div className="max-w-6xl animate-fade-in">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-3">Escolha o plano ideal para você</h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Selecione o plano que melhor se adapta às suas necessidades.
           </p>
         </div>
 
+        {/* Billing Toggle */}
+        <div className="flex items-center justify-center gap-4 mb-10">
+          <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+            Mensal
+          </span>
+          <Switch
+            checked={isAnnual}
+            onCheckedChange={setIsAnnual}
+            className="data-[state=checked]:bg-primary"
+          />
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Anual
+            </span>
+            {isAnnual && (
+              <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+                <Percent className="h-3 w-3 mr-1" />
+                20% OFF
+              </Badge>
+            )}
+          </div>
+        </div>
+
         {/* Plans Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
           {plans.map((plan) => {
             const Icon = plan.icon;
+            const price = isAnnual ? plan.annualPrice : plan.monthlyPrice;
             
             return (
               <Card 
@@ -150,15 +182,20 @@ const PlansPage = () => {
                   
                   <div className="mt-4 flex items-baseline gap-1">
                     <span className="text-sm text-muted-foreground">R$</span>
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground">/ Mensal</span>
+                    <span className="text-4xl font-bold">{price}</span>
+                    <span className="text-muted-foreground">/ {isAnnual ? 'mês*' : 'mês'}</span>
                   </div>
+                  
+                  {isAnnual && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      *Cobrado anualmente (R$ {price * 12}/ano)
+                    </p>
+                  )}
                 </CardHeader>
                 
                 <CardContent className="space-y-4 relative">
                   <div className="space-y-3">
                     {plan.features.map((feature, index) => {
-                      const FeatureIcon = feature.icon;
                       return (
                         <div key={index} className="flex items-center gap-3 text-sm">
                           <div className={`p-1 rounded-full ${
@@ -181,14 +218,6 @@ const PlansPage = () => {
                     >
                       Contratar Plano
                     </Button>
-                  </div>
-
-                  {/* Discount Note */}
-                  <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
-                    <Percent className="h-3.5 w-3.5 text-primary" />
-                    <span>
-                      Plano anual: até <span className="font-semibold text-primary">20% de desconto</span>
-                    </span>
                   </div>
                 </CardContent>
               </Card>
