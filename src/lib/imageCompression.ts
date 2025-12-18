@@ -136,7 +136,7 @@ export async function compressImages(
 
 /**
  * Resize a favicon image while maintaining PNG format and transparency
- * Only resizes the image, does not compress or change format
+ * Converts any image format to PNG
  */
 export async function resizeFavicon(
   file: File,
@@ -147,12 +147,12 @@ export async function resizeFavicon(
     return file;
   }
 
-  // Only process PNG and ICO files
-  if (file.type !== 'image/png' && file.type !== 'image/x-icon') {
+  // Skip non-image files
+  if (!file.type.startsWith('image/')) {
     return file;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
 
