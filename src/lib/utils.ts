@@ -33,3 +33,42 @@ export function buildWhatsAppUrl({
   if (message) params.set('text', message);
   return `${base}?${params.toString()}`;
 }
+
+/**
+ * Normaliza descrições que tenham itens com "✓" na mesma linha, quebrando em linhas separadas.
+ * Ex: "✓ item 1 ✓ item 2" => "✓ item 1\n\n✓ item 2"
+ */
+export function normalizePropertyDescription(description: string): string {
+  const text = (description ?? '').replace(/\r\n/g, '\n').trim();
+  if (!text) return '';
+
+  const inputLines = text.split('\n');
+  const outputLines: string[] = [];
+
+  for (const rawLine of inputLines) {
+    const line = rawLine.trim();
+    if (!line) {
+      outputLines.push('');
+      continue;
+    }
+
+    const items = line.match(/[✓✔]\s*[^✓✔]+/g);
+
+    if (items && items.length > 1) {
+      // Place each item on its own line, separated by a blank line
+      items.forEach((it, idx) => {
+        outputLines.push(it.trim());
+        if (idx < items.length - 1) outputLines.push('');
+      });
+      continue;
+    }
+
+    outputLines.push(line);
+  }
+
+  return outputLines
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
