@@ -168,7 +168,7 @@ const CategoriesPage = () => {
                 <FolderOpen className="h-5 w-5 text-primary" />
                 Lista de Categorias
               </h3>
-              <Button onClick={() => openDialog()}>
+              <Button variant="admin" onClick={() => openDialog()}>
                 <Plus className="h-4 w-4 mr-2" />
                 Nova Categoria
               </Button>
@@ -273,7 +273,7 @@ const CategoriesPage = () => {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" variant="admin" disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar'}
               </Button>
             </DialogFooter>

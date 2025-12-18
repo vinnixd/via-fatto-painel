@@ -719,6 +719,7 @@ const PropertiesListPage = () => {
                       Cancelar
                     </Button>
                     <Button
+                      variant="admin"
                       onClick={saveOrder}
                       disabled={savingOrder}
                       className="gap-2"

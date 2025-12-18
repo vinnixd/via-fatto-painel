@@ -192,7 +192,7 @@ const DomainsPage = () => {
           </p>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg shadow-primary/20">
+              <Button variant="admin" className="gap-2 shadow-lg shadow-neutral-900/20">
                 <Plus className="h-4 w-4" />
                 Adicionar domínio
               </Button>
@@ -232,7 +232,7 @@ const DomainsPage = () => {
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleAddDomain} disabled={isAdding}>
+                <Button variant="admin" onClick={handleAddDomain} disabled={isAdding}>
                   {isAdding && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Adicionar
                 </Button>

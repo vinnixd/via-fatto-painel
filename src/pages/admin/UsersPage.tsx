@@ -302,7 +302,7 @@ const UsersPage = () => {
             else setInviteDialogOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="admin">
                 <UserPlus className="h-4 w-4 mr-2" />
                 Convidar Usuário
               </Button>
@@ -409,6 +409,7 @@ const UsersPage = () => {
                       Cancelar
                     </Button>
                     <Button
+                      variant="admin"
                       onClick={handleCreateInvite}
                       disabled={createInviteMutation.isPending}
                     >
@@ -421,7 +422,7 @@ const UsersPage = () => {
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={resetInviteDialog}>Fechar</Button>
+                  <Button variant="admin" onClick={resetInviteDialog}>Fechar</Button>
                 )}
               </DialogFooter>
             </DialogContent>

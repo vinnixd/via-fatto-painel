@@ -304,7 +304,7 @@ const DesignerPage = () => {
 
             <Separator className="my-4" />
 
-            <Button onClick={handleSave} disabled={saving} className="w-full" size="lg">
+            <Button variant="admin" onClick={handleSave} disabled={saving} className="w-full" size="lg">
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1227,7 +1227,7 @@ const DesignerPage = () => {
 
             {/* Mobile Save Button */}
             <div className="lg:hidden flex gap-3">
-              <Button onClick={handleSave} disabled={saving} className="flex-1" size="lg">
+              <Button variant="admin" onClick={handleSave} disabled={saving} className="flex-1" size="lg">
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />

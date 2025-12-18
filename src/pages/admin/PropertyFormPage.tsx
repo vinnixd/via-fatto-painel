@@ -1505,7 +1505,8 @@ const PropertyFormPage = () => {
                   
                   {activeStep < steps.length - 1 ? (
                     <Button 
-                      type="button" 
+                      type="button"
+                      variant="admin"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -1515,7 +1516,7 @@ const PropertyFormPage = () => {
                       Próximo
                     </Button>
                   ) : (
-                    <Button type="submit" disabled={saving} className="min-w-[140px]">
+                    <Button type="submit" variant="admin" disabled={saving} className="min-w-[140px]">
                       {saving ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

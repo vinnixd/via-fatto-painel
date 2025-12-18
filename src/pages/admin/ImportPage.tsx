@@ -275,6 +275,7 @@ const ImportPage = () => {
 
             <div className="flex gap-3">
               <Button 
+                variant="admin"
                 onClick={handleImport} 
                 disabled={!file || importing}
                 className="flex-1"

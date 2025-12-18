@@ -93,6 +93,9 @@
     --admin-muted-foreground: 0 0% 69%;
     --admin-accent: 0 0% 15%;
     --admin-accent-foreground: 0 0% 99%;
+    --admin-primary: 0 0% 10%;
+    --admin-primary-foreground: 0 0% 100%;
+    --admin-primary-hover: 0 0% 15%;
   }
 }
 

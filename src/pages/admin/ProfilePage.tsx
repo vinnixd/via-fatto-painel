@@ -242,7 +242,7 @@ const ProfilePage = () => {
                 </div>
 
                 {/* Save button */}
-                <Button onClick={handleSaveProfile} disabled={saving} className="shrink-0">
+                <Button variant="admin" onClick={handleSaveProfile} disabled={saving} className="shrink-0">
                   {saving ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (

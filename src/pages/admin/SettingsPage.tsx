@@ -337,7 +337,7 @@ const SettingsPage = () => {
         </Tabs>
 
         <div className="flex justify-end mt-6">
-          <Button onClick={handleSave} disabled={saving}>
+          <Button variant="admin" onClick={handleSave} disabled={saving}>
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

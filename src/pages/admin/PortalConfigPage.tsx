@@ -306,7 +306,7 @@ const PortalConfigPage = () => {
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-96 gap-4">
           <p className="text-muted-foreground">Portal não encontrado</p>
-          <Button onClick={() => navigate('/admin/portais')}>
+          <Button variant="admin" onClick={() => navigate('/admin/portais')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
@@ -345,7 +345,7 @@ const PortalConfigPage = () => {
               )}
               Gerar Feed
             </Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button variant="admin" onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
