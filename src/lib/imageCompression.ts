@@ -133,3 +133,101 @@ export async function compressImages(
 ): Promise<File[]> {
   return Promise.all(files.map((file) => compressImage(file, options)));
 }
+
+/**
+ * Resize a favicon image while maintaining PNG format and transparency
+ * Only resizes the image, does not compress or change format
+ */
+export async function resizeFavicon(
+  file: File,
+  size: number = 64
+): Promise<File> {
+  // Return original for SVGs (vector, doesn't need resizing)
+  if (file.type === 'image/svg+xml') {
+    return file;
+  }
+
+  // Only process PNG and ICO files
+  if (file.type !== 'image/png' && file.type !== 'image/x-icon') {
+    return file;
+  }
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+
+      // Create canvas with desired size
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+
+      // Clear canvas to transparent
+      ctx.clearRect(0, 0, size, size);
+
+      // Enable high quality scaling
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      // Calculate aspect ratio to fit image in square
+      const { width, height } = img;
+      const aspectRatio = width / height;
+      
+      let drawWidth = size;
+      let drawHeight = size;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (aspectRatio > 1) {
+        // Wider than tall
+        drawHeight = size / aspectRatio;
+        offsetY = (size - drawHeight) / 2;
+      } else if (aspectRatio < 1) {
+        // Taller than wide
+        drawWidth = size * aspectRatio;
+        offsetX = (size - drawWidth) / 2;
+      }
+
+      // Draw image centered and scaled
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+      // Convert to PNG blob
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const resizedFile = new File(
+              [blob],
+              file.name.replace(/\.[^/.]+$/, '.png'),
+              { type: 'image/png', lastModified: Date.now() }
+            );
+            
+            console.log(
+              `Favicon resized to ${size}x${size}px, size: ${(resizedFile.size / 1024).toFixed(1)}KB`
+            );
+            
+            resolve(resizedFile);
+          } else {
+            resolve(file);
+          }
+        },
+        'image/png',
+        1.0 // Maximum quality for PNG
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+
+    img.src = url;
+  });
+}

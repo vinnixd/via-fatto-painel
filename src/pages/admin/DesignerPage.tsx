@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { compressImage } from '@/lib/imageCompression';
+import { compressImage, resizeFavicon } from '@/lib/imageCompression';
 import { 
   Loader2, 
   Palette, 
@@ -148,6 +148,32 @@ const DesignerPage = () => {
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Erro ao enviar imagem');
+    }
+  };
+
+  const handleFaviconUpload = async (file: File) => {
+    try {
+      // Only resize to 64x64, keep PNG format and transparency
+      const resizedFile = await resizeFavicon(file, 64);
+      
+      const fileExt = resizedFile.name.split('.').pop();
+      const fileName = `favicon-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('site-assets')
+        .upload(fileName, resizedFile, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('site-assets')
+        .getPublicUrl(fileName);
+
+      setConfig(prev => prev ? { ...prev, favicon_url: urlData.publicUrl } : null);
+      toast.success('Favicon enviado com sucesso!');
+    } catch (error) {
+      console.error('Favicon upload error:', error);
+      toast.error('Erro ao enviar favicon');
     }
   };
 
@@ -529,7 +555,7 @@ const DesignerPage = () => {
                               type="file"
                               accept="image/png,image/x-icon,image/svg+xml"
                               className="hidden"
-                              onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'favicon_url')}
+                              onChange={(e) => e.target.files?.[0] && handleFaviconUpload(e.target.files[0])}
                             />
                           </Label>
                           {config.favicon_url && (
