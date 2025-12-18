@@ -8,3 +8,21 @@ verify_jwt = true
 
 [functions.batch-improve-descriptions]
 verify_jwt = false
+
+[functions.improve-title]
+verify_jwt = true
+
+[functions.geocode-address]
+verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.portal-feed]
+verify_jwt = false
+
+[functions.portal-sync]
+verify_jwt = true
+
+[functions.portal-test]
+verify_jwt = true

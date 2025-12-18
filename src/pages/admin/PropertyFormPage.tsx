@@ -189,6 +189,7 @@ const PropertyFormPage = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [activeStep, setActiveStep] = useState(0);
   const [isImprovingDescription, setIsImprovingDescription] = useState(false);
+  const [isImprovingTitle, setIsImprovingTitle] = useState(false);
 
   // DnD sensors
   const sensors = useSensors(
@@ -650,7 +651,61 @@ const PropertyFormPage = () => {
                       </div>
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         <div className="lg:col-span-6 space-y-2">
-                          <Label htmlFor="title">Título do Anúncio *</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="title">Título do Anúncio *</Label>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                setIsImprovingTitle(true);
+                                try {
+                                  const { data, error } = await supabase.functions.invoke('improve-title', {
+                                    body: {
+                                      title: formData.title,
+                                      propertyInfo: {
+                                        type: formData.type,
+                                        status: formData.status,
+                                        bedrooms: formData.bedrooms,
+                                        suites: formData.suites,
+                                        garages: formData.garages,
+                                        area: formData.area,
+                                        neighborhood: formData.address_neighborhood,
+                                        city: formData.address_city,
+                                        features: formData.features,
+                                      }
+                                    }
+                                  });
+                                  
+                                  if (error) throw error;
+                                  if (data?.improvedTitle) {
+                                    handleTitleChange(data.improvedTitle);
+                                    toast.success('Título melhorado com IA!');
+                                  }
+                                } catch (err: any) {
+                                  console.error('Error improving title:', err);
+                                  toast.error(err.message || 'Erro ao melhorar título');
+                                } finally {
+                                  setIsImprovingTitle(false);
+                                }
+                              }}
+                              disabled={isImprovingTitle || !formData.title}
+                              className="h-6 px-2 gap-1 text-xs"
+                            >
+                              {isImprovingTitle ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Melhorando...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-3 w-3" />
+                                  Melhorar
+                                </>
+                              )}
+                            </Button>
+                          </div>
                           <Input
                             id="title"
                             value={formData.title}
