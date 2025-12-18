@@ -6,6 +6,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function normalizePropertyDescription(description: string): string {
+  const text = (description ?? '').replace(/\r\n/g, '\n').trim();
+  if (!text) return '';
+
+  const inputLines = text.split('\n');
+  const outputLines: string[] = [];
+
+  for (const rawLine of inputLines) {
+    const line = rawLine.trim();
+    if (!line) {
+      outputLines.push('');
+      continue;
+    }
+
+    const items = line.match(/[✓✔]\s*[^✓✔]+/g);
+    if (items && items.length > 1) {
+      items.forEach((it, idx) => {
+        outputLines.push(it.trim());
+        if (idx < items.length - 1) outputLines.push('');
+      });
+      continue;
+    }
+
+    outputLines.push(line);
+  }
+
+  return outputLines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -123,9 +152,10 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
         const newDescription = data.choices?.[0]?.message?.content;
 
         if (newDescription) {
+          const normalized = normalizePropertyDescription(newDescription);
           const { error: updateError } = await supabase
             .from('properties')
-            .update({ description: newDescription.trim() })
+            .update({ description: normalized })
             .eq('id', property.id);
 
           if (updateError) {

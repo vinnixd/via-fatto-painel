@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Expand, Grid3X3 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -309,8 +309,8 @@ const PropertyPage = () => {
                   <div className="prose prose-sm max-w-none text-muted-foreground">
                     {(() => {
                       // Split description into lines and group them
-                      const lines = property.description.split('\n').map(l => l.trim()).filter(l => l);
-                      const elements: React.ReactNode[] = [];
+                      const lines = property.description.split('\n').map((l) => l.trim()).filter((l) => l);
+                      const elements: ReactNode[] = [];
                       let checkmarkItems: string[] = [];
                       let paragraphBuffer: string[] = [];
 
@@ -343,9 +343,17 @@ const PropertyPage = () => {
 
                       lines.forEach((line) => {
                         const isCheckmark = /^[✓✔]/.test(line);
+
                         if (isCheckmark) {
                           flushParagraph();
-                          checkmarkItems.push(line);
+
+                          // If the AI returned multiple "✓" in the same line, split them into separate items
+                          const parts = line.match(/[✓✔]\s*[^✓✔]+/g);
+                          if (parts && parts.length > 1) {
+                            parts.forEach((p) => checkmarkItems.push(p.trim()));
+                          } else {
+                            checkmarkItems.push(line);
+                          }
                         } else {
                           flushCheckmarks();
                           paragraphBuffer.push(line);
