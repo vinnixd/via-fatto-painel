@@ -5,7 +5,7 @@ import WhatsAppIcon from '@/components/ui/WhatsAppIcon';
 import { buildWhatsAppUrl } from '@/lib/utils';
 
 const Footer = () => {
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig, isLoading } = useSiteConfig();
 
   const phoneNumber = siteConfig?.phone || '(11) 99988-7766';
   const whatsappUrl = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: 'Olá! Gostaria de saber mais sobre os imóveis.' });
@@ -21,7 +21,9 @@ const Footer = () => {
             {/* Logo e Descrição */}
             <div className="lg:col-span-2">
               <div className="mb-4">
-                {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
+                {isLoading ? (
+                  <div className="h-14 w-[150px]" />
+                ) : (siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
                   <img 
                     src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
                     alt="Via Fatto Imóveis" 
