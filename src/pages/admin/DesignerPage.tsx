@@ -348,12 +348,12 @@ const DesignerPage = () => {
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {/* Logo Horizontal */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs">Horizontal</Badge>
+                      <div className="flex flex-col h-full">
+                        <div className="h-10 flex items-start gap-2 mb-3">
+                          <Badge variant="outline" className="text-xs shrink-0">Horizontal</Badge>
                           <span className="text-xs text-muted-foreground">Para cabeçalhos e banners</span>
                         </div>
-                        <div className="relative group">
+                        <div className="relative group flex-1 mb-3">
                           {config.logo_horizontal_url ? (
                             <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
                               <img src={config.logo_horizontal_url} alt="Logo Horizontal" className="max-w-full max-h-full object-contain p-2" />
@@ -367,7 +367,7 @@ const DesignerPage = () => {
                             </div>
                           )}
                         </div>
-                        <Label htmlFor="logo-horizontal-upload" className="cursor-pointer block">
+                        <Label htmlFor="logo-horizontal-upload" className="cursor-pointer block mt-auto">
                           <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_horizontal_url ? 'Alterar' : 'Enviar'}
@@ -383,12 +383,12 @@ const DesignerPage = () => {
                       </div>
 
                       {/* Logo Vertical */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs">Vertical</Badge>
+                      <div className="flex flex-col h-full">
+                        <div className="h-10 flex items-start gap-2 mb-3">
+                          <Badge variant="outline" className="text-xs shrink-0">Vertical</Badge>
                           <span className="text-xs text-muted-foreground">Para rodapés e cards</span>
                         </div>
-                        <div className="relative group">
+                        <div className="relative group flex-1 mb-3">
                           {config.logo_vertical_url ? (
                             <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
                               <img src={config.logo_vertical_url} alt="Logo Vertical" className="max-w-full max-h-full object-contain p-2" />
@@ -402,7 +402,7 @@ const DesignerPage = () => {
                             </div>
                           )}
                         </div>
-                        <Label htmlFor="logo-vertical-upload" className="cursor-pointer block">
+                        <Label htmlFor="logo-vertical-upload" className="cursor-pointer block mt-auto">
                           <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_vertical_url ? 'Alterar' : 'Enviar'}
@@ -418,12 +418,12 @@ const DesignerPage = () => {
                       </div>
 
                       {/* Logo Símbolo */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs">Símbolo</Badge>
+                      <div className="flex flex-col h-full">
+                        <div className="h-10 flex items-start gap-2 mb-3">
+                          <Badge variant="outline" className="text-xs shrink-0">Símbolo</Badge>
                           <span className="text-xs text-muted-foreground">Para ícones e avatares</span>
                         </div>
-                        <div className="relative group">
+                        <div className="relative group flex-1 mb-3">
                           {config.logo_symbol_url ? (
                             <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
                               <img src={config.logo_symbol_url} alt="Logo Símbolo" className="max-w-full max-h-full object-contain p-2" />
@@ -437,7 +437,7 @@ const DesignerPage = () => {
                             </div>
                           )}
                         </div>
-                        <Label htmlFor="logo-symbol-upload" className="cursor-pointer block">
+                        <Label htmlFor="logo-symbol-upload" className="cursor-pointer block mt-auto">
                           <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_symbol_url ? 'Alterar' : 'Enviar'}
