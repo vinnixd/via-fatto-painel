@@ -29,6 +29,8 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
         return 'Administrador';
       case 'gestor':
         return 'Gestor';
+      case 'marketing':
+        return 'Marketing';
       case 'corretor':
         return 'Corretor';
       default:
