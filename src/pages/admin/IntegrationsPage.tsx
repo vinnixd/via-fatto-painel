@@ -11,6 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Save, CheckCircle2, XCircle, ExternalLink, BarChart3, Code, Megaphone } from 'lucide-react';
 
+// Import official logos
+import gtmLogo from '@/assets/integration-logos/google-tag-manager.jpg';
+import gaLogo from '@/assets/integration-logos/google-analytics.png';
+import metaLogo from '@/assets/integration-logos/meta-pixel.png';
+
 interface IntegrationConfig {
   id: string;
   gtm_container_id: string;
@@ -22,36 +27,6 @@ interface IntegrationConfig {
 const GTM_PATTERN = /^GTM-[A-Z0-9]{6,8}$/;
 const FB_PIXEL_PATTERN = /^[0-9]{15,16}$/;
 const GA_PATTERN = /^(G-[A-Z0-9]{10,12}|UA-[0-9]+-[0-9]+)$/;
-
-// Logo components
-const GTMLogo = () => (
-  <svg viewBox="0 0 192 192" className="w-full h-full">
-    <path fill="#8AB4F8" d="M111.31 176.79L80.76 146.24 146.24 80.76 176.79 111.31z"/>
-    <path fill="#4285F4" d="M96 15.2L15.2 96l34.56 34.55 80.79-80.79z"/>
-    <path fill="#8AB4F8" d="M176.79 80.69L111.31 15.21 96 30.52l46.08 46.08z"/>
-    <path fill="#246FDB" d="M142.08 76.6L96 30.52 49.76 76.76l46.24 46.23z"/>
-    <path fill="#FFCE44" d="M49.75 115.25a32.68 32.68 0 1 0 46.22 46.22 32.68 32.68 0 0 0-46.22-46.22z"/>
-  </svg>
-);
-
-const GALogo = () => (
-  <svg viewBox="0 0 24 24" className="w-full h-full">
-    <path fill="#F9AB00" d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
-  </svg>
-);
-
-const MetaLogo = () => (
-  <svg viewBox="0 0 512 512" className="w-full h-full">
-    <defs>
-      <linearGradient id="meta-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#0064E0"/>
-        <stop offset="50%" stopColor="#0064E0"/>
-        <stop offset="100%" stopColor="#0095F6"/>
-      </linearGradient>
-    </defs>
-    <path fill="url(#meta-gradient)" d="M256 32C132.3 32 32 132.3 32 256s100.3 224 224 224 224-100.3 224-224S379.7 32 256 32zm117.4 338.8c-5.2 8-14.1 12.7-24.2 12.7-8.2 0-16.3-3.6-25.7-11.5-9.2-7.7-19.2-19.4-29.7-35.4l-4.6-7c-6.8-10.3-13.1-21.5-19-33.6 8.5-20.4 17.3-38.5 26.5-54.1 11.2-19 21.5-32.3 30.4-39.3 6.4-5 12.3-7.5 17.3-7.5 10.1 0 18.9 4.7 24.2 12.7 5.2 8 6.5 18.1 3.6 28.3-2.9 10.5-9.5 21.7-19.7 33.5-4.6 5.3-9.7 10.7-15.5 16.3 5.8 5.6 10.9 11 15.5 16.3 10.2 11.8 16.8 23 19.7 33.5 2.9 10.2 1.6 20.3-3.6 28.3zm-95.3-115.9c-8.5 20.3-17.4 38.4-26.6 54-11.2 19-21.5 32.3-30.4 39.3-6.4 5-12.3 7.5-17.4 7.5-10.1 0-18.9-4.7-24.2-12.7-5.2-8-6.5-18.1-3.6-28.3 2.9-10.5 9.5-21.7 19.7-33.5 4.6-5.3 9.7-10.7 15.5-16.3-5.8-5.6-10.9-11-15.5-16.3-10.2-11.8-16.8-23-19.7-33.5-2.9-10.2-1.6-20.3 3.6-28.3 5.2-8 14.1-12.7 24.2-12.7 5.1 0 11 2.5 17.4 7.5 8.9 7 19.2 20.3 30.4 39.3 9.2 15.5 18 33.6 26.6 54-.1 0-.1 0 0 0z"/>
-  </svg>
-);
 
 const IntegrationsPage = () => {
   const [loading, setLoading] = useState(true);
@@ -209,7 +184,7 @@ const IntegrationsPage = () => {
       placeholder: 'GTM-XXXXXXX',
       helpText: 'ID do contêiner do GTM (ex: GTM-ABC123D)',
       docsUrl: 'https://tagmanager.google.com/',
-      Logo: GTMLogo,
+      logo: gtmLogo,
       category: 'analytics',
     },
     {
@@ -221,7 +196,7 @@ const IntegrationsPage = () => {
       placeholder: 'G-XXXXXXXXXX',
       helpText: 'ID de medição GA4 (ex: G-ABC123XYZ) ou Universal (UA-XXXXX-X)',
       docsUrl: 'https://analytics.google.com/',
-      Logo: GALogo,
+      logo: gaLogo,
       category: 'analytics',
     },
     {
@@ -233,7 +208,7 @@ const IntegrationsPage = () => {
       placeholder: '1234567890123456',
       helpText: 'ID do Pixel (15-16 dígitos numéricos)',
       docsUrl: 'https://business.facebook.com/events_manager',
-      Logo: MetaLogo,
+      logo: metaLogo,
       category: 'marketing',
     },
   ];
@@ -254,8 +229,12 @@ const IntegrationsPage = () => {
       <Card key={integration.id} className="overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center p-2.5 shrink-0">
-              <integration.Logo />
+            <div className="w-14 h-14 rounded-xl bg-white border border-border flex items-center justify-center p-2 shrink-0 shadow-sm">
+              <img 
+                src={integration.logo} 
+                alt={integration.title} 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
