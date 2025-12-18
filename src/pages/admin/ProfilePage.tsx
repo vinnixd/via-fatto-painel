@@ -409,7 +409,7 @@ const ProfilePage = () => {
                     </p>
                   </div>
 
-                  <Button type="submit" disabled={saving || !passwords.new} className="w-full h-11">
+                  <Button type="submit" variant="admin" disabled={saving || !passwords.new} className="w-full h-11">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Alterar Senha
                   </Button>
