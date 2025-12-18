@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Loader2, User, Mail, Phone, Shield, Camera, Lock, Check } from 'lucide-react';
 import bannerProfile from '@/assets/banner-profile.png';
+
+// Preload banner image
+const preloadBanner = () => {
+  const img = new Image();
+  img.src = bannerProfile;
+};
+preloadBanner();
 
 interface Profile {
   id: string;
@@ -27,11 +34,20 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [bannerLoaded, setBannerLoaded] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [passwords, setPasswords] = useState({
     new: '',
     confirm: '',
   });
+
+  // Preload banner on mount
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setBannerLoaded(true);
+    img.src = bannerProfile;
+    if (img.complete) setBannerLoaded(true);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -201,9 +217,15 @@ const ProfilePage = () => {
           {/* Profile Header Card */}
           <Card className="border-0 shadow-sm overflow-hidden">
             <div 
-              className="h-24 bg-cover bg-center" 
-              style={{ backgroundImage: `url(${bannerProfile})` }} 
+              className={`h-24 bg-cover bg-center transition-opacity duration-300 ${bannerLoaded ? 'opacity-100' : 'opacity-0'}`}
+              style={{ 
+                backgroundImage: `url(${bannerProfile})`,
+                backgroundColor: 'hsl(var(--muted))'
+              }} 
             />
+            {!bannerLoaded && (
+              <div className="h-24 bg-gradient-to-r from-muted to-muted/70 animate-pulse absolute inset-x-0 top-0" />
+            )}
             <CardContent className="relative pt-0 pb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
                 {/* Avatar with upload */}
