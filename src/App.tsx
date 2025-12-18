@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useFavicon } from "@/hooks/useFavicon";
 import { useBrandColors } from "@/hooks/useBrandColors";
+import { useTrackingScripts } from "@/hooks/useTrackingScripts";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import Index from "./pages/Index";
@@ -40,10 +41,11 @@ import IntegrationsPage from "./pages/admin/IntegrationsPage";
 
 const queryClient = new QueryClient();
 
-// Component to apply favicon and brand colors
+// Component to apply favicon, brand colors, and tracking scripts
 const BrandManager = () => {
   useFavicon();
   useBrandColors();
+  useTrackingScripts();
   return null;
 };
 

@@ -75,6 +75,9 @@ export interface SiteConfig {
   seo_description: string | null;
   seo_keywords: string | null;
   og_image_url: string | null;
+  gtm_container_id: string | null;
+  facebook_pixel_id: string | null;
+  google_analytics_id: string | null;
 }
 
 export const useProperties = (options?: { featured?: boolean; limit?: number; status?: string }) => {
