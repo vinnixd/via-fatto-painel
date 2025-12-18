@@ -1,62 +1,71 @@
 import { useState } from 'react';
 import SubscriptionsLayout from './SubscriptionsLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Download, 
-  Settings, 
   FileText, 
   Receipt, 
   CheckCircle2,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Invoice {
-  month: string;
-  period: string;
-  nfe: string;
-  plan: string;
-  amount: string;
-  status: 'paid' | 'pending';
-}
-
-const invoices: Invoice[] = [
-  { month: 'Dezembro 2025', period: '11/12/25 - 10/01/26', nfe: 'NFe #5335886', plan: 'Profissional', amount: 'R$ 139,00', status: 'paid' },
-  { month: '', period: '14/06/25 - 14/07/25', nfe: 'NFe #5351240', plan: 'Essencial', amount: 'R$ 59,00', status: 'paid' },
-  { month: 'Novembro 2025', period: '11/11/25 - 11/12/25', nfe: 'NFe #5191841', plan: 'Profissional', amount: 'R$ 139,00', status: 'paid' },
-  { month: 'Outubro 2025', period: '12/10/25 - 11/11/25', nfe: 'NFe #5106998', plan: 'Profissional', amount: 'R$ 139,00', status: 'paid' },
-  { month: 'Setembro 2025', period: '12/09/25 - 12/10/25', nfe: 'NFe #4920976', plan: 'Profissional', amount: 'R$ 139,00', status: 'paid' },
-  { month: 'Agosto 2025', period: '13/08/25 - 12/09/25', nfe: 'NFe #4791000', plan: 'Profissional', amount: 'R$ 139,00', status: 'paid' },
-];
+import { useInvoices, useCurrentSubscription } from '@/hooks/useSubscription';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const InvoicesPage = () => {
-  const [showFiscalConfig, setShowFiscalConfig] = useState(false);
-  
-  // Group invoices by month
-  const groupedInvoices = invoices.reduce((acc, invoice, index) => {
-    const prevInvoice = invoices[index - 1];
-    const isNewMonth = invoice.month && (!prevInvoice || prevInvoice.month !== invoice.month);
-    
-    if (isNewMonth || index === 0) {
-      acc.push({ ...invoice, isFirst: true });
-    } else {
-      acc.push({ ...invoice, isFirst: false });
-    }
-    return acc;
-  }, [] as (Invoice & { isFirst: boolean })[]);
+  const { data: invoices, isLoading: loadingInvoices } = useInvoices();
+  const { data: subscription, isLoading: loadingSubscription } = useCurrentSubscription();
+
+  const isLoading = loadingInvoices || loadingSubscription;
 
   // Calculate stats
-  const totalPaid = invoices.reduce((sum, inv) => {
-    const value = parseFloat(inv.amount.replace('R$ ', '').replace(',', '.'));
-    return sum + value;
-  }, 0);
+  const totalPaid = invoices?.reduce((sum, inv) => {
+    if (inv.status === 'paid') {
+      return sum + Number(inv.amount);
+    }
+    return sum;
+  }, 0) || 0;
+
+  const paidCount = invoices?.filter(inv => inv.status === 'paid').length || 0;
+  const lastInvoice = invoices?.[0];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>;
+      case 'pending':
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendente</Badge>;
+      case 'overdue':
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Atrasado</Badge>;
+      case 'canceled':
+        return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Cancelado</Badge>;
+      default:
+        return <Badge variant="outline">Desconhecido</Badge>;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <SubscriptionsLayout>
+        <div className="max-w-5xl animate-fade-in space-y-6">
+          <Skeleton className="h-10 w-64" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+          <Skeleton className="h-64" />
+        </div>
+      </SubscriptionsLayout>
+    );
+  }
 
   return (
     <SubscriptionsLayout>
@@ -90,7 +99,7 @@ const InvoicesPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Faturas</p>
-                <p className="font-semibold">{invoices.length} emitidas</p>
+                <p className="font-semibold">{paidCount} pagas</p>
               </div>
             </CardContent>
           </Card>
@@ -102,7 +111,12 @@ const InvoicesPage = () => {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Última</p>
-                <p className="font-semibold">Dez/2025</p>
+                <p className="font-semibold">
+                  {lastInvoice 
+                    ? format(new Date(lastInvoice.due_date), 'MMM/yyyy', { locale: ptBR })
+                    : 'N/A'
+                  }
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -121,138 +135,90 @@ const InvoicesPage = () => {
         </div>
 
         {/* Fiscal Data Card */}
-        <Card className="mb-8 overflow-hidden">
-          <div className="bg-gradient-to-r from-muted/50 to-transparent p-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-background rounded-xl">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Dados fiscais</h3>
-                <p className="text-sm text-muted-foreground">Configure os dados para emissão de notas fiscais</p>
+        {subscription && (
+          <Card className="mb-8 overflow-hidden">
+            <div className="bg-gradient-to-r from-muted/50 to-transparent p-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-background rounded-xl">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Dados fiscais</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {subscription.fiscal_name 
+                      ? `${subscription.fiscal_name} - ${subscription.fiscal_document}`
+                      : 'Nenhum dado fiscal cadastrado'
+                    }
+                  </p>
+                </div>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-              onClick={() => setShowFiscalConfig(true)}
-            >
-              <Settings className="h-4 w-4" />
-              Configurar
-            </Button>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         {/* Invoices Table */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Notas fiscais</h2>
-            <Button variant="outline" size="sm">
-              Exportar tudo
-            </Button>
+            <h2 className="text-xl font-bold">Histórico de faturas</h2>
           </div>
           
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[150px]">Mês</TableHead>
-                  <TableHead>Período</TableHead>
-                  <TableHead>NFe / Plano</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-[80px] text-center">Ação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedInvoices.map((invoice, index) => (
-                  <TableRow key={index} className="group">
-                    <TableCell className="font-medium">
-                      {invoice.isFirst ? invoice.month : ''}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{invoice.period}</TableCell>
-                    <TableCell>
-                      <div className="space-y-0.5">
-                        <span className="text-primary hover:underline cursor-pointer font-medium">
-                          {invoice.nfe}
-                        </span>
-                        <p className="text-xs text-muted-foreground">{invoice.plan}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant="outline" 
-                        className={invoice.status === 'paid' 
-                          ? 'bg-green-50 text-green-700 border-green-200' 
-                          : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                        }
-                      >
-                        {invoice.status === 'paid' ? 'Pago' : 'Pendente'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">{invoice.amount}</TableCell>
-                    <TableCell className="text-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 opacity-50 group-hover:opacity-100 transition-opacity"
-                        onClick={() => toast.success('Download iniciado!')}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+          {!invoices || invoices.length === 0 ? (
+            <Card className="p-8 text-center">
+              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Nenhuma fatura encontrada</h3>
+              <p className="text-muted-foreground">As faturas aparecerão aqui quando forem geradas.</p>
+            </Card>
+          ) : (
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fatura</TableHead>
+                    <TableHead>Vencimento</TableHead>
+                    <TableHead>Plano</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="w-[80px] text-center">Ação</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((invoice) => (
+                    <TableRow key={invoice.id} className="group">
+                      <TableCell>
+                        <span className="text-primary hover:underline cursor-pointer font-medium">
+                          {invoice.invoice_number || `#${invoice.id.slice(0, 8)}`}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(invoice.due_date), 'dd/MM/yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        {subscription?.plan?.name || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(invoice.status)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        R$ {Number(invoice.amount).toFixed(2).replace('.', ',')}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 opacity-50 group-hover:opacity-100 transition-opacity"
+                          onClick={() => toast.info('Funcionalidade de download em breve!')}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
         </div>
       </div>
-
-      {/* Fiscal Config Dialog */}
-      <Dialog open={showFiscalConfig} onOpenChange={setShowFiscalConfig}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Configurar dados fiscais</DialogTitle>
-            <p className="text-muted-foreground text-sm">
-              Configure os dados que serão utilizados na emissão de notas fiscais.
-            </p>
-          </DialogHeader>
-          
-          <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Nome ou razão social</Label>
-              <Input placeholder="Digite o nome ou razão social" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">CPF ou CNPJ</Label>
-              <Input placeholder="Digite o CPF ou CNPJ" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">CEP</Label>
-                <Input placeholder="00000-000" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Estado</Label>
-                <Input placeholder="UF" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setShowFiscalConfig(false)}>
-                Cancelar
-              </Button>
-              <Button variant="admin" onClick={() => {
-                toast.success('Dados fiscais salvos!');
-                setShowFiscalConfig(false);
-              }}>
-                Salvar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </SubscriptionsLayout>
   );
 };

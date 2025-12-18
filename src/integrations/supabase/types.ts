@@ -198,6 +198,53 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          due_date: string
+          id: string
+          invoice_number: string | null
+          paid_at: string | null
+          payment_method: string | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_date: string
+          id?: string
+          invoice_number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portais: {
         Row: {
           ativo: boolean
@@ -650,6 +697,119 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          annual_price: number
+          created_at: string
+          description: string | null
+          features: Json
+          id: string
+          is_active: boolean
+          max_properties: number
+          max_users: number
+          monthly_price: number
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          annual_price?: number
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_properties?: number
+          max_users?: number
+          monthly_price?: number
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          annual_price?: number
+          created_at?: string
+          description?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean
+          max_properties?: number
+          max_users?: number
+          monthly_price?: number
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: string
+          created_at: string
+          expires_at: string | null
+          fiscal_cep: string | null
+          fiscal_city: string | null
+          fiscal_complement: string | null
+          fiscal_document: string | null
+          fiscal_name: string | null
+          fiscal_neighborhood: string | null
+          fiscal_number: string | null
+          fiscal_state: string | null
+          fiscal_street: string | null
+          id: string
+          plan_id: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string
+          created_at?: string
+          expires_at?: string | null
+          fiscal_cep?: string | null
+          fiscal_city?: string | null
+          fiscal_complement?: string | null
+          fiscal_document?: string | null
+          fiscal_name?: string | null
+          fiscal_neighborhood?: string | null
+          fiscal_number?: string | null
+          fiscal_state?: string | null
+          fiscal_street?: string | null
+          id?: string
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string
+          expires_at?: string | null
+          fiscal_cep?: string | null
+          fiscal_city?: string | null
+          fiscal_complement?: string | null
+          fiscal_document?: string | null
+          fiscal_name?: string | null
+          fiscal_neighborhood?: string | null
+          fiscal_number?: string | null
+          fiscal_state?: string | null
+          fiscal_street?: string | null
+          id?: string
+          plan_id?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
