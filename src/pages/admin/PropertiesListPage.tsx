@@ -190,7 +190,7 @@ const SortablePropertyCard = ({
             </Button>
           ) : (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                 <Button
                   size="icon"
                   variant="secondary"
@@ -199,12 +199,13 @@ const SortablePropertyCard = ({
                   <MoreVertical className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenuItem asChild>
                   <Link
                     to={`/imovel/${property.slug}`}
                     target="_blank"
                     className="flex items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Eye className="h-4 w-4" />
                     Ver no site
@@ -214,13 +215,17 @@ const SortablePropertyCard = ({
                   <Link
                     to={`/admin/imoveis/${property.id}`}
                     className="flex items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Pencil className="h-4 w-4" />
                     Editar
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => toggleFeatured(property.id, property.featured)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFeatured(property.id, property.featured);
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Star
@@ -232,7 +237,10 @@ const SortablePropertyCard = ({
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => setDeleteId(property.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteId(property.id);
+                  }}
                   className="text-destructive focus:text-destructive flex items-center gap-2"
                 >
                   <Trash2 className="h-4 w-4" />
