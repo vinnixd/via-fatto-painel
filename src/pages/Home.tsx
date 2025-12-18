@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
@@ -8,6 +8,8 @@ import { useProperties, useCategories, useSiteConfig, useAvailableCities, Proper
 import heroHouse from '@/assets/hero-house.jpg';
 
 const Home = () => {
+  const navigate = useNavigate();
+
   const [favorites, setFavorites] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [heroSearch, setHeroSearch] = useState({
@@ -56,12 +58,13 @@ const Home = () => {
 
   const handleHeroSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Navigate to properties page with search params
+
     const params = new URLSearchParams();
     if (heroSearch.category) params.set('type', heroSearch.category);
     if (heroSearch.location) params.set('location', heroSearch.location);
     if (heroSearch.minPrice) params.set('minPrice', heroSearch.minPrice);
-    window.location.href = `/imoveis?${params.toString()}`;
+
+    navigate(`/imoveis?${params.toString()}`);
   };
 
   const categoryFilters = [
