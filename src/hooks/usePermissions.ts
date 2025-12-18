@@ -6,6 +6,7 @@ interface UserPermissions {
   role: AppRole;
   isAdmin: boolean;
   isGestor: boolean;
+  isMarketing: boolean;
   isCorretor: boolean;
   canAccessUsers: boolean;
   canManageProperties: boolean;
@@ -14,18 +15,19 @@ interface UserPermissions {
 }
 
 export const usePermissions = (): UserPermissions => {
-  const { isAdmin, isGestor, isCorretor, loading } = useAuth();
+  const { isAdmin, isGestor, isMarketing, isCorretor, loading } = useAuth();
 
-  const role: AppRole = isAdmin ? 'admin' : isGestor ? 'gestor' : isCorretor ? 'corretor' : 'user';
+  const role: AppRole = isAdmin ? 'admin' : isGestor ? 'gestor' : isMarketing ? 'marketing' : isCorretor ? 'corretor' : 'user';
 
   return {
     role,
     isAdmin,
     isGestor,
+    isMarketing,
     isCorretor,
     canAccessUsers: isAdmin,
-    canManageProperties: isAdmin || isGestor || isCorretor,
-    canManagePortals: isAdmin || isGestor,
+    canManageProperties: isAdmin || isGestor || isMarketing || isCorretor,
+    canManagePortals: isAdmin || isGestor || isMarketing,
     loading,
   };
 };

@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isGestor: boolean;
+  isMarketing: boolean;
   isCorretor: boolean;
   canAccessAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isGestor, setIsGestor] = useState(false);
+  const [isMarketing, setIsMarketing] = useState(false);
   const [isCorretor, setIsCorretor] = useState(false);
 
   const checkUserRole = async (userId: string) => {
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const roles = data?.map(r => r.role) || [];
     setIsAdmin(roles.includes('admin'));
     setIsGestor(roles.includes('gestor'));
+    setIsMarketing(roles.includes('marketing'));
     setIsCorretor(roles.includes('corretor'));
   };
 
@@ -50,6 +53,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsGestor(false);
+          setIsMarketing(false);
           setIsCorretor(false);
         }
       }
@@ -68,7 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const canAccessAdmin = isAdmin || isGestor || isCorretor;
+  const canAccessAdmin = isAdmin || isGestor || isMarketing || isCorretor;
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -93,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isGestor, isCorretor, canAccessAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isGestor, isMarketing, isCorretor, canAccessAdmin, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

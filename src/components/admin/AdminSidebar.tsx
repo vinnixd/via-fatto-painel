@@ -22,14 +22,14 @@ interface MenuItem {
   icon: typeof LayoutDashboard;
   label: string;
   path: string;
-  roles?: ('admin' | 'gestor' | 'corretor')[];
+  roles?: ('admin' | 'gestor' | 'marketing' | 'corretor')[];
 }
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
   { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
-  { icon: Globe, label: 'Portais', path: '/admin/portais' },
+  { icon: Globe, label: 'Portais', path: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
   { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin'] },
   { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
@@ -45,7 +45,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
-  const { signOut, user, isAdmin, isGestor, isCorretor } = useAuth();
+  const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
   const { data: siteConfig } = useSiteConfig();
 
   // Filter menu items based on user role
@@ -53,6 +53,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
     if (!item.roles) return true;
     if (isAdmin && item.roles.includes('admin')) return true;
     if (isGestor && item.roles.includes('gestor')) return true;
+    if (isMarketing && item.roles.includes('marketing')) return true;
     if (isCorretor && item.roles.includes('corretor')) return true;
     return false;
   });
