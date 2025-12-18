@@ -491,6 +491,33 @@ const PropertyPage = () => {
                 </div>
               </div>
 
+              {/* Description in sidebar */}
+              {property.description && (
+                <div>
+                  <h3 className="font-semibold mb-2">Descrição</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {property.description.split('\n')[0]}
+                  </p>
+                </div>
+              )}
+
+              {/* Características as tags */}
+              {property.features && property.features.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-3">Características</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {property.features.map((feature, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 text-sm border border-primary text-primary rounded-full hover:bg-primary/10 transition-colors"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Financing - Only show when enabled */}
               {property.financing && (
                 <div className="flex items-center space-x-2">
