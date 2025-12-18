@@ -1,6 +1,6 @@
 import { Heart, Bed, Bath, Car, Maximize, MapPin, Eye } from 'lucide-react';
 import { Property } from '@/types/property';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { buildWhatsAppUrl } from '@/lib/utils';
 
@@ -12,7 +12,6 @@ interface PropertyCardProps {
 
 const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCardProps) => {
   const [imageError, setImageError] = useState(false);
-  const navigate = useNavigate();
 
   const formatPrice = (price: number | null | undefined) => {
     if (!price || price === 0) {
@@ -26,9 +25,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
     }).format(price);
   };
 
-  const handleCardClick = () => {
-    navigate(`/imovel/${property.slug}`);
-  };
+  const coverImage = imageError ? '/placeholder.svg' : (property.images?.[0] || '/placeholder.svg');
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -37,6 +34,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   };
 
   const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
     const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference}${priceText}. Poderia me passar mais informações?`;
@@ -45,21 +43,22 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   };
 
   return (
-    <div onClick={handleCardClick} className="card-property group block cursor-pointer">
+    <Link to={`/imovel/${property.slug}`} className="card-property group block">
       {/* Image Container */}
       <div className="relative h-48 md:h-56 overflow-hidden">
         <img
-          src={imageError ? '/placeholder.svg' : property.images[0]}
+          src={coverImage}
           alt={property.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={() => setImageError(true)}
+          loading="lazy"
         />
-        
+
         {/* Status Badge */}
         <div className="absolute top-3 left-3">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-            property.status === 'venda' 
-              ? 'bg-primary text-primary-foreground' 
+            property.status === 'venda'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-info text-white'
           }`}>
             {property.status === 'venda' ? 'À Venda' : 'Aluguel'}
@@ -79,10 +78,11 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
         <button
           onClick={handleFavoriteClick}
           className={`absolute bottom-3 right-3 p-2 rounded-full transition-colors ${
-            isFavorited 
-              ? 'bg-red-500 text-white' 
+            isFavorited
+              ? 'bg-red-500 text-white'
               : 'bg-white/90 text-neutral-600 hover:bg-red-500 hover:text-white'
           }`}
+          aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
         >
           <Heart size={16} fill={isFavorited ? 'currentColor' : 'none'} />
         </button>
@@ -160,7 +160,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
           </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
