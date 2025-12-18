@@ -64,10 +64,10 @@ const AuthPage = () => {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-neutral-900">
         {/* Pattern overlay */}
         <div 
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-10"
           style={{
             backgroundImage: `url(${loginPattern})`,
-            backgroundSize: 'auto',
+            backgroundSize: '150px',
             backgroundRepeat: 'repeat',
           }}
         />
@@ -194,7 +194,7 @@ const AuthPage = () => {
             <div className="flex items-center justify-end">
               <button
                 type="button"
-                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                className="text-sm text-neutral-900 hover:text-neutral-700 font-medium transition-colors"
                 onClick={() => toast.info('Entre em contato com o administrador para recuperar sua senha.')}
               >
                 Esqueci minha senha
@@ -203,7 +203,7 @@ const AuthPage = () => {
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-semibold group"
+              className="w-full h-12 text-base font-semibold group bg-neutral-900 hover:bg-neutral-800 text-white"
               disabled={loading}
             >
               {loading ? (
