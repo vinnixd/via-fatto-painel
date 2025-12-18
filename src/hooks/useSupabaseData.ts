@@ -140,11 +140,17 @@ export const useProperty = (slug: string) => {
         .eq('property_id', data.id)
         .order('order_index');
 
-      // Increment views
-      await supabase
-        .from('properties')
-        .update({ views: data.views + 1 })
-        .eq('id', data.id);
+      // Increment views (fire and forget, don't block the query)
+      (async () => {
+        try {
+          await supabase
+            .from('properties')
+            .update({ views: (data.views || 0) + 1 })
+            .eq('id', data.id);
+        } catch {
+          // Silently ignore errors
+        }
+      })();
 
       return { ...data, images: images || [] } as PropertyFromDB;
     },
