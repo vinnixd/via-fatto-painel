@@ -43,13 +43,16 @@ const Header = () => {
               }
             }}
           >
-            {isLoading ? (
+          {isLoading ? (
               <div className="h-12 w-[150px]" />
             ) : (siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
                 alt="Logo" 
                 className="h-12 max-w-[200px] w-auto object-contain"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
               />
             ) : (
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">

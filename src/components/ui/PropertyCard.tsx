@@ -45,13 +45,16 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
   return (
     <Link to={`/imovel/${property.slug}`} className="card-property group block h-full flex flex-col">
       {/* Image Container */}
-      <div className="relative h-48 md:h-56 overflow-hidden">
+      <div className="relative h-48 md:h-56 overflow-hidden bg-neutral-100">
         <img
           src={coverImage}
           alt={property.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={() => setImageError(true)}
           loading="lazy"
+          decoding="async"
+          width={400}
+          height={224}
         />
 
         {/* Status Badge */}

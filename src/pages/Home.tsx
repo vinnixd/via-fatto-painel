@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Users, Home as HomeIcon, Trophy, Search, Building, TreePine, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -6,6 +6,16 @@ import Autoplay from 'embla-carousel-autoplay';
 import PropertyCard from '@/components/ui/PropertyCard';
 import { useProperties, useCategories, useSiteConfig, useAvailableCities, PropertyFromDB } from '@/hooks/useSupabaseData';
 import heroHouse from '@/assets/hero-house.jpg';
+
+// Preload hero image for faster LCP
+const preloadHeroImage = (src: string) => {
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = src;
+  link.fetchPriority = 'high';
+  document.head.appendChild(link);
+};
 
 const Home = () => {
   const navigate = useNavigate();
@@ -24,6 +34,12 @@ const Home = () => {
   const { data: categories = [] } = useCategories();
   const { data: siteConfig } = useSiteConfig();
   const { data: availableCities = [] } = useAvailableCities();
+
+  // Preload hero image for better LCP
+  useEffect(() => {
+    const heroSrc = siteConfig?.hero_background_url || heroHouse;
+    preloadHeroImage(heroSrc);
+  }, [siteConfig?.hero_background_url]);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -136,12 +152,15 @@ const Home = () => {
     <div className="min-h-screen bg-background">
       {/* Hero Section with Integrated Search */}
       <section className="relative bg-gradient-to-br from-neutral-900 to-neutral-800 text-white">
-        {/* Background Image */}
+        {/* Background Image - Optimized for LCP */}
         <div className="absolute inset-0">
           <img
             src={siteConfig?.hero_background_url || heroHouse}
             alt="Casa moderna"
             className="w-full h-full object-cover opacity-40"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
           <div className="absolute inset-0 bg-black/50"></div>
         </div>
