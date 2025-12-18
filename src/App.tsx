@@ -31,7 +31,7 @@ import ImportPage from "./pages/admin/ImportPage";
 import PortaisPage from "./pages/admin/PortaisPage";
 import PortalConfigPage from "./pages/admin/PortalConfigPage";
 import UsersPage from "./pages/admin/UsersPage";
-import DomainsPage from "./pages/admin/DomainsPage";
+
 
 const queryClient = new QueryClient();
 
@@ -71,7 +71,6 @@ const App = () => (
             <Route path="/admin/categorias" element={<CategoriesPage />} />
             <Route path="/admin/perfil" element={<ProfilePage />} />
             <Route path="/admin/configuracoes" element={<SettingsPage />} />
-            <Route path="/admin/configuracoes/dominios" element={<DomainsPage />} />
             <Route path="/admin/favoritos" element={<FavoritesListPage />} />
             <Route path="/admin/mensagens" element={<MessagesPage />} />
             <Route path="/admin/importar" element={<ImportPage />} />

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
@@ -11,38 +10,16 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   LogOut,
-  Settings,
-  Globe2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 
 interface MenuItem {
   icon: typeof LayoutDashboard;
   label: string;
   path: string;
-  adminOnly?: boolean;
-}
-
-interface SubMenuItem {
-  icon: typeof LayoutDashboard;
-  label: string;
-  path: string;
-}
-
-interface MenuGroup {
-  icon: typeof LayoutDashboard;
-  label: string;
-  basePath: string;
-  items: SubMenuItem[];
   adminOnly?: boolean;
 }
 
@@ -55,15 +32,6 @@ const menuItems: MenuItem[] = [
   { icon: Users, label: 'Usuários', path: '/admin/usuarios', adminOnly: true },
 ];
 
-const settingsMenu: MenuGroup = {
-  icon: Settings,
-  label: 'Configurações',
-  basePath: '/admin/configuracoes',
-  items: [
-    { icon: Globe2, label: 'Domínios', path: '/admin/configuracoes/dominios' },
-  ],
-};
-
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', path: '/admin/perfil' };
 
 interface AdminSidebarProps {
@@ -75,9 +43,6 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user, isAdmin } = useAuth();
   const { data: siteConfig } = useSiteConfig();
-  const [settingsOpen, setSettingsOpen] = useState(
-    location.pathname.startsWith(settingsMenu.basePath)
-  );
 
   // Filter menu items based on user role
   const visibleMenuItems = menuItems.filter((item) => {
@@ -87,7 +52,6 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
     return true;
   });
 
-  const isSettingsActive = location.pathname.startsWith(settingsMenu.basePath);
   const isProfileActive = location.pathname === profileItem.path;
 
   return (
@@ -172,64 +136,6 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
               </li>
             );
           })}
-
-          {/* Settings Menu with Collapsible Submenu */}
-          <li>
-            {collapsed ? (
-              <Link
-                to={settingsMenu.items[0].path}
-                title={settingsMenu.label}
-                className={cn(
-                  'flex items-center justify-center py-2.5 rounded-lg transition-colors',
-                  isSettingsActive
-                    ? 'bg-sidebar-accent text-sidebar-foreground'
-                    : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
-                )}
-              >
-                <settingsMenu.icon className="h-5 w-5 flex-shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-                <CollapsibleTrigger
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors w-full',
-                    isSettingsActive
-                      ? 'bg-sidebar-accent/50 text-sidebar-foreground'
-                      : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
-                  )}
-                >
-                  <settingsMenu.icon className="h-5 w-5 flex-shrink-0" />
-                  <span className="font-medium flex-1 text-left">{settingsMenu.label}</span>
-                  <ChevronDown
-                    className={cn(
-                      'h-4 w-4 transition-transform',
-                      settingsOpen && 'rotate-180'
-                    )}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 mt-1 space-y-1">
-                  {settingsMenu.items.map((subItem) => {
-                    const isSubActive = location.pathname === subItem.path;
-                    return (
-                      <Link
-                        key={subItem.path}
-                        to={subItem.path}
-                        className={cn(
-                          'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-sm',
-                          isSubActive
-                            ? 'bg-sidebar-accent text-sidebar-foreground'
-                            : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
-                        )}
-                      >
-                        <subItem.icon className="h-4 w-4 flex-shrink-0" />
-                        <span>{subItem.label}</span>
-                      </Link>
-                    );
-                  })}
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-          </li>
 
           {/* Profile - Always Last */}
           <li>
