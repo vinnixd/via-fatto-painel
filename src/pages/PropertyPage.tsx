@@ -491,16 +491,6 @@ const PropertyPage = () => {
                 </div>
               </div>
 
-              {/* Description in sidebar */}
-              {property.description && (
-                <div>
-                  <h3 className="font-semibold mb-2">Descrição</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {property.description.split('\n')[0]}
-                  </p>
-                </div>
-              )}
-
               {/* Características as tags */}
               {property.features && property.features.length > 0 && (
                 <div>
