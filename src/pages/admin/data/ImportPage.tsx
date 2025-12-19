@@ -311,7 +311,7 @@ const ImportPage = () => {
             </ol>
             
             <div className="flex flex-col sm:flex-row gap-3 mt-4">
-              <Button variant="outline" onClick={downloadSampleCSV} className="flex-1">
+              <Button variant="secondary" onClick={downloadSampleCSV} className="flex-1">
                 <FileDown className="mr-2 h-4 w-4" />
                 Baixar modelo CSV
               </Button>
