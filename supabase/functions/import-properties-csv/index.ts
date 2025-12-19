@@ -41,13 +41,29 @@ function parseCSV(csvText: string): CSVRow[] {
     const row: CSVRow = {};
     
     headers.forEach((header, index) => {
-      row[header.trim()] = values[index]?.trim() || '';
+      // Use ?? instead of || to preserve "0" values
+      const val = values[index];
+      row[header.trim()] = val !== null && val !== undefined ? val.trim() : '';
     });
     
     rows.push(row);
   }
   
   return rows;
+}
+
+/**
+ * Get value from CSV row - handles multiple column name variants
+ * Uses nullish coalescing to preserve "0" values
+ */
+function getRowValue(row: CSVRow, ...keys: string[]): string {
+  for (const key of keys) {
+    const val = row[key];
+    if (val !== null && val !== undefined && val !== '') {
+      return val;
+    }
+  }
+  return '';
 }
 
 function parseCSVLine(line: string): string[] {
@@ -387,9 +403,25 @@ function extractSpecsFromContent(content: string): {
   return specs;
 }
 
-function parseIntValue(value: string): number {
-  if (!value) return 0;
-  const num = Number.parseInt(value.replace(/[^\d]/g, ''), 10);
+/**
+ * Parse integer value - handles "0" correctly
+ */
+function parseIntValue(value: string | number | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  
+  const strValue = String(value).trim();
+  
+  // Empty string returns 0
+  if (strValue === '') return 0;
+  
+  // Handle "0" explicitly
+  if (strValue === '0') return 0;
+  
+  // Remove non-digit characters and parse
+  const cleaned = strValue.replace(/[^\d]/g, '');
+  if (cleaned === '') return 0;
+  
+  const num = Number.parseInt(cleaned, 10);
   return isNaN(num) ? 0 : num;
 }
 
@@ -509,8 +541,8 @@ async function processProperty(
     const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
     
     // === PRICE HANDLING ===
-    // 1. Try explicit price column first
-    const precoRaw = row['Preço'] || row['preco'] || row['Price'] || row['price'] || '';
+    // 1. Try explicit price column first - use getRowValue to handle "0" correctly
+    const precoRaw = getRowValue(row, 'Preço', 'preco', 'Price', 'price');
     let preco = parsePrice(precoRaw);
     
     // 2. If no price column, try to extract from Content
@@ -528,21 +560,22 @@ async function processProperty(
     
     // === SPECS HANDLING ===
     // Try explicit columns first, then extract from Content
-    let quartos = parseIntValue(row['Quartos'] || row['quartos'] || row['Bedrooms'] || '');
-    let suites = parseIntValue(row['Suítes'] || row['suites'] || row['Suites'] || '');
-    let banheiros = parseIntValue(row['Banheiros'] || row['banheiros'] || row['Bathrooms'] || '');
+    // Use getRowValue to properly handle "0" values
+    let quartos = parseIntValue(getRowValue(row, 'Quartos', 'quartos', 'Bedrooms'));
+    let suites = parseIntValue(getRowValue(row, 'Suítes', 'suites', 'Suites'));
+    let banheiros = parseIntValue(getRowValue(row, 'Banheiros', 'banheiros', 'Bathrooms'));
     
     // Vagas: check multiple column names explicitly
-    let vagas = parseIntValue(
-      row['Vagas'] || row['vagas'] || 
-      row['Garagem'] || row['garagem'] || 
-      row['Garagens'] || row['garagens'] ||
-      row['Garages'] || row['garages'] ||
-      row['Parking'] || row['parking'] || ''
-    );
+    let vagas = parseIntValue(getRowValue(row, 
+      'Vagas', 'vagas', 
+      'Garagem', 'garagem', 
+      'Garagens', 'garagens',
+      'Garages', 'garages',
+      'Parking', 'parking'
+    ));
     
-    let area = parseBrazilianNumber(row['Área'] || row['area'] || row['Area'] || row['Área Total'] || '');
-    let areaConstructed = parseBrazilianNumber(row['Área Construída'] || row['area_construida'] || row['Built Area'] || '');
+    let area = parseBrazilianNumber(getRowValue(row, 'Área', 'area', 'Area', 'Área Total'));
+    let areaConstructed = parseBrazilianNumber(getRowValue(row, 'Área Construída', 'area_construida', 'Built Area'));
     
     // Extract from Content for any missing spec individually (not all-or-nothing)
     const extractedSpecs = extractSpecsFromContent(contentRaw);
@@ -582,24 +615,25 @@ async function processProperty(
       issues.push('Sem vagas');
     }
     
-    // Get additional address fields
-    const bairro = row['Bairro'] || row['bairro'] || row['Neighborhood'] || '';
-    const rua = row['Rua'] || row['rua'] || row['Street'] || row['Endereço'] || '';
-    const cep = row['CEP'] || row['cep'] || row['Zipcode'] || '';
-    const latitude = parseBrazilianNumber(row['Latitude'] || row['latitude'] || row['Lat'] || '');
-    const longitude = parseBrazilianNumber(row['Longitude'] || row['longitude'] || row['Lng'] || '');
+    // Get additional address fields - use getRowValue for proper handling
+    const bairro = getRowValue(row, 'Bairro', 'bairro', 'Neighborhood');
+    const rua = getRowValue(row, 'Rua', 'rua', 'Street', 'Endereço');
+    const cep = getRowValue(row, 'CEP', 'cep', 'Zipcode');
+    const latitude = parseBrazilianNumber(getRowValue(row, 'Latitude', 'latitude', 'Lat'));
+    const longitude = parseBrazilianNumber(getRowValue(row, 'Longitude', 'longitude', 'Lng'));
     
-    // Get additional property fields
-    const referencia = row['Referência'] || row['referencia'] || row['Reference'] || '';
-    const perfil = row['Perfil'] || row['perfil'] || 'residencial';
-    const condominio = parseBrazilianNumber(row['Condomínio'] || row['condominio'] || row['Condo'] || '');
-    const condominioIsento = (row['Condomínio Isento'] || row['condominio_isento'] || '').toLowerCase() === 'sim';
-    const iptu = parseBrazilianNumber(row['IPTU'] || row['iptu'] || '');
-    const financiamento = (row['Financiamento'] || row['financiamento'] || '').toLowerCase() === 'sim';
-    const documentacao = row['Documentação'] || row['documentacao'] || 'regular';
-    const ativo = row['Ativo'] ? (row['Ativo'].toLowerCase() === 'sim') : true;
-    const seoTitulo = row['SEO Título'] || row['seo_titulo'] || '';
-    const seoDescricao = row['SEO Descrição'] || row['seo_descricao'] || '';
+    // Get additional property fields - use getRowValue for proper "0" handling
+    const referencia = getRowValue(row, 'Referência', 'referencia', 'Reference');
+    const perfil = getRowValue(row, 'Perfil', 'perfil') || 'residencial';
+    const condominio = parseBrazilianNumber(getRowValue(row, 'Condomínio', 'condominio', 'Condo'));
+    const condominioIsento = getRowValue(row, 'Condomínio Isento', 'condominio_isento').toLowerCase() === 'sim';
+    const iptu = parseBrazilianNumber(getRowValue(row, 'IPTU', 'iptu'));
+    const financiamento = getRowValue(row, 'Financiamento', 'financiamento').toLowerCase() === 'sim';
+    const documentacao = getRowValue(row, 'Documentação', 'documentacao') || 'regular';
+    const ativoRaw = getRowValue(row, 'Ativo', 'ativo');
+    const ativo = ativoRaw ? ativoRaw.toLowerCase() === 'sim' : true;
+    const seoTitulo = getRowValue(row, 'SEO Título', 'seo_titulo');
+    const seoDescricao = getRowValue(row, 'SEO Descrição', 'seo_descricao');
     
     // Build property data
     const propertyData: Record<string, unknown> = {
