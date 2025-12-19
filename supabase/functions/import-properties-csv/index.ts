@@ -564,6 +564,25 @@ async function processProperty(
       issues.push('Sem vagas');
     }
     
+    // Get additional address fields
+    const bairro = row['Bairro'] || row['bairro'] || row['Neighborhood'] || '';
+    const rua = row['Rua'] || row['rua'] || row['Street'] || row['Endereço'] || '';
+    const cep = row['CEP'] || row['cep'] || row['Zipcode'] || '';
+    const latitude = parseBrazilianNumber(row['Latitude'] || row['latitude'] || row['Lat'] || '');
+    const longitude = parseBrazilianNumber(row['Longitude'] || row['longitude'] || row['Lng'] || '');
+    
+    // Get additional property fields
+    const referencia = row['Referência'] || row['referencia'] || row['Reference'] || '';
+    const perfil = row['Perfil'] || row['perfil'] || 'residencial';
+    const condominio = parseBrazilianNumber(row['Condomínio'] || row['condominio'] || row['Condo'] || '');
+    const condominioIsento = (row['Condomínio Isento'] || row['condominio_isento'] || '').toLowerCase() === 'sim';
+    const iptu = parseBrazilianNumber(row['IPTU'] || row['iptu'] || '');
+    const financiamento = (row['Financiamento'] || row['financiamento'] || '').toLowerCase() === 'sim';
+    const documentacao = row['Documentação'] || row['documentacao'] || 'regular';
+    const ativo = row['Ativo'] ? (row['Ativo'].toLowerCase() === 'sim') : true;
+    const seoTitulo = row['SEO Título'] || row['seo_titulo'] || '';
+    const seoDescricao = row['SEO Descrição'] || row['seo_descricao'] || '';
+    
     // Build property data
     const propertyData: Record<string, unknown> = {
       title,
@@ -571,8 +590,14 @@ async function processProperty(
       description,
       address_state: estado,
       address_city: cidade,
+      address_neighborhood: bairro,
+      address_street: rua,
+      address_zipcode: cep,
+      address_lat: latitude,
+      address_lng: longitude,
       type: mapPropertyType(tipo),
       status: mapPropertyStatus(finalidade),
+      profile: perfil,
       featured: destaque,
       old_url: permalink,
       bedrooms: quartos,
@@ -581,6 +606,15 @@ async function processProperty(
       garages: vagas,
       area: area || 0,
       built_area: areaConstructed,
+      condo_fee: condominio,
+      condo_exempt: condominioIsento,
+      iptu: iptu,
+      financing: financiamento,
+      documentation: documentacao,
+      active: ativo,
+      reference: referencia,
+      seo_title: seoTitulo,
+      seo_description: seoDescricao,
       updated_at: new Date().toISOString()
     };
     
@@ -628,10 +662,10 @@ async function processProperty(
       created = true;
     }
     
-    // Process images - support multiple URLs separated by "|" (WP All Export format)
-    const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || '';
+    // Process images - support multiple URLs separated by "|" (WP All Export) or ", " (Lovable export)
+    const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || row['Imagens'] || '';
     const imageUrls = imageUrlsRaw
-      .split('|')
+      .split(/[|,]/)
       .map(url => url.trim())
       .filter(url => url.startsWith('http'));
     

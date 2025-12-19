@@ -78,52 +78,86 @@ const ExportPage = () => {
         return;
       }
 
-      // Process data for export
+      // Process data for export - COMPATIBLE WITH IMPORT
+      // Uses same column names that import function expects
       const exportData = properties.map((property) => {
         const images = includeImages && property.property_images
           ? property.property_images
               .sort((a: any, b: any) => a.order_index - b.order_index)
               .map((img: any) => img.url)
-              .join('; ')
+              .join(', ')
           : '';
 
+        // Map to import-compatible column names
         return {
-          id: property.id,
-          titulo: property.title,
-          slug: property.slug,
-          descricao: property.description || '',
-          tipo: property.type,
-          finalidade: property.status,
-          perfil: property.profile,
-          preco: property.price,
-          endereco_rua: property.address_street || '',
-          endereco_bairro: property.address_neighborhood || '',
-          endereco_cidade: property.address_city,
-          endereco_estado: property.address_state,
-          endereco_cep: property.address_zipcode || '',
-          latitude: property.address_lat || '',
-          longitude: property.address_lng || '',
-          quartos: property.bedrooms,
-          suites: property.suites,
-          banheiros: property.bathrooms,
-          vagas: property.garages,
-          area_total: property.area,
-          area_construida: property.built_area || '',
-          caracteristicas: property.features?.join('; ') || '',
-          amenidades: property.amenities?.join('; ') || '',
-          aceita_financiamento: property.financing ? 'Sim' : 'Não',
-          documentacao: property.documentation,
-          condominio: property.condo_fee || '',
-          condominio_isento: property.condo_exempt ? 'Sim' : 'Não',
-          iptu: property.iptu || '',
-          destaque: property.featured ? 'Sim' : 'Não',
-          ativo: property.active ? 'Sim' : 'Não',
-          referencia: property.reference || '',
-          seo_titulo: property.seo_title || '',
-          seo_descricao: property.seo_description || '',
-          criado_em: property.created_at,
-          atualizado_em: property.updated_at,
-          ...(includeImages && { imagens: images }),
+          // Required columns
+          Title: property.title,
+          Slug: property.slug,
+          Permalink: property.slug, // Use slug as permalink for re-import
+          
+          // Content/Description
+          Content: property.description || '',
+          
+          // Location - format: "Estado > Cidade"
+          'Estado e Cidade': property.address_city && property.address_state 
+            ? `${property.address_state} > ${property.address_city}`
+            : '',
+          Bairro: property.address_neighborhood || '',
+          Rua: property.address_street || '',
+          CEP: property.address_zipcode || '',
+          Latitude: property.address_lat || '',
+          Longitude: property.address_lng || '',
+          
+          // Type and Status
+          'Tipo do Imóvel': property.type === 'casa' ? 'Casa' :
+                           property.type === 'apartamento' ? 'Apartamento' :
+                           property.type === 'terreno' ? 'Terreno' :
+                           property.type === 'comercial' ? 'Comercial' :
+                           property.type === 'rural' ? 'Rural' :
+                           property.type === 'cobertura' ? 'Cobertura' :
+                           property.type === 'flat' ? 'Flat' :
+                           property.type === 'galpao' ? 'Galpão' : 'Casa',
+          Finalidade: property.status === 'venda' ? 'Venda' :
+                     property.status === 'aluguel' ? 'Aluguel' :
+                     property.status === 'vendido' ? 'Vendido' :
+                     property.status === 'alugado' ? 'Alugado' : 'Venda',
+          Perfil: property.profile,
+          
+          // Price
+          Preço: property.price || '',
+          Condomínio: property.condo_fee || '',
+          'Condomínio Isento': property.condo_exempt ? 'Sim' : 'Não',
+          IPTU: property.iptu || '',
+          
+          // Specifications
+          Quartos: property.bedrooms || 0,
+          Suítes: property.suites || 0,
+          Banheiros: property.bathrooms || 0,
+          Vagas: property.garages || 0,
+          'Área Total': property.area || 0,
+          'Área Construída': property.built_area || '',
+          
+          // Features
+          Características: property.features?.join('; ') || '',
+          Amenidades: property.amenities?.join('; ') || '',
+          
+          // Flags
+          Destaque: property.featured ? 'Destaque' : '',
+          Financiamento: property.financing ? 'Sim' : 'Não',
+          Documentação: property.documentation,
+          Ativo: property.active ? 'Sim' : 'Não',
+          
+          // Reference and SEO
+          Referência: property.reference || '',
+          'SEO Título': property.seo_title || '',
+          'SEO Descrição': property.seo_description || '',
+          
+          // Dates (for reference, not imported)
+          'Criado em': property.created_at,
+          'Atualizado em': property.updated_at,
+          
+          // Images
+          ...(includeImages && { 'Image URL': images }),
         };
       });
 
