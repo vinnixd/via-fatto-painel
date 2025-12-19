@@ -297,7 +297,26 @@ const ImportPage = () => {
 
       rows.forEach((row, index) => {
         const problemas: string[] = [];
-        const titulo = titleIdx >= 0 ? row[titleIdx]?.replace(/^"|"$/g, '') : '';
+        
+        // Helper to get value - handles "0" correctly
+        const getValue = (idx: number): string => {
+          if (idx < 0 || idx >= row.length) return '';
+          const val = row[idx];
+          if (val === null || val === undefined) return '';
+          // Remove surrounding quotes but preserve the value
+          return String(val).replace(/^"|"$/g, '');
+        };
+        
+        // Helper to check if numeric value is valid (0 is valid, empty or NaN is not)
+        const isValidNumber = (str: string): boolean => {
+          if (str === '') return false; // Empty is not valid
+          const cleaned = str.replace(/[^\d.,\-]/g, '').replace(',', '.');
+          if (cleaned === '' || cleaned === '-') return false;
+          const num = parseFloat(cleaned);
+          return !isNaN(num) && num >= 0;
+        };
+        
+        const titulo = getValue(titleIdx);
         
         // Check required fields
         if (titleIdx < 0 || !titulo) {
@@ -305,32 +324,36 @@ const ImportPage = () => {
           resumo.semTitulo++;
         }
         
-        const permalink = permalinkIdx >= 0 ? row[permalinkIdx]?.replace(/^"|"$/g, '') : '';
+        const permalink = getValue(permalinkIdx);
         if (permalinkIdx < 0 || !permalink) {
           problemas.push('Permalink ausente');
           resumo.semPermalink++;
         }
 
-        // Check price (0 is valid, empty/invalid is a warning)
+        // Check price (0 is valid for "preço sob consulta", empty/invalid is a warning)
         if (precoIdx >= 0) {
-          const precoStr = row[precoIdx]?.replace(/^"|"$/g, '').replace(/[^\d.,\-]/g, '').replace(',', '.');
-          const preco = parseFloat(precoStr);
-          if (precoStr && isNaN(preco)) {
-            problemas.push('Preço inválido');
-            resumo.precoInvalido++;
+          const precoStr = getValue(precoIdx);
+          if (precoStr !== '' && precoStr !== '0' && precoStr !== '0.00' && precoStr !== '0,00') {
+            const cleaned = precoStr.replace(/[^\d.,\-]/g, '').replace(',', '.');
+            const preco = parseFloat(cleaned);
+            if (isNaN(preco) || preco < 0) {
+              problemas.push('Preço inválido');
+              resumo.precoInvalido++;
+            }
           }
+          // "0" and empty are both valid (0 = sob consulta, empty = will try to extract from content)
         }
 
         // Check city
         if (cidadeIdx >= 0) {
-          const cidade = row[cidadeIdx]?.replace(/^"|"$/g, '');
+          const cidade = getValue(cidadeIdx);
           if (!cidade) {
             problemas.push('Cidade ausente');
             resumo.semCidade++;
           }
         }
 
-        // Check numeric fields
+        // Check numeric fields - 0 is valid, only report if value exists but is invalid
         const numericFields = [
           { idx: quartosIdx, name: 'Quartos' },
           { idx: suitesIdx, name: 'Suítes' },
@@ -341,13 +364,11 @@ const ImportPage = () => {
 
         numericFields.forEach(({ idx, name }) => {
           if (idx >= 0) {
-            const valStr = row[idx]?.replace(/^"|"$/g, '').replace(/[^\d.,\-]/g, '').replace(',', '.');
-            if (valStr) {
-              const val = parseFloat(valStr);
-              if (isNaN(val) || val < 0) {
-                problemas.push(`${name} inválido`);
-                resumo.numerosInvalidos++;
-              }
+            const valStr = getValue(idx);
+            // Only validate if there's a value (empty is ok, will use defaults)
+            if (valStr !== '' && !isValidNumber(valStr)) {
+              problemas.push(`${name} inválido`);
+              resumo.numerosInvalidos++;
             }
           }
         });

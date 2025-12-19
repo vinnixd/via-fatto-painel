@@ -132,12 +132,21 @@ function generateSlug(title: string): string {
 
 /**
  * Parse Brazilian number format (1.000,50 -> 1000.50)
+ * Correctly handles "0" as a valid number
  */
 function parseBrazilianNumber(value: string): number | null {
-  if (!value) return null;
+  if (value === null || value === undefined) return null;
+  
+  const trimmed = String(value).trim();
+  
+  // Handle empty string
+  if (trimmed === '') return null;
+  
+  // Handle "0" explicitly - this is a valid number
+  if (trimmed === '0' || trimmed === '0.00' || trimmed === '0,00') return 0;
   
   // Remove everything except digits, dots, and commas
-  let cleaned = value.replace(/[^\d.,]/g, '');
+  let cleaned = trimmed.replace(/[^\d.,\-]/g, '');
   if (!cleaned) return null;
   
   // Check format
@@ -171,12 +180,21 @@ function parseBrazilianNumber(value: string): number | null {
  * - 1350000
  * - 1350000.00
  * - 1350000,00
+ * - 0 (valid for "preço sob consulta")
  */
 function parsePrice(value: string): number | null {
-  if (!value || !value.trim()) return null;
+  if (value === null || value === undefined) return null;
+  
+  const trimmed = String(value).trim();
+  
+  // Handle empty string
+  if (trimmed === '') return null;
+  
+  // Handle "0" explicitly - this is valid (terrenos/preço sob consulta)
+  if (trimmed === '0' || trimmed === '0.00' || trimmed === '0,00') return 0;
   
   // Remove R$, spaces and currency symbols
-  const cleaned = value.replace(/R\$|\s/g, '').trim();
+  const cleaned = trimmed.replace(/R\$|\s/g, '').trim();
   if (!cleaned) return null;
   
   const num = parseBrazilianNumber(cleaned);
