@@ -500,9 +500,40 @@ async function processProperty(
   const issues: string[] = [];
   
   try {
+    // ========== DEBUG: Log all CSV columns for this row ==========
+    console.log(`\n========== PROCESSING ROW ${lineNumber} ==========`);
+    console.log('CSV Columns available:', Object.keys(row).join(', '));
+    
+    // Log raw values for key fields to debug mapping issues
+    const debugFields = [
+      'Title', 'title', 'Slug', 'Permalink',
+      'Content', 'Descricao', 'Descrição', 'Description',
+      'Preço', 'preco', 'Price',
+      'Quartos', 'quartos', 'Bedrooms',
+      'Suítes', 'suites',
+      'Banheiros', 'banheiros',
+      'Vagas', 'vagas', 'Garagem', 'garagem',
+      'Área Total', 'Área', 'area',
+      'Área Construída',
+      'Estado e Cidade', 'Bairro', 'Rua', 'CEP',
+      'Tipo do Imóvel', 'Finalidade',
+      'Características', 'Amenidades',
+      'Image URL', 'Imagens'
+    ];
+    
+    console.log('--- RAW FIELD VALUES ---');
+    for (const field of debugFields) {
+      if (row[field] !== undefined && row[field] !== '') {
+        const value = String(row[field]).substring(0, 100); // Truncate long values
+        console.log(`  ${field}: "${value}"${row[field].length > 100 ? '...' : ''}`);
+      }
+    }
+    console.log('------------------------');
+    
     // ALWAYS use Title column - never generate from Content
     const title = row['Title'] || row['title'] || '';
     if (!title) {
+      console.log(`[ERROR] Row ${lineNumber}: Missing title`);
       return { 
         success: false, created: false, updated: false, imagesCount: 0, 
         hasPrice: false, hasDescription: false, hasSpecs: false,
@@ -512,6 +543,7 @@ async function processProperty(
     
     const permalink = row['Permalink'] || row['permalink'] || '';
     const slug = row['Slug'] || row['slug'] || generateSlug(title);
+    console.log(`[MAPPED] Title: "${title}" | Slug: "${slug}"`);
     
     // Get Content and clean HTML - check multiple column names
     // Priority: Content (WordPress post_content) > descricao > Description > Excerpt
@@ -521,35 +553,35 @@ async function processProperty(
                        row['Excerpt'] || row['excerpt'] || '';
     
     const description = cleanHtmlToText(contentRaw);
-    const hasDescription = description.length > 10; // Minimum 10 chars for meaningful description
+    const hasDescription = description.length > 10;
+    console.log(`[MAPPED] Description: ${description.length} chars (hasDescription: ${hasDescription})`);
     
-    // Log if Content column exists but is empty
     if (!hasDescription) {
-      if (row['Content'] !== undefined || row['content'] !== undefined) {
-        console.log(`Content column found but empty/short for: ${title}`);
-      }
       issues.push('Sem descrição');
-    } else {
-      console.log(`Description imported: ${description.length} chars for ${title}`);
     }
     
     const estadoCidade = row['Estado e Cidade'] || row['estado_cidade'] || '';
     const { estado, cidade } = parseLocation(estadoCidade);
+    const bairro = getRowValue(row, 'Bairro', 'bairro', 'Neighborhood');
+    const rua = getRowValue(row, 'Rua', 'rua', 'Street', 'Endereço');
+    console.log(`[MAPPED] Location: Estado="${estado}" Cidade="${cidade}" Bairro="${bairro}" Rua="${rua}"`);
     
     const tipo = row['Tipo do Imóvel'] || row['tipo'] || 'Casa';
     const finalidade = row['Finalidade'] || row['finalidade'] || 'Venda';
     const destaque = (row['Destaque'] || '').toLowerCase() === 'destaque';
+    console.log(`[MAPPED] Type: "${tipo}" -> "${mapPropertyType(tipo)}" | Status: "${finalidade}" -> "${mapPropertyStatus(finalidade)}" | Featured: ${destaque}`);
     
     // === PRICE HANDLING ===
     // 1. Try explicit price column first - use getRowValue to handle "0" correctly
     const precoRaw = getRowValue(row, 'Preço', 'preco', 'Price', 'price');
     let preco = parsePrice(precoRaw);
+    console.log(`[MAPPED] Price: raw="${precoRaw}" -> parsed=${preco}`);
     
     // 2. If no price column, try to extract from Content
     if (preco === null && contentRaw) {
       preco = extractPriceFromContent(contentRaw);
       if (preco) {
-        console.log(`Extracted price from content: ${preco}`);
+        console.log(`[EXTRACTED] Price from content: ${preco}`);
       }
     }
     
@@ -561,48 +593,60 @@ async function processProperty(
     // === SPECS HANDLING ===
     // Try explicit columns first, then extract from Content
     // Use getRowValue to properly handle "0" values
-    let quartos = parseIntValue(getRowValue(row, 'Quartos', 'quartos', 'Bedrooms'));
-    let suites = parseIntValue(getRowValue(row, 'Suítes', 'suites', 'Suites'));
-    let banheiros = parseIntValue(getRowValue(row, 'Banheiros', 'banheiros', 'Bathrooms'));
+    const quartosRaw = getRowValue(row, 'Quartos', 'quartos', 'Bedrooms');
+    let quartos = parseIntValue(quartosRaw);
+    
+    const suitesRaw = getRowValue(row, 'Suítes', 'suites', 'Suites');
+    let suites = parseIntValue(suitesRaw);
+    
+    const banheirosRaw = getRowValue(row, 'Banheiros', 'banheiros', 'Bathrooms');
+    let banheiros = parseIntValue(banheirosRaw);
     
     // Vagas: check multiple column names explicitly
-    let vagas = parseIntValue(getRowValue(row, 
+    const vagasRaw = getRowValue(row, 
       'Vagas', 'vagas', 
       'Garagem', 'garagem', 
       'Garagens', 'garagens',
       'Garages', 'garages',
       'Parking', 'parking'
-    ));
+    );
+    let vagas = parseIntValue(vagasRaw);
     
-    let area = parseBrazilianNumber(getRowValue(row, 'Área Total', 'Área', 'area', 'Area'));
-    let areaConstructed = parseBrazilianNumber(getRowValue(row, 'Área Construída', 'area_construida', 'Built Area'));
+    const areaRaw = getRowValue(row, 'Área Total', 'Área', 'area', 'Area');
+    let area = parseBrazilianNumber(areaRaw);
+    
+    const areaConstructedRaw = getRowValue(row, 'Área Construída', 'area_construida', 'Built Area');
+    let areaConstructed = parseBrazilianNumber(areaConstructedRaw);
+    
+    console.log(`[MAPPED] Specs RAW: Quartos="${quartosRaw}" Suítes="${suitesRaw}" Banheiros="${banheirosRaw}" Vagas="${vagasRaw}" Área="${areaRaw}" ÁreaConstr="${areaConstructedRaw}"`);
+    console.log(`[MAPPED] Specs PARSED: Quartos=${quartos} Suítes=${suites} Banheiros=${banheiros} Vagas=${vagas} Área=${area} ÁreaConstr=${areaConstructed}`);
     
     // Extract from Content for any missing spec individually (not all-or-nothing)
     const extractedSpecs = extractSpecsFromContent(contentRaw);
     
     if (quartos === 0 && extractedSpecs.quartos > 0) {
       quartos = extractedSpecs.quartos;
-      console.log(`Extracted quartos from content: ${quartos}`);
+      console.log(`[EXTRACTED] Quartos from content: ${quartos}`);
     }
     if (suites === 0 && extractedSpecs.suites > 0) {
       suites = extractedSpecs.suites;
-      console.log(`Extracted suites from content: ${suites}`);
+      console.log(`[EXTRACTED] Suítes from content: ${suites}`);
     }
     if (banheiros === 0 && extractedSpecs.banheiros > 0) {
       banheiros = extractedSpecs.banheiros;
-      console.log(`Extracted banheiros from content: ${banheiros}`);
+      console.log(`[EXTRACTED] Banheiros from content: ${banheiros}`);
     }
     if (vagas === 0 && extractedSpecs.vagas > 0) {
       vagas = extractedSpecs.vagas;
-      console.log(`Extracted vagas from content: ${vagas}`);
+      console.log(`[EXTRACTED] Vagas from content: ${vagas}`);
     }
     if (!area && extractedSpecs.area) {
       area = extractedSpecs.area;
-      console.log(`Extracted area from content: ${area}`);
+      console.log(`[EXTRACTED] Área from content: ${area}`);
     }
     if (!areaConstructed && extractedSpecs.areaConstructed) {
       areaConstructed = extractedSpecs.areaConstructed;
-      console.log(`Extracted areaConstructed from content: ${areaConstructed}`);
+      console.log(`[EXTRACTED] Área Construída from content: ${areaConstructed}`);
     }
     
     const hasVagas = vagas > 0;
@@ -616,24 +660,29 @@ async function processProperty(
     }
     
     // Get additional address fields - use getRowValue for proper handling
-    const bairro = getRowValue(row, 'Bairro', 'bairro', 'Neighborhood');
-    const rua = getRowValue(row, 'Rua', 'rua', 'Street', 'Endereço');
     const cep = getRowValue(row, 'CEP', 'cep', 'Zipcode');
     const latitude = parseBrazilianNumber(getRowValue(row, 'Latitude', 'latitude', 'Lat'));
     const longitude = parseBrazilianNumber(getRowValue(row, 'Longitude', 'longitude', 'Lng'));
+    console.log(`[MAPPED] Address extra: CEP="${cep}" Lat=${latitude} Lng=${longitude}`);
     
     // Get additional property fields - use getRowValue for proper "0" handling
     const referencia = getRowValue(row, 'Referência', 'referencia', 'Reference');
     const perfil = getRowValue(row, 'Perfil', 'perfil') || 'residencial';
-    const condominio = parseBrazilianNumber(getRowValue(row, 'Condomínio', 'condominio', 'Condo'));
-    const condominioIsento = getRowValue(row, 'Condomínio Isento', 'condominio_isento').toLowerCase() === 'sim';
-    const iptu = parseBrazilianNumber(getRowValue(row, 'IPTU', 'iptu'));
-    const financiamento = getRowValue(row, 'Financiamento', 'financiamento').toLowerCase() === 'sim';
+    const condominioRaw = getRowValue(row, 'Condomínio', 'condominio', 'Condo');
+    const condominio = parseBrazilianNumber(condominioRaw);
+    const condominioIsentoRaw = getRowValue(row, 'Condomínio Isento', 'condominio_isento');
+    const condominioIsento = condominioIsentoRaw.toLowerCase() === 'sim';
+    const iptuRaw = getRowValue(row, 'IPTU', 'iptu');
+    const iptu = parseBrazilianNumber(iptuRaw);
+    const financiamentoRaw = getRowValue(row, 'Financiamento', 'financiamento');
+    const financiamento = financiamentoRaw.toLowerCase() === 'sim';
     const documentacao = getRowValue(row, 'Documentação', 'documentacao') || 'regular';
     const ativoRaw = getRowValue(row, 'Ativo', 'ativo');
     const ativo = ativoRaw ? ativoRaw.toLowerCase() === 'sim' : true;
     const seoTitulo = getRowValue(row, 'SEO Título', 'seo_titulo');
     const seoDescricao = getRowValue(row, 'SEO Descrição', 'seo_descricao');
+    
+    console.log(`[MAPPED] Extra fields: Ref="${referencia}" Perfil="${perfil}" Condo=${condominio} CondoIsento=${condominioIsento} IPTU=${iptu} Financ=${financiamento} Doc="${documentacao}" Ativo=${ativo}`);
     
     // Features and Amenities - split by ";" (semicolon) as exported
     const caracteristicasRaw = getRowValue(row, 'Características', 'caracteristicas', 'Features');
@@ -645,6 +694,10 @@ async function processProperty(
     const amenities = amenidadesRaw
       ? amenidadesRaw.split(';').map(a => a.trim()).filter(a => a.length > 0)
       : [];
+    
+    console.log(`[MAPPED] Features: raw="${caracteristicasRaw?.substring(0, 50) || ''}" -> ${features.length} items`);
+    console.log(`[MAPPED] Amenities: raw="${amenidadesRaw?.substring(0, 50) || ''}" -> ${amenities.length} items`);
+    
     
     // Build property data
     const propertyData: Record<string, unknown> = {
@@ -729,12 +782,17 @@ async function processProperty(
     
     // Process images - support multiple URLs separated by "|" (WP All Export) or ", " (Lovable export)
     const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || row['Imagens'] || '';
+    console.log(`[MAPPED] Images RAW: "${imageUrlsRaw.substring(0, 200)}${imageUrlsRaw.length > 200 ? '...' : ''}"`);
+    
     const imageUrls = imageUrlsRaw
       .split(/[|,]/)
       .map(url => url.trim())
       .filter(url => url.startsWith('http'));
     
-    console.log(`Found ${imageUrls.length} images for ${title}`);
+    console.log(`[MAPPED] Images PARSED: ${imageUrls.length} valid URLs found`);
+    if (imageUrls.length > 0) {
+      console.log(`[MAPPED] First image URL: "${imageUrls[0]}"`);
+    }
     
     // Process all images - first image is cover, rest are gallery
     let imagesCount = 0;
