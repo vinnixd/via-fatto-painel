@@ -24,12 +24,67 @@ interface ImportStats {
   }>;
 }
 
+/**
+ * Split CSV text into records, preserving quoted fields with newlines
+ * This function handles multi-line fields correctly by tracking quote state
+ */
+function splitCSVRecords(csvText: string): string[] {
+  const records: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    
+    if (char === '"') {
+      if (inQuotes && csvText[i + 1] === '"') {
+        current += '""';  // Preserva aspas escapadas
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        current += '"';   // Preserva a aspa no output
+      }
+      continue;
+    }
+    
+    if (char === '\n' && !inQuotes) {
+      if (current.trim()) {
+        records.push(current);
+      }
+      current = '';
+      continue;
+    }
+    
+    // Handle \r\n (Windows line endings)
+    if (char === '\r' && csvText[i + 1] === '\n' && !inQuotes) {
+      if (current.trim()) {
+        records.push(current);
+      }
+      current = '';
+      i++; // Skip the \n
+      continue;
+    }
+    
+    current += char;
+  }
+  
+  // Don't forget the last record
+  if (current.trim()) {
+    records.push(current);
+  }
+  
+  return records;
+}
+
 function parseCSV(csvText: string): CSVRow[] {
-  const lines = csvText.split('\n');
+  const lines = splitCSVRecords(csvText);
   if (lines.length < 2) return [];
   
   const headerLine = lines[0];
   const headers = parseCSVLine(headerLine);
+  
+  console.log(`[parseCSV] Headers found: ${headers.join(', ')}`);
+  console.log(`[parseCSV] Total records (excluding header): ${lines.length - 1}`);
   
   const rows: CSVRow[] = [];
   
@@ -38,6 +93,12 @@ function parseCSV(csvText: string): CSVRow[] {
     if (!line) continue;
     
     const values = parseCSVLine(line);
+    
+    // Log warning if column count doesn't match
+    if (values.length !== headers.length) {
+      console.warn(`[parseCSV] Line ${i}: Column count mismatch. Expected ${headers.length}, got ${values.length}`);
+    }
+    
     const row: CSVRow = {};
     
     headers.forEach((header, index) => {
