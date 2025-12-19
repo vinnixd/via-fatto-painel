@@ -574,7 +574,7 @@ async function processProperty(
       'Parking', 'parking'
     ));
     
-    let area = parseBrazilianNumber(getRowValue(row, 'Área', 'area', 'Area', 'Área Total'));
+    let area = parseBrazilianNumber(getRowValue(row, 'Área Total', 'Área', 'area', 'Area'));
     let areaConstructed = parseBrazilianNumber(getRowValue(row, 'Área Construída', 'area_construida', 'Built Area'));
     
     // Extract from Content for any missing spec individually (not all-or-nothing)
@@ -635,6 +635,17 @@ async function processProperty(
     const seoTitulo = getRowValue(row, 'SEO Título', 'seo_titulo');
     const seoDescricao = getRowValue(row, 'SEO Descrição', 'seo_descricao');
     
+    // Features and Amenities - split by ";" (semicolon) as exported
+    const caracteristicasRaw = getRowValue(row, 'Características', 'caracteristicas', 'Features');
+    const features = caracteristicasRaw 
+      ? caracteristicasRaw.split(';').map(f => f.trim()).filter(f => f.length > 0)
+      : [];
+    
+    const amenidadesRaw = getRowValue(row, 'Amenidades', 'amenidades', 'Amenities');
+    const amenities = amenidadesRaw
+      ? amenidadesRaw.split(';').map(a => a.trim()).filter(a => a.length > 0)
+      : [];
+    
     // Build property data
     const propertyData: Record<string, unknown> = {
       title,
@@ -658,6 +669,8 @@ async function processProperty(
       garages: vagas,
       area: area || 0,
       built_area: areaConstructed,
+      features: features.length > 0 ? features : null,
+      amenities: amenities.length > 0 ? amenities : null,
       condo_fee: condominio,
       condo_exempt: condominioIsento,
       iptu: iptu,
