@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, Loader2, Info, DollarSign, FileText, ListChecks } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, Loader2, Info, DollarSign, FileText, ListChecks, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -41,6 +41,102 @@ const ImportPage = () => {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const downloadSampleCSV = () => {
+    const headers = [
+      'Title',
+      'Slug',
+      'Permalink',
+      'Content',
+      'Estado e Cidade',
+      'Bairro',
+      'Rua',
+      'CEP',
+      'Latitude',
+      'Longitude',
+      'Tipo do Imóvel',
+      'Finalidade',
+      'Perfil',
+      'Preço',
+      'Condomínio',
+      'Condomínio Isento',
+      'IPTU',
+      'Quartos',
+      'Suítes',
+      'Banheiros',
+      'Vagas',
+      'Área Total',
+      'Área Construída',
+      'Características',
+      'Amenidades',
+      'Destaque',
+      'Financiamento',
+      'Documentação',
+      'Ativo',
+      'Referência',
+      'SEO Título',
+      'SEO Descrição',
+      'Image URL'
+    ];
+
+    const sampleRow = [
+      'Casa moderna em condomínio fechado',
+      'casa-moderna-condominio',
+      'casa-moderna-condominio',
+      'Excelente casa com 3 quartos, sendo 1 suíte, sala ampla, cozinha planejada e área gourmet.',
+      'SP > São Paulo',
+      'Jardim Europa',
+      'Rua das Flores, 123',
+      '01234-567',
+      '-23.5505',
+      '-46.6333',
+      'Casa',
+      'Venda',
+      'residencial',
+      '850000',
+      '500',
+      'Não',
+      '3500',
+      '3',
+      '1',
+      '2',
+      '2',
+      '250',
+      '180',
+      'Piscina; Churrasqueira; Jardim',
+      'Academia; Playground; Salão de festas',
+      'Destaque',
+      'Sim',
+      'regular',
+      'Sim',
+      'REF-001',
+      'Casa moderna à venda em São Paulo',
+      'Linda casa com 3 quartos em condomínio fechado no Jardim Europa',
+      'https://exemplo.com/imagem1.jpg, https://exemplo.com/imagem2.jpg'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      sampleRow.map(value => {
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      }).join(',')
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'modelo_importacao_imoveis.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    
+    toast.success('Modelo CSV baixado com sucesso!');
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -213,6 +309,13 @@ const ImportPage = () => {
                 <strong className="text-foreground">Faça upload do arquivo</strong> e clique em "Importar imóveis".
               </li>
             </ol>
+            
+            <div className="flex flex-col sm:flex-row gap-3 mt-4">
+              <Button variant="outline" onClick={downloadSampleCSV} className="flex-1">
+                <FileDown className="mr-2 h-4 w-4" />
+                Baixar modelo CSV
+              </Button>
+            </div>
             
             <Alert className="mt-4">
               <Info className="h-4 w-4" />
