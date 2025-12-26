@@ -192,17 +192,23 @@ const SortablePropertyCard = ({
               <GripVertical className="h-3 w-3" />
             </Button>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
                 <Button
                   size="icon"
                   variant="secondary"
                   className="h-6 w-6 bg-background/80 backdrop-blur-sm hover:bg-background"
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuContent 
+                align="end" 
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <DropdownMenuItem asChild>
                   <Link
                     to={`/imovel/${property.slug}`}
@@ -229,6 +235,7 @@ const SortablePropertyCard = ({
                     e.stopPropagation();
                     toggleFeatured(property.id, property.featured);
                   }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   className="flex items-center gap-2"
                 >
                   <Star
@@ -244,6 +251,7 @@ const SortablePropertyCard = ({
                     e.stopPropagation();
                     setDeleteId(property.id);
                   }}
+                  onPointerDown={(e) => e.stopPropagation()}
                   className="text-destructive focus:text-destructive flex items-center gap-2"
                 >
                   <Trash2 className="h-4 w-4" />
