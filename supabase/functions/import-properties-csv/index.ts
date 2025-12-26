@@ -555,6 +555,7 @@ async function processProperty(
   hasPrice: boolean;
   hasDescription: boolean;
   hasSpecs: boolean;
+  hasVagas: boolean;
   issues: string[];
   error?: string;
 }> {
@@ -597,7 +598,7 @@ async function processProperty(
       console.log(`[ERROR] Row ${lineNumber}: Missing title`);
       return { 
         success: false, created: false, updated: false, imagesCount: 0, 
-        hasPrice: false, hasDescription: false, hasSpecs: false,
+        hasPrice: false, hasDescription: false, hasSpecs: false, hasVagas: false,
         issues: ['Título vazio'], error: 'Título vazio' 
       };
     }
