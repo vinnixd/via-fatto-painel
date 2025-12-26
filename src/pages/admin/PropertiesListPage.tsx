@@ -291,14 +291,14 @@ const SortablePropertyCard = ({
 type SortOption = 'manual' | 'price_asc' | 'price_desc' | 'alpha_asc' | 'alpha_desc' | 'date_asc' | 'date_desc' | 'views';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'manual', label: 'Ordenação Manual' },
-  { value: 'price_asc', label: 'Preço: Menor → Maior' },
-  { value: 'price_desc', label: 'Preço: Maior → Menor' },
-  { value: 'alpha_asc', label: 'Título: A → Z' },
-  { value: 'alpha_desc', label: 'Título: Z → A' },
-  { value: 'date_desc', label: 'Data: Mais Novo' },
-  { value: 'date_asc', label: 'Data: Mais Antigo' },
-  { value: 'views', label: 'Mais Vistos' },
+  { value: 'manual', label: 'Manual (arrastar)' },
+  { value: 'price_asc', label: 'Preço: menor ao maior' },
+  { value: 'price_desc', label: 'Preço: maior ao menor' },
+  { value: 'alpha_asc', label: 'A - Z' },
+  { value: 'alpha_desc', label: 'Z - A' },
+  { value: 'date_desc', label: 'Mais novo ao mais antigo' },
+  { value: 'date_asc', label: 'Mais antigo ao mais novo' },
+  { value: 'views', label: 'Mais vistos' },
 ];
 
 const PropertiesListPage = () => {
