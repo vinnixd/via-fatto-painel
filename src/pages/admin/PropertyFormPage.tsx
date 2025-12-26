@@ -1063,11 +1063,15 @@ const PropertyFormPage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.active ? 'border-primary bg-primary/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={() => setFormData({ ...formData, active: !formData.active })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, active: !prev.active }));
+                          }}
                         >
                           <Switch
                             checked={formData.active}
-                            onCheckedChange={(v) => setFormData({ ...formData, active: v })}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, active: v }))}
+                            onClick={(e) => e.stopPropagation()}
                           />
                           <div>
                             <p className="font-medium text-sm flex items-center gap-1.5">
@@ -1079,11 +1083,15 @@ const PropertyFormPage = () => {
                         </div>
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.featured ? 'border-yellow-500 bg-yellow-500/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={() => setFormData({ ...formData, featured: !formData.featured })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, featured: !prev.featured }));
+                          }}
                         >
                           <Switch
                             checked={formData.featured}
-                            onCheckedChange={(v) => setFormData({ ...formData, featured: v })}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, featured: v }))}
+                            onClick={(e) => e.stopPropagation()}
                           />
                           <div>
                             <p className="font-medium text-sm flex items-center gap-1.5">
@@ -1095,11 +1103,15 @@ const PropertyFormPage = () => {
                         </div>
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.financing ? 'border-green-500 bg-green-500/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={() => setFormData({ ...formData, financing: !formData.financing })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, financing: !prev.financing }));
+                          }}
                         >
                           <Switch
                             checked={formData.financing}
-                            onCheckedChange={(v) => setFormData({ ...formData, financing: v })}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, financing: v }))}
+                            onClick={(e) => e.stopPropagation()}
                           />
                           <div>
                             <p className="font-medium text-sm flex items-center gap-1.5">
