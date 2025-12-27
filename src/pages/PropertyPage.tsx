@@ -232,11 +232,18 @@ const PropertyPage = () => {
           
           {/* Back Button */}
           <button
-            onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 text-muted-foreground hover:text-primary mb-4 sm:mb-6 touch-manipulation"
+            onClick={() => {
+              // Check if there's history to go back to, otherwise go to properties list
+              if (window.history.length > 1) {
+                navigate(-1);
+              } else {
+                navigate('/imoveis');
+              }
+            }}
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary mb-4 sm:mb-6 touch-manipulation active:scale-95 transition-transform min-h-[44px] -ml-2 pl-2 pr-4"
           >
-            <ArrowLeft size={20} />
-            <span className="text-sm sm:text-base">Voltar</span>
+            <ArrowLeft size={22} />
+            <span className="text-sm sm:text-base font-medium">Voltar</span>
           </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
