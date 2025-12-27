@@ -1087,6 +1087,7 @@ const PropertyFormPage = () => {
                         >
                           <Switch
                             checked={formData.active}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, active: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
@@ -1103,6 +1104,7 @@ const PropertyFormPage = () => {
                         >
                           <Switch
                             checked={formData.featured}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, featured: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
@@ -1119,6 +1121,7 @@ const PropertyFormPage = () => {
                         >
                           <Switch
                             checked={formData.financing}
+                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, financing: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
