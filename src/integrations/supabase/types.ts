@@ -428,6 +428,7 @@ export type Database = {
           bedrooms: number
           built_area: number | null
           category_id: string | null
+          condition: Database["public"]["Enums"]["property_condition"]
           condo_exempt: boolean | null
           condo_fee: number | null
           created_at: string
@@ -471,6 +472,7 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
+          condition?: Database["public"]["Enums"]["property_condition"]
           condo_exempt?: boolean | null
           condo_fee?: number | null
           created_at?: string
@@ -514,6 +516,7 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
+          condition?: Database["public"]["Enums"]["property_condition"]
           condo_exempt?: boolean | null
           condo_fee?: number | null
           created_at?: string
@@ -884,6 +887,7 @@ export type Database = {
       feed_format: "xml" | "json" | "csv"
       log_status: "success" | "error"
       portal_method: "feed" | "api" | "manual"
+      property_condition: "lancamento" | "novo" | "usado"
       property_profile: "residencial" | "comercial" | "industrial" | "misto"
       property_status: "venda" | "aluguel" | "vendido" | "alugado"
       property_type:
@@ -1029,6 +1033,7 @@ export const Constants = {
       feed_format: ["xml", "json", "csv"],
       log_status: ["success", "error"],
       portal_method: ["feed", "api", "manual"],
+      property_condition: ["lancamento", "novo", "usado"],
       property_profile: ["residencial", "comercial", "industrial", "misto"],
       property_status: ["venda", "aluguel", "vendido", "alugado"],
       property_type: [

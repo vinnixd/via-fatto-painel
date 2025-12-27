@@ -66,6 +66,7 @@ type PropertyStatus = Database['public']['Enums']['property_status'];
 type PropertyType = Database['public']['Enums']['property_type'];
 type PropertyProfile = Database['public']['Enums']['property_profile'];
 type DocumentationStatus = Database['public']['Enums']['documentation_status'];
+type PropertyCondition = Database['public']['Enums']['property_condition'];
 
 interface PropertyImage {
   id?: string;
@@ -89,6 +90,7 @@ interface FormData {
   status: PropertyStatus;
   type: PropertyType;
   profile: PropertyProfile;
+  condition: PropertyCondition;
   address_street: string;
   address_neighborhood: string;
   address_city: string;
@@ -271,6 +273,7 @@ const PropertyFormPage = () => {
     status: 'venda',
     type: 'casa',
     profile: 'residencial',
+    condition: 'usado',
     address_street: '',
     address_neighborhood: '',
     address_city: '',
@@ -331,6 +334,7 @@ const PropertyFormPage = () => {
         status: property.status,
         type: property.type,
         profile: property.profile,
+        condition: property.condition || 'usado',
         address_street: property.address_street || '',
         address_neighborhood: property.address_neighborhood || '',
         address_city: property.address_city || '',
@@ -513,6 +517,7 @@ const PropertyFormPage = () => {
         status: formData.status,
         type: formData.type,
         profile: formData.profile,
+        condition: formData.condition,
         address_street: formData.address_street,
         address_neighborhood: formData.address_neighborhood,
         address_city: formData.address_city,
@@ -928,6 +933,19 @@ const PropertyFormPage = () => {
                               {categories.map(cat => (
                                 <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Condição</Label>
+                          <Select value={formData.condition} onValueChange={(v: PropertyCondition) => setFormData({ ...formData, condition: v })}>
+                            <SelectTrigger className="h-11">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="lancamento">Lançamento</SelectItem>
+                              <SelectItem value="novo">Novo</SelectItem>
+                              <SelectItem value="usado">Usado</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
