@@ -61,10 +61,12 @@ serve(async (req) => {
 
     console.log(`[share-property] Fetching property: ${idOrSlug}`);
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role to update shares counter
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     // Try to find property by ID first, then by slug
     let property = null;
@@ -105,6 +107,19 @@ serve(async (req) => {
     }
 
     console.log(`[share-property] Found property: ${property.id} - ${property.title}`);
+
+    // Increment shares counter (fire and forget)
+    supabaseAdmin
+      .from("properties")
+      .update({ shares: (property.shares || 0) + 1 })
+      .eq("id", property.id)
+      .then(({ error }) => {
+        if (error) {
+          console.error(`[share-property] Failed to increment shares:`, error);
+        } else {
+          console.log(`[share-property] Shares incremented for property: ${property.id}`);
+        }
+      });
 
     // Fetch property cover image
     const { data: images } = await supabase
