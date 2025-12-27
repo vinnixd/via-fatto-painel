@@ -428,7 +428,7 @@ export type Database = {
           bedrooms: number
           built_area: number | null
           category_id: string | null
-          condition: Database["public"]["Enums"]["property_condition"]
+          condition: Database["public"]["Enums"]["property_condition"] | null
           condo_exempt: boolean | null
           condo_fee: number | null
           created_at: string
@@ -472,7 +472,7 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
-          condition?: Database["public"]["Enums"]["property_condition"]
+          condition?: Database["public"]["Enums"]["property_condition"] | null
           condo_exempt?: boolean | null
           condo_fee?: number | null
           created_at?: string
@@ -516,7 +516,7 @@ export type Database = {
           bedrooms?: number
           built_area?: number | null
           category_id?: string | null
-          condition?: Database["public"]["Enums"]["property_condition"]
+          condition?: Database["public"]["Enums"]["property_condition"] | null
           condo_exempt?: boolean | null
           condo_fee?: number | null
           created_at?: string
