@@ -148,25 +148,25 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
             <div className="flex items-center gap-4 sm:gap-6 text-sm text-muted-foreground">
               {property.area > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Maximize size={16} className="text-primary flex-shrink-0" />
+                  <Maximize size={16} className="flex-shrink-0" />
                   <span>{property.area} m²</span>
                 </div>
               )}
               {property.bedrooms > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Bed size={16} className="text-primary flex-shrink-0" />
+                  <Bed size={16} className="flex-shrink-0" />
                   <span>{property.bedrooms}</span>
                 </div>
               )}
               {property.bathrooms > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Bath size={16} className="text-primary flex-shrink-0" />
+                  <Bath size={16} className="flex-shrink-0" />
                   <span>{property.bathrooms}</span>
                 </div>
               )}
               {property.garages > 0 && (
                 <div className="flex items-center gap-1.5">
-                  <Car size={16} className="text-primary flex-shrink-0" />
+                  <Car size={16} className="flex-shrink-0" />
                   <span>{property.garages}</span>
                 </div>
               )}
@@ -267,25 +267,25 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
         <div className="flex items-center flex-wrap gap-4 text-sm text-muted-foreground mb-4">
           {property.area > 0 && (
             <div className="flex items-center gap-1">
-              <Maximize size={14} className="text-primary flex-shrink-0" />
+              <Maximize size={14} className="flex-shrink-0" />
               <span>{property.area} m²</span>
             </div>
           )}
           {property.bedrooms > 0 && (
             <div className="flex items-center gap-1">
-              <Bed size={14} className="text-primary flex-shrink-0" />
+              <Bed size={14} className="flex-shrink-0" />
               <span>{property.bedrooms}</span>
             </div>
           )}
           {property.bathrooms > 0 && (
             <div className="flex items-center gap-1">
-              <Bath size={14} className="text-primary flex-shrink-0" />
+              <Bath size={14} className="flex-shrink-0" />
               <span>{property.bathrooms}</span>
             </div>
           )}
           {property.garages > 0 && (
             <div className="flex items-center gap-1">
-              <Car size={14} className="text-primary flex-shrink-0" />
+              <Car size={14} className="flex-shrink-0" />
               <span>{property.garages}</span>
             </div>
           )}
