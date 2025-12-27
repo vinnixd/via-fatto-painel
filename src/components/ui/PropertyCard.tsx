@@ -91,10 +91,19 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
               </span>
             </div>
 
+            {/* Featured Badge */}
+            {property.featured && (
+              <div className="absolute top-3 right-3">
+                <span className="bg-warning text-white px-3 py-1.5 rounded-md text-xs font-semibold">
+                  Destaque
+                </span>
+              </div>
+            )}
+
             {/* Favorite Button */}
             <button
               onClick={handleFavoriteClick}
-              className={`absolute top-3 right-3 p-2 rounded-full transition-colors touch-manipulation active:scale-95 ${
+              className={`absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
                 isFavorited
                   ? 'bg-red-500 text-white'
                   : 'bg-white/90 text-neutral-600 hover:bg-red-500 hover:text-white'
@@ -217,10 +226,19 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
           </span>
         </div>
 
+        {/* Featured Badge */}
+        {property.featured && (
+          <div className="absolute top-3 right-3">
+            <span className="bg-warning text-white px-3 py-1.5 rounded-md text-xs font-semibold">
+              Destaque
+            </span>
+          </div>
+        )}
+
         {/* Favorite Button */}
         <button
           onClick={handleFavoriteClick}
-          className={`absolute top-3 right-3 p-2 rounded-full transition-colors touch-manipulation active:scale-95 ${
+          className={`absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
             isFavorited
               ? 'bg-red-500 text-white'
               : 'bg-white/90 text-neutral-600 hover:bg-red-500 hover:text-white'
