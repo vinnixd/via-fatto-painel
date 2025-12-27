@@ -37,7 +37,8 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
     e.preventDefault();
     e.stopPropagation();
     const priceText = property.price && property.price > 0 ? ` - ${formatPrice(property.price)}` : '';
-    const message = `Olá! Tenho interesse no imóvel: ${property.title} - Ref: ${property.reference}${priceText}. Poderia me passar mais informações?`;
+    const propertyUrl = `${window.location.origin}/imovel/${property.slug}`;
+    const message = `Olá! Tenho interesse no imóvel:\n\n*${property.title}*\nRef: ${property.reference}${priceText}\n\n${propertyUrl}\n\nPoderia me passar mais informações?`;
     const url = buildWhatsAppUrl({ phone: property.broker.phone, message });
     window.open(url, '_blank', 'noopener,noreferrer');
   };
