@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -982,13 +982,45 @@ const PropertyFormPage = () => {
                               className="h-11"
                               disabled={formData.condo_exempt}
                             />
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 shrink-0">
-                              <Switch
-                                id="condo_exempt"
-                                checked={formData.condo_exempt}
-                                onCheckedChange={(checked) => setFormData({ ...formData, condo_exempt: checked, condo_fee: checked ? 0 : formData.condo_fee })}
-                              />
-                              <Label htmlFor="condo_exempt" className="text-xs cursor-pointer whitespace-nowrap">Isento</Label>
+                            <div className="flex h-11 items-center gap-2 rounded-lg border border-border bg-muted/30 px-2 shrink-0">
+                              <span className="text-xs font-medium text-muted-foreground">Isento</span>
+                              <div className="inline-flex h-8 overflow-hidden rounded-md border border-border bg-background">
+                                <button
+                                  type="button"
+                                  className={`px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                                    formData.condo_exempt
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'text-muted-foreground hover:bg-muted'
+                                  }`}
+                                  aria-pressed={formData.condo_exempt}
+                                  onClick={() =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      condo_exempt: true,
+                                      condo_fee: 0,
+                                    }))
+                                  }
+                                >
+                                  Ativar
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                                    !formData.condo_exempt
+                                      ? 'bg-primary text-primary-foreground'
+                                      : 'text-muted-foreground hover:bg-muted'
+                                  }`}
+                                  aria-pressed={!formData.condo_exempt}
+                                  onClick={() =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      condo_exempt: false,
+                                    }))
+                                  }
+                                >
+                                  Desativar
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
