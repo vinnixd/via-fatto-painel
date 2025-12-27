@@ -35,15 +35,14 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
     onFavorite?.(property.id);
   };
 
-  // Determine property tag based on conditions
+  // Determine property tag based on condition field
   const getPropertyTag = () => {
-    if (property.featured) return { label: 'Lançamento', color: 'bg-primary' };
-    // Check if property is new (created within last 30 days)
-    const createdDate = new Date(property.createdAt);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    if (createdDate > thirtyDaysAgo) return { label: 'Novo', color: 'bg-green-500' };
-    return { label: 'Usado', color: 'bg-neutral-500' };
+    const conditionMap = {
+      lancamento: { label: 'Lançamento', color: 'bg-primary' },
+      novo: { label: 'Novo', color: 'bg-green-500' },
+      usado: { label: 'Usado', color: 'bg-neutral-500' },
+    };
+    return conditionMap[property.condition || 'usado'];
   };
 
   const propertyTag = getPropertyTag();
