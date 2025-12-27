@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,11 +14,15 @@ import {
   Heart,
   Plus,
   ArrowRight,
+  ArrowUpRight,
   Mail,
   Clock,
   Loader2,
   CheckCircle,
   AlertCircle,
+  Sparkles,
+  ExternalLink,
+  Palette,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -72,7 +75,6 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Run all queries in parallel for better performance
         const [
           totalPropertiesResult,
           forSaleResult,
@@ -151,20 +153,71 @@ const DashboardPage = () => {
   };
 
   const statCards = [
-    { icon: Building2, label: 'Total de Imóveis', value: stats.totalProperties, color: 'bg-blue-500', link: '/admin/imoveis' },
-    { icon: Home, label: 'À Venda', value: stats.forSale, color: 'bg-green-500', link: '/admin/imoveis' },
-    { icon: Key, label: 'Para Aluguel', value: stats.forRent, color: 'bg-orange-500', link: '/admin/imoveis' },
-    { icon: Eye, label: 'Visualizações', value: stats.totalViews, color: 'bg-purple-500', link: null },
-    { icon: MessageSquare, label: 'Mensagens', value: stats.totalMessages, color: 'bg-red-500', link: '/admin/mensagens', badge: stats.unreadMessages },
-    { icon: Heart, label: 'Favoritos', value: stats.totalFavorites, color: 'bg-pink-500', link: '/admin/favoritos' },
+    { 
+      icon: Building2, 
+      label: 'Total de Imóveis', 
+      value: stats.totalProperties, 
+      gradient: 'from-blue-500 to-blue-600',
+      bgLight: 'bg-blue-50 dark:bg-blue-950/30',
+      textColor: 'text-blue-600 dark:text-blue-400',
+      link: '/admin/imoveis' 
+    },
+    { 
+      icon: Home, 
+      label: 'À Venda', 
+      value: stats.forSale, 
+      gradient: 'from-emerald-500 to-emerald-600',
+      bgLight: 'bg-emerald-50 dark:bg-emerald-950/30',
+      textColor: 'text-emerald-600 dark:text-emerald-400',
+      link: '/admin/imoveis' 
+    },
+    { 
+      icon: Key, 
+      label: 'Para Aluguel', 
+      value: stats.forRent, 
+      gradient: 'from-amber-500 to-orange-500',
+      bgLight: 'bg-amber-50 dark:bg-amber-950/30',
+      textColor: 'text-amber-600 dark:text-amber-400',
+      link: '/admin/imoveis' 
+    },
+    { 
+      icon: Eye, 
+      label: 'Visualizações', 
+      value: stats.totalViews, 
+      gradient: 'from-violet-500 to-purple-600',
+      bgLight: 'bg-violet-50 dark:bg-violet-950/30',
+      textColor: 'text-violet-600 dark:text-violet-400',
+      link: null 
+    },
+    { 
+      icon: MessageSquare, 
+      label: 'Mensagens', 
+      value: stats.totalMessages, 
+      gradient: 'from-rose-500 to-pink-600',
+      bgLight: 'bg-rose-50 dark:bg-rose-950/30',
+      textColor: 'text-rose-600 dark:text-rose-400',
+      link: '/admin/mensagens', 
+      badge: stats.unreadMessages 
+    },
+    { 
+      icon: Heart, 
+      label: 'Favoritos', 
+      value: stats.totalFavorites, 
+      gradient: 'from-pink-500 to-rose-500',
+      bgLight: 'bg-pink-50 dark:bg-pink-950/30',
+      textColor: 'text-pink-600 dark:text-pink-400',
+      link: '/admin/favoritos' 
+    },
   ];
 
   if (loading) {
     return (
       <AdminLayout>
-        <AdminHeader title="Dashboard" subtitle="Visão geral do sistema" />
-        <div className="flex items-center justify-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando dashboard...</p>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -172,62 +225,69 @@ const DashboardPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Dashboard" subtitle="Visão geral do sistema" />
-      
-      <div className="p-6">
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <Button asChild>
-            <Link to="/admin/imoveis/novo">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Imóvel
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/admin/mensagens">
-              <Mail className="h-4 w-4 mr-2" />
-              Ver Mensagens
-              {stats.unreadMessages > 0 && (
-                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {stats.unreadMessages}
-                </span>
-              )}
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/admin/designer">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Designer
-            </Link>
-          </Button>
+      <div className="p-4 md:p-6 lg:p-8 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">Visão geral do seu sistema imobiliário</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25">
+              <Link to="/admin/imoveis/novo">
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Imóvel
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="border-2">
+              <Link to="/admin/mensagens">
+                <Mail className="h-4 w-4 mr-2" />
+                Mensagens
+                {stats.unreadMessages > 0 && (
+                  <span className="ml-2 bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
+                    {stats.unreadMessages}
+                  </span>
+                )}
+              </Link>
+            </Button>
+            <Button variant="outline" asChild className="border-2">
+              <Link to="/admin/designer">
+                <Palette className="h-4 w-4 mr-2" />
+                Designer
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {statCards.map((stat) => {
             const CardWrapper = stat.link ? Link : 'div';
             return (
               <CardWrapper 
                 key={stat.label} 
                 to={stat.link || '#'}
-                className={stat.link ? 'block hover:scale-105 transition-transform' : ''}
+                className={`group block ${stat.link ? 'cursor-pointer' : ''}`}
               >
-                <Card className="border-0 shadow-sm h-full">
+                <Card className={`relative overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 ${stat.link ? 'hover:-translate-y-1' : ''} ${stat.bgLight}`}>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-10 w-10 rounded-lg ${stat.color} flex items-center justify-center relative`}>
+                    <div className="flex flex-col gap-3">
+                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg relative`}>
                         <stat.icon className="h-5 w-5 text-white" />
                         {stat.badge && stat.badge > 0 && (
-                          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                          <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
                             {stat.badge}
                           </span>
                         )}
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{stat.value}</p>
-                        <p className="text-xs text-muted-foreground">{stat.label}</p>
+                        <p className={`text-2xl md:text-3xl font-bold ${stat.textColor}`}>{stat.value.toLocaleString('pt-BR')}</p>
+                        <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
                       </div>
                     </div>
+                    {stat.link && (
+                      <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
+                    )}
                   </CardContent>
                 </Card>
               </CardWrapper>
@@ -235,26 +295,31 @@ const DashboardPage = () => {
           })}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Recent Properties */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                Últimos Imóveis
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-white" />
+                </div>
+                <CardTitle className="text-base font-semibold">Últimos Imóveis</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary">
                 <Link to="/admin/imoveis">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {recentProperties.length === 0 ? (
-                <div className="text-center py-8">
-                  <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground text-sm">Nenhum imóvel cadastrado</p>
-                  <Button size="sm" className="mt-4" asChild>
+                <div className="text-center py-10">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Building2 className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-4">Nenhum imóvel cadastrado</p>
+                  <Button size="sm" asChild>
                     <Link to="/admin/imoveis/novo">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar
@@ -262,29 +327,31 @@ const DashboardPage = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {recentProperties.map((property) => (
                     <Link 
                       key={property.id} 
                       to={`/admin/imoveis/${property.id}`}
-                      className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm line-clamp-1">{property.title}</p>
+                          <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">{property.title}</p>
                           {property.featured && (
-                            <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">★</span>
+                            <Sparkles className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                           <Clock className="h-3 w-3" />
                           {formatTimeAgo(property.created_at)}
                         </div>
                       </div>
-                      <div className="text-right ml-2">
-                        <p className="font-semibold text-primary text-sm">{formatPrice(property.price)}</p>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          property.status === 'venda' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                      <div className="text-right ml-3">
+                        <p className="font-semibold text-sm">{formatPrice(property.price)}</p>
+                        <span className={`inline-block text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                          property.status === 'venda' 
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
                         }`}>
                           {property.status === 'venda' ? 'Venda' : 'Aluguel'}
                         </span>
@@ -297,36 +364,49 @@ const DashboardPage = () => {
           </Card>
 
           {/* Top Viewed Properties */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Mais Visualizados
-              </CardTitle>
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-white" />
+                </div>
+                <CardTitle className="text-base font-semibold">Mais Visualizados</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {topProperties.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">Nenhum imóvel cadastrado</p>
+                <div className="text-center py-10">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">Nenhum imóvel cadastrado</p>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {topProperties.map((property, index) => (
                     <Link 
                       key={property.id} 
                       to={`/admin/imoveis/${property.id}`}
-                      className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
+                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className={`text-lg font-bold ${
-                          index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-600' : 'text-muted-foreground'
-                        }`}>#{index + 1}</span>
-                        <div>
-                          <p className="font-medium text-sm line-clamp-1">{property.title}</p>
-                          <p className="text-xs text-muted-foreground">{formatPrice(property.price)}</p>
-                        </div>
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm ${
+                        index === 0 
+                          ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' 
+                          : index === 1 
+                            ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' 
+                            : index === 2 
+                              ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' 
+                              : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {index + 1}
                       </div>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Eye className="h-4 w-4" />
-                        <span className="font-semibold">{property.views}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">{property.title}</p>
+                        <p className="text-xs text-muted-foreground">{formatPrice(property.price)}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground bg-muted rounded-full px-2.5 py-1">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="text-xs font-semibold">{property.views.toLocaleString('pt-BR')}</span>
                       </div>
                     </Link>
                   ))}
@@ -336,51 +416,57 @@ const DashboardPage = () => {
           </Card>
 
           {/* Recent Messages */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                Mensagens Recentes
-                {stats.unreadMessages > 0 && (
-                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                    {stats.unreadMessages} nova{stats.unreadMessages > 1 ? 's' : ''}
-                  </span>
-                )}
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center relative">
+                  <MessageSquare className="h-4 w-4 text-white" />
+                  {stats.unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">
+                      {stats.unreadMessages}
+                    </span>
+                  )}
+                </div>
+                <CardTitle className="text-base font-semibold">Mensagens</CardTitle>
+              </div>
+              <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary">
                 <Link to="/admin/mensagens">
                   Ver todas <ArrowRight className="h-4 w-4 ml-1" />
                 </Link>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {recentMessages.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                <div className="text-center py-10">
+                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="h-7 w-7 text-muted-foreground" />
+                  </div>
                   <p className="text-muted-foreground text-sm">Nenhuma mensagem recebida</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {recentMessages.map((msg) => (
                     <Link 
                       key={msg.id} 
                       to="/admin/mensagens"
-                      className={`block p-3 rounded-lg transition-colors ${
-                        msg.read ? 'bg-neutral-50 hover:bg-neutral-100' : 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
+                      className={`block p-3 rounded-xl transition-all ${
+                        msg.read 
+                          ? 'bg-muted/50 hover:bg-muted' 
+                          : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 ring-1 ring-blue-200 dark:ring-blue-800'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center justify-between mb-1.5">
                         <p className="font-medium text-sm flex items-center gap-2">
                           {msg.read ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                            <CheckCircle className="h-4 w-4 text-emerald-500" />
                           ) : (
-                            <AlertCircle className="h-4 w-4 text-blue-500" />
+                            <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
                           )}
                           {msg.name}
                         </p>
-                        <span className="text-xs text-muted-foreground">{formatTimeAgo(msg.created_at)}</span>
+                        <span className="text-[10px] text-muted-foreground font-medium">{formatTimeAgo(msg.created_at)}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{msg.message}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2 pl-6">{msg.message}</p>
                     </Link>
                   ))}
                 </div>
@@ -389,25 +475,40 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {/* Summary Footer */}
-        <div className="mt-8 p-4 bg-primary/5 rounded-xl">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-6 text-sm">
-              <span className="text-muted-foreground">
-                <strong className="text-foreground">{stats.featuredCount}</strong> imóveis em destaque
-              </span>
-              <span className="text-muted-foreground">
-                <strong className="text-foreground">{stats.totalViews}</strong> visualizações totais
-              </span>
+        {/* Quick Stats Footer */}
+        <Card className="border-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 shadow-sm">
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-4 md:gap-8">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-primary">{stats.featuredCount}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Em Destaque</p>
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-border hidden md:block" />
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Eye className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold text-primary">{stats.totalViews.toLocaleString('pt-BR')}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Views Totais</p>
+                  </div>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild className="bg-white dark:bg-transparent border-2 shadow-sm">
+                <a href="/" target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Visualizar Site
+                </a>
+              </Button>
             </div>
-            <Button variant="outline" size="sm" asChild>
-              <a href="/" target="_blank" rel="noopener noreferrer">
-                <Eye className="h-4 w-4 mr-2" />
-                Ver Site
-              </a>
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
