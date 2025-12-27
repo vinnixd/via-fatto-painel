@@ -804,20 +804,18 @@ const DesignerPage = () => {
                             <div className="absolute inset-0 flex items-center justify-center text-gray-500">
                               <ImagePlus className="h-12 w-12" />
                             </div>
-                            {config.watermark_enabled && (
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <img 
-                                  src={config.watermark_url} 
-                                  alt="Prévia marca d'água" 
-                                  style={{
-                                    maxWidth: `${config.watermark_size || 50}%`,
-                                    maxHeight: `${config.watermark_size || 50}%`,
-                                    opacity: (config.watermark_opacity || 40) / 100,
-                                  }}
-                                  className="object-contain"
-                                />
-                              </div>
-                            )}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <img 
+                                src={config.watermark_url} 
+                                alt="Prévia marca d'água" 
+                                style={{
+                                  maxWidth: `${config.watermark_size || 50}%`,
+                                  maxHeight: `${config.watermark_size || 50}%`,
+                                  opacity: (config.watermark_opacity || 40) / 100,
+                                }}
+                                className="object-contain"
+                              />
+                            </div>
                           </div>
                           {!config.watermark_enabled && (
                             <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
