@@ -103,7 +103,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
             {/* Favorite Button */}
             <button
               onClick={handleFavoriteClick}
-              className={`absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
+              className={`absolute bottom-3 right-3 w-8 h-8 min-w-[32px] min-h-[32px] aspect-square rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
                 isFavorited
                   ? 'bg-red-500 text-white'
                   : 'bg-white/90 text-neutral-600 hover:bg-red-500 hover:text-white'
@@ -238,7 +238,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
         {/* Favorite Button */}
         <button
           onClick={handleFavoriteClick}
-          className={`absolute bottom-3 right-3 w-9 h-9 rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
+          className={`absolute bottom-3 right-3 w-8 h-8 min-w-[32px] min-h-[32px] aspect-square rounded-full flex items-center justify-center transition-colors touch-manipulation active:scale-95 ${
             isFavorited
               ? 'bg-red-500 text-white'
               : 'bg-white/90 text-neutral-600 hover:bg-red-500 hover:text-white'
