@@ -40,6 +40,7 @@ import PaymentsPage from "./pages/admin/subscriptions/PaymentsPage";
 import PlansPage from "./pages/admin/subscriptions/PlansPage";
 import InvoicesPage from "./pages/admin/subscriptions/InvoicesPage";
 import IntegrationsPage from "./pages/admin/IntegrationsPage";
+import ShareTestPage from "./pages/admin/ShareTestPage";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/admin/assinaturas/planos" element={<PlansPage />} />
               <Route path="/admin/assinaturas/faturas" element={<InvoicesPage />} />
               <Route path="/admin/integracoes" element={<IntegrationsPage />} />
+              <Route path="/admin/compartilhamento" element={<ShareTestPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

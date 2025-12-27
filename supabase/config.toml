@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.batch-generate-seo]
 verify_jwt = true
+
+[functions.share-property]
+verify_jwt = false
