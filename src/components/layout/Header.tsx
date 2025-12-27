@@ -113,29 +113,15 @@ const Header = () => {
             </a>
           </div>
 
-          {/* Mobile Actions */}
-          <div className="flex items-center space-x-2 md:hidden">
-            {/* WhatsApp Button - Mobile */}
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-primary text-primary-foreground"
-              aria-label="WhatsApp"
-            >
-              <WhatsAppIcon size={20} />
-            </a>
-            
-            {/* Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2.5 text-foreground hover:text-primary transition-colors touch-manipulation"
-              aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
-              aria-expanded={isMenuOpen}
-            >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="p-2.5 text-foreground hover:text-primary transition-colors touch-manipulation md:hidden"
+            aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
