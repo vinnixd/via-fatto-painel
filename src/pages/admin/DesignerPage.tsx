@@ -134,15 +134,22 @@ const DesignerPage = () => {
 
   const handleImageUpload = async (file: File, field: keyof SiteConfig) => {
     try {
-      // Compress image before upload
-      const compressedFile = await compressImage(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 });
+      let fileToUpload: File;
       
-      const fileExt = compressedFile.name.split('.').pop();
+      // For watermark, keep PNG format to preserve transparency
+      if (field === 'watermark_url' && (file.type === 'image/png' || file.type === 'image/svg+xml')) {
+        fileToUpload = file;
+      } else {
+        // Compress other images before upload
+        fileToUpload = await compressImage(file, { maxWidth: 1920, maxHeight: 1080, quality: 0.85 });
+      }
+      
+      const fileExt = fileToUpload.name.split('.').pop() || (file.type === 'image/png' ? 'png' : 'jpg');
       const fileName = `${field}-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('site-assets')
-        .upload(fileName, compressedFile, { upsert: true });
+        .upload(fileName, fileToUpload, { upsert: true });
 
       if (uploadError) throw uploadError;
 
