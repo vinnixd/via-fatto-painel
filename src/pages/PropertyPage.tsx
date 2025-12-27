@@ -805,6 +805,22 @@ const PropertyPage = () => {
                         onContextMenu={(e) => e.preventDefault()}
                         draggable={false}
                       />
+                      {/* Watermark Overlay */}
+                      {siteConfig?.watermark_enabled && siteConfig?.watermark_url && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <img 
+                            src={siteConfig.watermark_url} 
+                            alt="" 
+                            style={{
+                              maxWidth: `${siteConfig.watermark_size || 50}%`,
+                              maxHeight: `${siteConfig.watermark_size || 50}%`,
+                              opacity: (siteConfig.watermark_opacity || 40) / 100,
+                            }}
+                            className="object-contain select-none"
+                            draggable={false}
+                          />
+                        </div>
+                      )}
                       <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                         similarProperty.status === 'venda' 
                           ? 'bg-primary text-primary-foreground' 
@@ -865,6 +881,22 @@ const PropertyPage = () => {
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
                     />
+                    {/* Watermark Overlay */}
+                    {siteConfig?.watermark_enabled && siteConfig?.watermark_url && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <img 
+                          src={siteConfig.watermark_url} 
+                          alt="" 
+                          style={{
+                            maxWidth: `${siteConfig.watermark_size || 50}%`,
+                            maxHeight: `${siteConfig.watermark_size || 50}%`,
+                            opacity: (siteConfig.watermark_opacity || 40) / 100,
+                          }}
+                          className="object-contain select-none"
+                          draggable={false}
+                        />
+                      </div>
+                    )}
                     <span className={`absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-medium ${
                       similarProperty.status === 'venda' 
                         ? 'bg-primary text-primary-foreground' 
