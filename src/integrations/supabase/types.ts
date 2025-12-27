@@ -883,6 +883,7 @@ export type Database = {
         | "cobertura"
         | "flat"
         | "galpao"
+        | "loft"
       publication_status: "pending" | "published" | "error" | "disabled"
     }
     CompositeTypes: {
@@ -1027,6 +1028,7 @@ export const Constants = {
         "cobertura",
         "flat",
         "galpao",
+        "loft",
       ],
       publication_status: ["pending", "published", "error", "disabled"],
     },
