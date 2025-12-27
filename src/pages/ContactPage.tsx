@@ -7,6 +7,7 @@ import { useSiteConfig } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
 import { buildWhatsAppUrl } from '@/lib/utils';
 import SEOHead from '@/components/SEOHead';
+import { trackContactForm, trackWhatsAppClick } from '@/lib/gtmEvents';
 
 const ContactPage = () => {
   const { data: siteConfig } = useSiteConfig();
@@ -34,9 +35,13 @@ const ContactPage = () => {
 
       if (error) throw error;
 
+      // Track form submission
+      trackContactForm(formData.subject);
+
       // Create WhatsApp message
       const whatsappMessage = `Olá!\n\nNome: ${formData.name}\nE-mail: ${formData.email}\nTelefone: ${formData.phone}\nAssunto: ${formData.subject}\n\nMensagem:\n${formData.message}`;
 
+      trackWhatsAppClick('contact_form');
       const whatsappUrl = buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message: whatsappMessage });
       window.open(whatsappUrl, '_blank');
       

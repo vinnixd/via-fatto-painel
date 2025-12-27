@@ -10,6 +10,7 @@ import { buildWhatsAppUrl } from '@/lib/utils';
 import PropertyMap from '@/components/ui/PropertyMap';
 import SEOHead from '@/components/SEOHead';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import { trackWhatsAppClick, trackFavorite, trackPropertyView, trackPropertyShare } from '@/lib/gtmEvents';
 
 const propertyTypeLabels: Record<string, string> = {
   casa: 'Casa',
@@ -108,6 +109,9 @@ const PropertyPage = () => {
     if (property) {
       const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
       setIsFavorited(favorites.includes(property.id));
+      
+      // Track property view
+      trackPropertyView(property.id, property.title, property.type, property.price);
     }
   }, [property]);
 
@@ -190,6 +194,9 @@ const PropertyPage = () => {
     
     localStorage.setItem('favorites', JSON.stringify(newFavorites));
     setIsFavorited(!isFavorited);
+    
+    // Track favorite action
+    trackFavorite(isFavorited ? 'remove' : 'add', property.id, property.title);
   };
 
   const getWhatsAppUrl = () => {
@@ -206,6 +213,7 @@ const PropertyPage = () => {
 
   const handleShare = async () => {
     const shareUrl = getShareUrl();
+    trackPropertyShare(property.id, property.title, 'copy');
     if (navigator.share) {
       navigator.share({
         title: property.title,
@@ -220,6 +228,8 @@ const PropertyPage = () => {
   };
 
   const handleShareWhatsApp = () => {
+    trackPropertyShare(property.id, property.title, 'whatsapp');
+    trackWhatsAppClick('property_share', property.id, property.title);
     const shareUrl = getShareUrl();
     const text = encodeURIComponent(`Confira este imóvel: ${shareUrl}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');

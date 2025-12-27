@@ -2,6 +2,7 @@ import { MessageCircle } from 'lucide-react';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import { buildWhatsAppUrl } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
+import { trackWhatsAppClick } from '@/lib/gtmEvents';
 
 const FloatingWhatsApp = () => {
   const { data: siteConfig } = useSiteConfig();
@@ -18,6 +19,7 @@ const FloatingWhatsApp = () => {
   }
 
   const handleClick = () => {
+    trackWhatsAppClick('floating_button');
     const message = 'Olá! Gostaria de mais informações sobre os imóveis.';
     const url = buildWhatsAppUrl({ phone: siteConfig.whatsapp!, message });
     window.open(url, '_blank', 'noopener,noreferrer');
