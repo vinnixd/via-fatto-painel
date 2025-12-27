@@ -90,7 +90,7 @@ const Home = () => {
     { id: 'terrenos', name: 'TERRENOS', icon: TreePine, count: allProperties.filter(p => p.type === 'terreno').length },
   ];
 
-  const displayProperties = filteredProperties.slice(0, 6);
+  const displayProperties = filteredProperties.slice(0, 8);
   
   // Carousel for featured properties
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -297,7 +297,7 @@ const Home = () => {
             </div>
           ) : displayProperties.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 {displayProperties.map((property) => (
                   <PropertyCard
                     key={property.id}
