@@ -626,6 +626,8 @@ export type Database = {
           social_youtube: string | null
           updated_at: string
           watermark_enabled: boolean | null
+          watermark_opacity: number | null
+          watermark_size: number | null
           watermark_url: string | null
           whatsapp: string | null
         }
@@ -667,6 +669,8 @@ export type Database = {
           social_youtube?: string | null
           updated_at?: string
           watermark_enabled?: boolean | null
+          watermark_opacity?: number | null
+          watermark_size?: number | null
           watermark_url?: string | null
           whatsapp?: string | null
         }
@@ -708,6 +712,8 @@ export type Database = {
           social_youtube?: string | null
           updated_at?: string
           watermark_enabled?: boolean | null
+          watermark_opacity?: number | null
+          watermark_size?: number | null
           watermark_url?: string | null
           whatsapp?: string | null
         }

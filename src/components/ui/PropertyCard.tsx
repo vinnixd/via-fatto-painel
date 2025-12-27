@@ -66,7 +66,12 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
             <img 
               src={siteConfig.watermark_url} 
               alt="" 
-              className="max-w-[50%] max-h-[50%] object-contain opacity-40 select-none"
+              style={{
+                maxWidth: `${siteConfig.watermark_size || 50}%`,
+                maxHeight: `${siteConfig.watermark_size || 50}%`,
+                opacity: (siteConfig.watermark_opacity || 40) / 100,
+              }}
+              className="object-contain select-none"
               draggable={false}
             />
           </div>

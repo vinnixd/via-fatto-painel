@@ -80,6 +80,8 @@ export interface SiteConfig {
   google_analytics_id: string | null;
   watermark_url: string | null;
   watermark_enabled: boolean | null;
+  watermark_opacity: number | null;
+  watermark_size: number | null;
 }
 
 export const useProperties = (options?: { featured?: boolean; limit?: number; status?: string }) => {

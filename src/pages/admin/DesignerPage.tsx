@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { compressImage, resizeFavicon } from '@/lib/imageCompression';
@@ -87,6 +88,8 @@ interface SiteConfig {
   seo_keywords: string;
   watermark_url: string;
   watermark_enabled: boolean;
+  watermark_opacity: number;
+  watermark_size: number;
 }
 
 const DesignerPage = () => {
@@ -220,6 +223,8 @@ const DesignerPage = () => {
           seo_keywords: config.seo_keywords,
           watermark_url: config.watermark_url,
           watermark_enabled: config.watermark_enabled,
+          watermark_opacity: config.watermark_opacity,
+          watermark_size: config.watermark_size,
         })
         .eq('id', config.id);
 
@@ -744,6 +749,53 @@ const DesignerPage = () => {
                         </div>
                       </div>
 
+                      {/* Opacity and Size Controls */}
+                      {config.watermark_url && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 p-4 bg-muted/30 rounded-xl">
+                          {/* Opacity Slider */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label className="font-medium">Opacidade</Label>
+                              <span className="text-sm text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded">
+                                {config.watermark_opacity || 40}%
+                              </span>
+                            </div>
+                            <Slider
+                              value={[config.watermark_opacity || 40]}
+                              onValueChange={([value]) => setConfig({ ...config, watermark_opacity: value })}
+                              min={10}
+                              max={100}
+                              step={5}
+                              className="w-full"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Quanto maior, mais visível a marca d'água
+                            </p>
+                          </div>
+
+                          {/* Size Slider */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label className="font-medium">Tamanho</Label>
+                              <span className="text-sm text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded">
+                                {config.watermark_size || 50}%
+                              </span>
+                            </div>
+                            <Slider
+                              value={[config.watermark_size || 50]}
+                              onValueChange={([value]) => setConfig({ ...config, watermark_size: value })}
+                              min={20}
+                              max={80}
+                              step={5}
+                              className="w-full"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Porcentagem do tamanho da imagem
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Preview on sample image */}
                       {config.watermark_url && (
                         <div className="mt-4 p-4 bg-muted/50 rounded-xl">
@@ -757,7 +809,12 @@ const DesignerPage = () => {
                                 <img 
                                   src={config.watermark_url} 
                                   alt="Prévia marca d'água" 
-                                  className="max-w-[60%] max-h-[60%] object-contain opacity-50"
+                                  style={{
+                                    maxWidth: `${config.watermark_size || 50}%`,
+                                    maxHeight: `${config.watermark_size || 50}%`,
+                                    opacity: (config.watermark_opacity || 40) / 100,
+                                  }}
+                                  className="object-contain"
                                 />
                               </div>
                             )}
