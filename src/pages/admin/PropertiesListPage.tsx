@@ -327,6 +327,7 @@ const PropertiesListPage = () => {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
   const [generatingSeo, setGeneratingSeo] = useState(false);
+  const [stats, setStats] = useState({ total: 0, venda: 0, aluguel: 0, featured: 0 });
   const itemsPerPage = 24;
 
   const sensors = useSensors(
@@ -339,6 +340,42 @@ const PropertiesListPage = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total count
+      const { count: total } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch venda count
+      const { count: venda } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'venda');
+
+      // Fetch aluguel count
+      const { count: aluguel } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'aluguel');
+
+      // Fetch featured count
+      const { count: featured } = await supabase
+        .from('properties')
+        .select('*', { count: 'exact', head: true })
+        .eq('featured', true);
+
+      setStats({
+        total: total || 0,
+        venda: venda || 0,
+        aluguel: aluguel || 0,
+        featured: featured || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const fetchProperties = async () => {
     setLoading(true);
@@ -419,6 +456,10 @@ const PropertiesListPage = () => {
   };
 
   useEffect(() => {
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
     fetchProperties();
   }, [page, search, isReorderMode, sortBy]);
 
@@ -436,8 +477,9 @@ const PropertiesListPage = () => {
         (payload) => {
           const job = payload.new as { status: string };
           if (job.status === 'completed') {
-            // Refresh the properties list when import completes
+            // Refresh the properties list and stats when import completes
             fetchProperties();
+            fetchStats();
           }
         }
       )
@@ -597,6 +639,7 @@ const PropertiesListPage = () => {
       setShowBulkDeleteDialog(false);
       setBulkDeleteConfirmText('');
       fetchProperties();
+      fetchStats();
     } catch (error) {
       console.error('Error in bulk delete:', error);
       toast.error('Erro durante a exclusão em massa');
@@ -645,6 +688,7 @@ const PropertiesListPage = () => {
 
       toast.success('Imóvel excluído com sucesso');
       fetchProperties();
+      fetchStats();
     } catch (error) {
       console.error('Error deleting property:', error);
       toast.error('Erro ao excluir imóvel');
@@ -667,6 +711,10 @@ const PropertiesListPage = () => {
       setProperties(prev =>
         prev.map((p) => (p.id === id ? { ...p, featured: newFeatured } : p))
       );
+      setStats(prev => ({
+        ...prev,
+        featured: newFeatured ? prev.featured + 1 : prev.featured - 1,
+      }));
       toast.success(currentFeatured ? 'Destaque removido' : 'Imóvel destacado');
     } catch (error) {
       console.error('Error toggling featured:', error);
@@ -714,31 +762,25 @@ const PropertiesListPage = () => {
           <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Total de Imóveis</p>
-              <p className="text-2xl font-bold text-primary">{totalCount}</p>
+              <p className="text-2xl font-bold text-primary">{stats.total}</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-gradient-to-br from-green-500/10 to-green-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">À Venda</p>
-              <p className="text-2xl font-bold text-green-600">
-                {properties.filter((p) => p.status === 'venda').length}
-              </p>
+              <p className="text-2xl font-bold text-green-600">{stats.venda}</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-500/10 to-orange-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Aluguel</p>
-              <p className="text-2xl font-bold text-orange-600">
-                {properties.filter((p) => p.status === 'aluguel').length}
-              </p>
+              <p className="text-2xl font-bold text-orange-600">{stats.aluguel}</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Destaques</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {properties.filter((p) => p.featured).length}
-              </p>
+              <p className="text-2xl font-bold text-yellow-600">{stats.featured}</p>
             </CardContent>
           </Card>
         </div>
