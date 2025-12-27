@@ -125,7 +125,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
           <div className="flex-1 p-4 sm:p-5 flex flex-col">
             {/* Price */}
             <div className="mb-2">
-              <span className="text-xl sm:text-2xl font-bold text-primary">
+              <span className="text-base sm:text-lg font-semibold text-foreground">
                 {formatPrice(property.price)}
               </span>
             </div>
@@ -260,7 +260,7 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
       <div className="p-3 sm:p-4 flex flex-col flex-1">
         {/* Price */}
         <div className="mb-1.5 sm:mb-2">
-          <span className="text-xl sm:text-2xl font-bold text-primary">
+          <span className="text-base sm:text-lg font-semibold text-foreground">
             {formatPrice(property.price)}
           </span>
         </div>
