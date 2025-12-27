@@ -266,6 +266,18 @@ const PropertyPage = () => {
                   draggable={false}
                 />
                 
+                {/* Watermark Overlay */}
+                {siteConfig?.watermark_enabled && siteConfig?.watermark_url && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <img 
+                      src={siteConfig.watermark_url} 
+                      alt="" 
+                      className="max-w-[50%] max-h-[50%] object-contain opacity-40 select-none"
+                      draggable={false}
+                    />
+                  </div>
+                )}
+                
                 {/* Image Navigation - Larger touch targets on mobile */}
                 {images.length > 1 && (
                   <>
@@ -683,6 +695,18 @@ const PropertyPage = () => {
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
             />
+            
+            {/* Watermark Overlay in Gallery Modal */}
+            {siteConfig?.watermark_enabled && siteConfig?.watermark_url && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <img 
+                  src={siteConfig.watermark_url} 
+                  alt="" 
+                  className="max-w-[40%] max-h-[40%] object-contain opacity-40 select-none"
+                  draggable={false}
+                />
+              </div>
+            )}
             
             {/* Navigation Arrows - Hidden on mobile (use swipe) */}
             {images.length > 1 && (

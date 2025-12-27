@@ -78,6 +78,8 @@ export interface SiteConfig {
   gtm_container_id: string | null;
   facebook_pixel_id: string | null;
   google_analytics_id: string | null;
+  watermark_url: string | null;
+  watermark_enabled: boolean | null;
 }
 
 export const useProperties = (options?: { featured?: boolean; limit?: number; status?: string }) => {
