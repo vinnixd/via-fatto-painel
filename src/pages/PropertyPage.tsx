@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Expand, Grid3X3 } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Printer, MapPin, Bed, Bath, Car, Maximize, CheckCircle, Loader2, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Expand, Grid3X3, Copy, Check } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useProperty, useSiteConfig, useSimilarProperties } from '@/hooks/useSupabaseData';
@@ -198,17 +198,32 @@ const PropertyPage = () => {
     return buildWhatsAppUrl({ phone: siteConfig?.whatsapp, message });
   };
 
-  const handleShare = () => {
+  const getShareUrl = () => {
+    const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/functions/v1/share-property/${property.slug}`;
+  };
+
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShare = async () => {
+    const shareUrl = getShareUrl();
     if (navigator.share) {
       navigator.share({
         title: property.title,
         text: `Confira este imóvel: ${property.title}`,
-        url: window.location.href,
+        url: shareUrl,
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
     }
+  };
+
+  const handleShareWhatsApp = () => {
+    const shareUrl = getShareUrl();
+    const text = encodeURIComponent(`Confira este imóvel: ${shareUrl}`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   return (
@@ -506,11 +521,24 @@ const PropertyPage = () => {
                       <Heart size={18} fill={isFavorited ? 'currentColor' : 'none'} />
                     </button>
                     <button
-                      onClick={handleShare}
-                      className="p-2.5 sm:p-2 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white transition-colors touch-manipulation"
-                      aria-label="Compartilhar"
+                      onClick={handleShareWhatsApp}
+                      className="p-2.5 sm:p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors touch-manipulation"
+                      aria-label="Compartilhar no WhatsApp"
+                      title="Compartilhar no WhatsApp"
                     >
-                      <Share2 size={18} />
+                      <WhatsAppIcon size={18} />
+                    </button>
+                    <button
+                      onClick={handleShare}
+                      className={`p-2.5 sm:p-2 rounded-lg transition-colors touch-manipulation ${
+                        shareCopied 
+                          ? 'bg-green-500 text-white' 
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white'
+                      }`}
+                      aria-label={shareCopied ? 'Link copiado!' : 'Copiar link'}
+                      title={shareCopied ? 'Link copiado!' : 'Copiar link de compartilhamento'}
+                    >
+                      {shareCopied ? <Check size={18} /> : <Copy size={18} />}
                     </button>
                     <button
                       onClick={() => window.print()}
