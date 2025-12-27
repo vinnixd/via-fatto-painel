@@ -90,7 +90,7 @@ interface FormData {
   status: PropertyStatus;
   type: PropertyType;
   profile: PropertyProfile;
-  condition: PropertyCondition;
+  condition: PropertyCondition | null;
   address_street: string;
   address_neighborhood: string;
   address_city: string;
@@ -273,7 +273,7 @@ const PropertyFormPage = () => {
     status: 'venda',
     type: 'casa',
     profile: 'residencial',
-    condition: 'usado',
+    condition: null,
     address_street: '',
     address_neighborhood: '',
     address_city: '',
@@ -334,7 +334,7 @@ const PropertyFormPage = () => {
         status: property.status,
         type: property.type,
         profile: property.profile,
-        condition: property.condition || 'usado',
+        condition: property.condition || null,
         address_street: property.address_street || '',
         address_neighborhood: property.address_neighborhood || '',
         address_city: property.address_city || '',
@@ -937,10 +937,10 @@ const PropertyFormPage = () => {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Condição</Label>
-                          <Select value={formData.condition} onValueChange={(v: PropertyCondition) => setFormData({ ...formData, condition: v })}>
+                          <Label>Condição (opcional)</Label>
+                          <Select value={formData.condition || ''} onValueChange={(v) => setFormData({ ...formData, condition: v ? v as PropertyCondition : null })}>
                             <SelectTrigger className="h-11">
-                              <SelectValue />
+                              <SelectValue placeholder="Selecione a condição" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="lancamento">Lançamento</SelectItem>
