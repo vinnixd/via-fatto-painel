@@ -3,6 +3,7 @@ import { Property } from '@/types/property';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { buildWhatsAppUrl } from '@/lib/utils';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
 
 interface PropertyCardProps {
   property: Property;
@@ -12,6 +13,7 @@ interface PropertyCardProps {
 
 const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCardProps) => {
   const [imageError, setImageError] = useState(false);
+  const { data: siteConfig } = useSiteConfig();
 
   const formatPrice = (price: number | null | undefined) => {
     if (!price || price === 0) {
@@ -57,6 +59,18 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false }: PropertyCar
           width={400}
           height={224}
         />
+
+        {/* Watermark Overlay */}
+        {siteConfig?.watermark_enabled && siteConfig?.watermark_url && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <img 
+              src={siteConfig.watermark_url} 
+              alt="" 
+              className="max-w-[50%] max-h-[50%] object-contain opacity-40 select-none"
+              draggable={false}
+            />
+          </div>
+        )}
 
         {/* Status Badge */}
         <div className="absolute top-2 sm:top-3 left-2 sm:left-3">

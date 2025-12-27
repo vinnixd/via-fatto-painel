@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { compressImage, resizeFavicon } from '@/lib/imageCompression';
@@ -48,6 +49,7 @@ import {
   Copy,
   Info,
   AlertCircle,
+  Droplets,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ImagePositionPicker } from '@/components/ui/ImagePositionPicker';
@@ -83,6 +85,8 @@ interface SiteConfig {
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
+  watermark_url: string;
+  watermark_enabled: boolean;
 }
 
 const DesignerPage = () => {
@@ -214,6 +218,8 @@ const DesignerPage = () => {
           seo_title: config.seo_title,
           seo_description: config.seo_description,
           seo_keywords: config.seo_keywords,
+          watermark_url: config.watermark_url,
+          watermark_enabled: config.watermark_enabled,
         })
         .eq('id', config.id);
 
@@ -649,6 +655,121 @@ const DesignerPage = () => {
                           Destaque
                         </div>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Watermark Section */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Droplets className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle>Marca d'Água</CardTitle>
+                        <CardDescription>Adicione uma marca d'água às fotos dos imóveis</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Enable/Disable Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                      <div className="space-y-1">
+                        <Label htmlFor="watermark-toggle" className="font-medium">Ativar Marca d'Água</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Quando ativada, a marca d'água aparece centralizada sobre todas as fotos dos imóveis
+                        </p>
+                      </div>
+                      <Switch
+                        id="watermark-toggle"
+                        checked={config.watermark_enabled || false}
+                        onCheckedChange={(checked) => setConfig({ ...config, watermark_enabled: checked })}
+                      />
+                    </div>
+
+                    {/* Watermark Upload */}
+                    <div className="space-y-4">
+                      <Label>Imagem da Marca d'Água</Label>
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {/* Preview */}
+                        <div className="relative group">
+                          {config.watermark_url ? (
+                            <div className="w-48 h-32 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
+                              <img 
+                                src={config.watermark_url} 
+                                alt="Marca d'água" 
+                                className="max-w-full max-h-full object-contain p-4 opacity-60" 
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-48 h-32 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border-2 border-dashed border-border">
+                              <div className="text-center">
+                                <Droplets className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                                <span className="text-xs text-muted-foreground">Nenhuma marca d'água</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="watermark-upload" className="cursor-pointer block">
+                              <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                                <Upload className="h-4 w-4" />
+                                {config.watermark_url ? 'Alterar Marca d\'Água' : 'Enviar Marca d\'Água'}
+                              </div>
+                              <Input
+                                id="watermark-upload"
+                                type="file"
+                                accept="image/png,image/svg+xml"
+                                className="hidden"
+                                onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'watermark_url' as keyof SiteConfig)}
+                              />
+                            </Label>
+                            {config.watermark_url && (
+                              <Button 
+                                variant="ghost" 
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setConfig({ ...config, watermark_url: '' })}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Remover marca d'água
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Recomendado: Imagem PNG com fundo transparente. A marca d'água ficará centralizada sobre as fotos dos imóveis.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Preview on sample image */}
+                      {config.watermark_url && (
+                        <div className="mt-4 p-4 bg-muted/50 rounded-xl">
+                          <p className="text-sm font-medium mb-3">Prévia da marca d'água</p>
+                          <div className="relative w-full max-w-md h-48 rounded-lg overflow-hidden bg-gradient-to-br from-gray-300 to-gray-400">
+                            <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                              <ImagePlus className="h-12 w-12" />
+                            </div>
+                            {config.watermark_enabled && (
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <img 
+                                  src={config.watermark_url} 
+                                  alt="Prévia marca d'água" 
+                                  className="max-w-[60%] max-h-[60%] object-contain opacity-50"
+                                />
+                              </div>
+                            )}
+                          </div>
+                          {!config.watermark_enabled && (
+                            <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              A marca d'água está desativada. Ative-a para exibir nas fotos.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
