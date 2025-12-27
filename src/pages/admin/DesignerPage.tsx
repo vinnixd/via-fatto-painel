@@ -726,19 +726,19 @@ const DesignerPage = () => {
 
                         <div className="flex-1 space-y-4">
                           <div className="space-y-2">
-                            <Label htmlFor="watermark-upload" className="cursor-pointer block">
+                            <input
+                              id="watermark-upload"
+                              type="file"
+                              accept="image/png,image/svg+xml"
+                              className="hidden"
+                              onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'watermark_url' as keyof SiteConfig)}
+                            />
+                            <label htmlFor="watermark-upload" className="cursor-pointer inline-block">
                               <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
                                 <Upload className="h-4 w-4" />
                                 {config.watermark_url ? 'Alterar Marca d\'Água' : 'Enviar Marca d\'Água'}
                               </div>
-                              <Input
-                                id="watermark-upload"
-                                type="file"
-                                accept="image/png,image/svg+xml"
-                                className="hidden"
-                                onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'watermark_url' as keyof SiteConfig)}
-                              />
-                            </Label>
+                            </label>
                             {config.watermark_url && (
                               <Button 
                                 variant="ghost" 
