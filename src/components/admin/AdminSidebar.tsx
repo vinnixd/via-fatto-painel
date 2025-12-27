@@ -13,6 +13,7 @@ import {
   LogOut,
   CreditCard,
   Plug,
+  Share2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const menuItems: MenuItem[] = [
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
   { icon: Globe, label: 'Portais', path: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
   { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin', 'marketing'] },
+  { icon: Share2, label: 'Compartilhar', path: '/admin/compartilhamento', roles: ['admin', 'gestor', 'marketing'] },
   { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
   { icon: Users, label: 'Usuários', path: '/admin/usuarios', roles: ['admin'] },

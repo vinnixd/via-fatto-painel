@@ -37,7 +37,8 @@ import {
   CheckSquare,
   Square,
   AlertTriangle,
-  Sparkles
+  Sparkles,
+  Share2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -229,6 +230,20 @@ const SortablePropertyCard = ({
                     <Pencil className="h-4 w-4" />
                     Editar
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
+                    const shareUrl = `${supabaseUrl}/functions/v1/share-property/${property.slug}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    toast.success('Link de compartilhamento copiado!');
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Copiar Link WhatsApp
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
