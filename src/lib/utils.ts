@@ -28,7 +28,8 @@ export function buildWhatsAppUrl({
   fallback?: string;
 }): string {
   const formatted = formatWhatsAppNumber(phone, fallback);
-  const base = 'https://web.whatsapp.com/send';
+  // Use api.whatsapp.com which works on both mobile and desktop
+  const base = 'https://api.whatsapp.com/send';
   const params = new URLSearchParams({ phone: formatted });
   if (message) params.set('text', message);
   return `${base}?${params.toString()}`;
