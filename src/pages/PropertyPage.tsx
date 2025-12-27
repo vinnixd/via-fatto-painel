@@ -38,6 +38,7 @@ const PropertyPage = () => {
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const thumbnailsPerPage = 4;
 
   // Touch/swipe handling for gallery
@@ -202,8 +203,6 @@ const PropertyPage = () => {
     const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL;
     return `${supabaseUrl}/functions/v1/share-property/${property.slug}`;
   };
-
-  const [shareCopied, setShareCopied] = useState(false);
 
   const handleShare = async () => {
     const shareUrl = getShareUrl();
