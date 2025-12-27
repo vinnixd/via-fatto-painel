@@ -1123,10 +1123,7 @@ const PropertyFormPage = () => {
                         </div>
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.financing ? 'border-green-500 bg-green-500/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(prev => ({ ...prev, financing: !prev.financing }));
-                          }}
+                          onClick={() => setFormData(prev => ({ ...prev, financing: !prev.financing }))}
                         >
                           <Switch
                             checked={formData.financing}
