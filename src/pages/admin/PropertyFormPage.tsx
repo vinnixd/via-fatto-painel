@@ -944,6 +944,7 @@ const PropertyFormPage = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="lancamento">Lançamento</SelectItem>
+                              <SelectItem value="pronto_para_morar">Pronto para Morar</SelectItem>
                               <SelectItem value="novo">Novo</SelectItem>
                               <SelectItem value="usado">Usado</SelectItem>
                             </SelectContent>

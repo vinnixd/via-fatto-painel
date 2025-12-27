@@ -6,7 +6,7 @@ export interface Property {
   price: number;
   type: 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'rural' | 'cobertura' | 'flat' | 'galpao' | 'loft';
   status: 'venda' | 'aluguel' | 'vendido' | 'alugado';
-  condition?: 'lancamento' | 'novo' | 'usado';
+  condition?: 'lancamento' | 'pronto_para_morar' | 'novo' | 'usado';
   featured: boolean;
   images: string[];
   video?: string;

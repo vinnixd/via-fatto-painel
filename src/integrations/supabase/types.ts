@@ -887,7 +887,7 @@ export type Database = {
       feed_format: "xml" | "json" | "csv"
       log_status: "success" | "error"
       portal_method: "feed" | "api" | "manual"
-      property_condition: "lancamento" | "novo" | "usado"
+      property_condition: "lancamento" | "novo" | "usado" | "pronto_para_morar"
       property_profile: "residencial" | "comercial" | "industrial" | "misto"
       property_status: "venda" | "aluguel" | "vendido" | "alugado"
       property_type:
@@ -1033,7 +1033,7 @@ export const Constants = {
       feed_format: ["xml", "json", "csv"],
       log_status: ["success", "error"],
       portal_method: ["feed", "api", "manual"],
-      property_condition: ["lancamento", "novo", "usado"],
+      property_condition: ["lancamento", "novo", "usado", "pronto_para_morar"],
       property_profile: ["residencial", "comercial", "industrial", "misto"],
       property_status: ["venda", "aluguel", "vendido", "alugado"],
       property_type: [

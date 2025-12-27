@@ -37,12 +37,13 @@ const PropertyCard = ({ property, onFavorite, isFavorited = false, viewMode = 'g
 
   // Determine property tag based on condition field
   const getPropertyTag = () => {
-    const conditionMap = {
+    const conditionMap: Record<string, { label: string; color: string }> = {
       lancamento: { label: 'Lançamento', color: 'bg-primary' },
+      pronto_para_morar: { label: 'Pronto para Morar', color: 'bg-emerald-500' },
       novo: { label: 'Novo', color: 'bg-green-500' },
       usado: { label: 'Usado', color: 'bg-neutral-500' },
     };
-    return conditionMap[property.condition || 'usado'];
+    return conditionMap[property.condition || 'usado'] || conditionMap['usado'];
   };
 
   const propertyTag = getPropertyTag();
