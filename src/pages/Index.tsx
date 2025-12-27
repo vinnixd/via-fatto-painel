@@ -10,9 +10,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title={siteConfig?.seo_title || 'Via Fatto Imóveis - Imóveis em Brasília DF e Goiás'}
-        description={siteConfig?.seo_description || 'Encontre casas, apartamentos e terrenos para compra e aluguel em Brasília DF e Goiás. Imóveis selecionados com as melhores oportunidades.'}
-        ogImage={siteConfig?.og_image_url || siteConfig?.hero_background_url || undefined}
+        pageKey="home"
         siteConfig={siteConfig}
       />
       <Header />
