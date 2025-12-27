@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { useFavicon } from "@/hooks/useFavicon";
 import { useBrandColors } from "@/hooks/useBrandColors";
 import { useTrackingScripts } from "@/hooks/useTrackingScripts";
+import { useAutoPageTracking } from "@/hooks/usePageTracking";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
@@ -44,11 +45,12 @@ import ShareTestPage from "./pages/admin/ShareTestPage";
 
 const queryClient = new QueryClient();
 
-// Component to apply favicon, brand colors, and tracking scripts
+// Component to apply favicon, brand colors, tracking scripts, and page tracking
 const BrandManager = () => {
   useFavicon();
   useBrandColors();
   useTrackingScripts();
+  useAutoPageTracking();
   return null;
 };
 

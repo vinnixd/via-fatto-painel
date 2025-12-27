@@ -245,6 +245,47 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          created_at: string
+          id: string
+          page_slug: string | null
+          page_type: string
+          property_id: string | null
+          updated_at: string
+          view_count: number
+          view_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_slug?: string | null
+          page_type: string
+          property_id?: string | null
+          updated_at?: string
+          view_count?: number
+          view_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_slug?: string | null
+          page_type?: string
+          property_id?: string | null
+          updated_at?: string
+          view_count?: number
+          view_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_views_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portais: {
         Row: {
           ativo: boolean
@@ -867,6 +908,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      track_page_view: {
+        Args: {
+          p_page_slug?: string
+          p_page_type: string
+          p_property_id?: string
+        }
+        Returns: undefined
       }
       use_invite: {
         Args: { invite_token: string; user_id: string }

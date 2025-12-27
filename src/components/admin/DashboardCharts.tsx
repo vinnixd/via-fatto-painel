@@ -11,14 +11,14 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend
 } from 'recharts';
-import { Eye, MessageSquare, Loader2, TrendingUp, Users } from 'lucide-react';
+import { Eye, Loader2, Users } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface ChartData {
   date: string;
+  fullDate: string;
   views: number;
   leads: number;
 }
@@ -39,17 +39,34 @@ const DashboardCharts = () => {
         // Get all days in the interval
         const allDays = eachDayOfInterval({ start: startDate, end: endDate });
 
+        // Fetch real page views from page_views table
+        const { data: pageViews, error: viewsError } = await supabase
+          .from('page_views')
+          .select('view_date, view_count')
+          .gte('view_date', format(startDate, 'yyyy-MM-dd'))
+          .lte('view_date', format(endDate, 'yyyy-MM-dd'));
+
+        if (viewsError) {
+          console.error('Error fetching page views:', viewsError);
+        }
+
         // Fetch contacts (leads) with created_at
-        const { data: contacts } = await supabase
+        const { data: contacts, error: contactsError } = await supabase
           .from('contacts')
           .select('created_at')
           .gte('created_at', startDate.toISOString())
           .lte('created_at', endDate.toISOString());
 
-        // Fetch properties with their views and created_at
-        const { data: properties } = await supabase
-          .from('properties')
-          .select('views, created_at, updated_at');
+        if (contactsError) {
+          console.error('Error fetching contacts:', contactsError);
+        }
+
+        // Group page views by day
+        const viewsByDay: Record<string, number> = {};
+        pageViews?.forEach(pv => {
+          const day = pv.view_date;
+          viewsByDay[day] = (viewsByDay[day] || 0) + (pv.view_count || 0);
+        });
 
         // Group contacts by day
         const contactsByDay: Record<string, number> = {};
@@ -58,24 +75,17 @@ const DashboardCharts = () => {
           contactsByDay[day] = (contactsByDay[day] || 0) + 1;
         });
 
-        // Calculate views per day (approximation based on total views distributed)
-        const totalViews = properties?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
-        const avgViewsPerDay = Math.round(totalViews / days);
-
         // Create chart data for each day
-        const data: ChartData[] = allDays.map((day, index) => {
+        const data: ChartData[] = allDays.map((day) => {
           const dayKey = format(day, 'yyyy-MM-dd');
+          const views = viewsByDay[dayKey] || 0;
           const leads = contactsByDay[dayKey] || 0;
-          
-          // Simulate realistic view distribution (more recent = more views)
-          const recencyFactor = 0.5 + (index / allDays.length) * 0.5;
-          const randomVariation = 0.7 + Math.random() * 0.6;
-          const views = Math.round(avgViewsPerDay * recencyFactor * randomVariation);
 
           return {
             date: format(day, 'dd/MM', { locale: ptBR }),
-            views: views,
-            leads: leads,
+            fullDate: format(day, 'dd MMM yyyy', { locale: ptBR }),
+            views,
+            leads,
           };
         });
 
@@ -179,6 +189,7 @@ const DashboardCharts = () => {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
+                    labelFormatter={(_, payload) => payload[0]?.payload?.fullDate || ''}
                     formatter={(value: number) => [value.toLocaleString('pt-BR'), 'Visualizações']}
                   />
                   <Area 
@@ -239,6 +250,7 @@ const DashboardCharts = () => {
                       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                     }}
                     labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
+                    labelFormatter={(_, payload) => payload[0]?.payload?.fullDate || ''}
                     formatter={(value: number) => [value, 'Leads']}
                   />
                   <Bar 
