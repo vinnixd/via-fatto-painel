@@ -78,6 +78,7 @@ interface Property {
   type: string;
   featured: boolean;
   views: number;
+  shares: number;
   created_at: string;
   address_city: string;
   address_state: string;
@@ -298,20 +299,32 @@ const SortablePropertyCard = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="flex items-center gap-0.5 capitalize">
-            {getTypeIcon(property.type)}
-            {property.type}
-          </span>
-          {property.bedrooms > 0 && <span>{property.bedrooms}q</span>}
-          {property.area > 0 && <span>{property.area}m²</span>}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-0.5 capitalize">
+              {getTypeIcon(property.type)}
+              {property.type}
+            </span>
+            {property.bedrooms > 0 && <span>{property.bedrooms}q</span>}
+            {property.area > 0 && <span>{property.area}m²</span>}
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground/60">
+            <span className="flex items-center gap-0.5" title="Visualizações">
+              <Eye className="h-3 w-3" />
+              {property.views || 0}
+            </span>
+            <span className="flex items-center gap-0.5" title="Compartilhamentos">
+              <Share2 className="h-3 w-3" />
+              {property.shares || 0}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 };
 
-type SortOption = 'manual' | 'price_asc' | 'price_desc' | 'alpha_asc' | 'alpha_desc' | 'date_asc' | 'date_desc' | 'views';
+type SortOption = 'manual' | 'price_asc' | 'price_desc' | 'alpha_asc' | 'alpha_desc' | 'date_asc' | 'date_desc' | 'views' | 'shares';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'manual', label: 'Manual (arrastar)' },
@@ -322,6 +335,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'date_desc', label: 'Mais novo ao mais antigo' },
   { value: 'date_asc', label: 'Mais antigo ao mais novo' },
   { value: 'views', label: 'Mais vistos' },
+  { value: 'shares', label: 'Mais compartilhados' },
 ];
 
 const PropertiesListPage = () => {
@@ -424,6 +438,9 @@ const PropertiesListPage = () => {
             break;
           case 'views':
             query = query.order('views', { ascending: false });
+            break;
+          case 'shares':
+            query = query.order('shares', { ascending: false });
             break;
           default:
             query = query.order('order_index', { ascending: true });
