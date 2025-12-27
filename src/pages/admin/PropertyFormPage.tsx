@@ -1083,14 +1083,10 @@ const PropertyFormPage = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.active ? 'border-primary bg-primary/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(prev => ({ ...prev, active: !prev.active }));
-                          }}
+                          onClick={() => setFormData(prev => ({ ...prev, active: !prev.active }))}
                         >
                           <Switch
                             checked={formData.active}
-                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, active: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
@@ -1103,14 +1099,10 @@ const PropertyFormPage = () => {
                         </div>
                         <div 
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${formData.featured ? 'border-yellow-500 bg-yellow-500/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFormData(prev => ({ ...prev, featured: !prev.featured }));
-                          }}
+                          onClick={() => setFormData(prev => ({ ...prev, featured: !prev.featured }))}
                         >
                           <Switch
                             checked={formData.featured}
-                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, featured: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
@@ -1127,7 +1119,6 @@ const PropertyFormPage = () => {
                         >
                           <Switch
                             checked={formData.financing}
-                            onCheckedChange={(v) => setFormData(prev => ({ ...prev, financing: v }))}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div>
