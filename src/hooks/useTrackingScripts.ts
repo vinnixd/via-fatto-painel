@@ -11,10 +11,21 @@ declare global {
 }
 
 export const useTrackingScripts = () => {
-  const { data: siteConfig } = useSiteConfig();
+  const { data: siteConfig, isLoading } = useSiteConfig();
 
   useEffect(() => {
-    if (!siteConfig) return;
+    console.log('[Tracking] Hook called, siteConfig:', siteConfig ? 'loaded' : 'not loaded', 'isLoading:', isLoading);
+    
+    if (!siteConfig) {
+      console.log('[Tracking] Waiting for siteConfig...');
+      return;
+    }
+
+    console.log('[Tracking] Config loaded:', {
+      gtm: siteConfig.gtm_container_id,
+      ga: siteConfig.google_analytics_id,
+      fbPixel: siteConfig.facebook_pixel_id
+    });
 
     // Google Tag Manager
     if (siteConfig.gtm_container_id) {
@@ -30,7 +41,7 @@ export const useTrackingScripts = () => {
     if (siteConfig.facebook_pixel_id) {
       injectFBPixel(siteConfig.facebook_pixel_id);
     }
-  }, [siteConfig?.gtm_container_id, siteConfig?.google_analytics_id, siteConfig?.facebook_pixel_id]);
+  }, [siteConfig?.gtm_container_id, siteConfig?.google_analytics_id, siteConfig?.facebook_pixel_id, isLoading]);
 };
 
 function injectGTM(containerId: string) {
