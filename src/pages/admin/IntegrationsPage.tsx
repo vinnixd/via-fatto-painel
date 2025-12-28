@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -298,8 +297,6 @@ const IntegrationsPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Integrações" subtitle="Configure as ferramentas de marketing e analytics do seu site" />
-      
       <div className="p-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">

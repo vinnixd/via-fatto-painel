@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -182,8 +181,6 @@ const DomainsPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Domínios" subtitle="Gerencie os domínios do seu site" />
-      
       <div className="p-6 space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

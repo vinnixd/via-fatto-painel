@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -134,8 +133,6 @@ const SettingsPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Configurações" subtitle="Configure as informações do site" />
-      
       <div className="p-6">
         <Tabs defaultValue="contact" className="space-y-6">
           <TabsList className="bg-card border">

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -272,8 +271,6 @@ const DesignerPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Designer" subtitle="Personalize a aparência e configurações do seu site" />
-      
       <div className="p-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

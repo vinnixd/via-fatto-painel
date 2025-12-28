@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -158,8 +157,6 @@ const CategoriesPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Categorias" subtitle="Gerencie as categorias de imóveis" />
-      
       <div className="p-6">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">

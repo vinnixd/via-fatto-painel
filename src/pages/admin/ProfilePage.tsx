@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -214,8 +213,6 @@ const ProfilePage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader title="Meu Perfil" subtitle="Gerencie suas informações pessoais e segurança" />
-      
       <div className="p-6">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Profile Header Card */}
