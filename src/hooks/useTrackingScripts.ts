@@ -10,6 +10,16 @@ declare global {
   }
 }
 
+// Validation patterns for tracking IDs
+const GTM_REGEX = /^GTM-[A-Z0-9]{6,10}$/;
+const GA4_REGEX = /^G-[A-Z0-9]{8,12}$/;
+const UA_REGEX = /^UA-\d{4,10}-\d{1,4}$/;
+const FB_PIXEL_REGEX = /^\d{15,16}$/;
+
+const validateGTMId = (id: string): boolean => GTM_REGEX.test(id);
+const validateGAId = (id: string): boolean => GA4_REGEX.test(id) || UA_REGEX.test(id);
+const validateFBPixelId = (id: string): boolean => FB_PIXEL_REGEX.test(id);
+
 export const useTrackingScripts = () => {
   const { data: siteConfig, isLoading } = useSiteConfig();
 
@@ -27,19 +37,31 @@ export const useTrackingScripts = () => {
       fbPixel: siteConfig.facebook_pixel_id
     });
 
-    // Google Tag Manager
+    // Google Tag Manager - with validation
     if (siteConfig.gtm_container_id) {
-      injectGTM(siteConfig.gtm_container_id);
+      if (validateGTMId(siteConfig.gtm_container_id)) {
+        injectGTM(siteConfig.gtm_container_id);
+      } else {
+        console.error('[Tracking] Invalid GTM container ID format:', siteConfig.gtm_container_id);
+      }
     }
 
-    // Google Analytics
+    // Google Analytics - with validation
     if (siteConfig.google_analytics_id) {
-      injectGA(siteConfig.google_analytics_id);
+      if (validateGAId(siteConfig.google_analytics_id)) {
+        injectGA(siteConfig.google_analytics_id);
+      } else {
+        console.error('[Tracking] Invalid Google Analytics ID format:', siteConfig.google_analytics_id);
+      }
     }
 
-    // Facebook Pixel
+    // Facebook Pixel - with validation
     if (siteConfig.facebook_pixel_id) {
-      injectFBPixel(siteConfig.facebook_pixel_id);
+      if (validateFBPixelId(siteConfig.facebook_pixel_id)) {
+        injectFBPixel(siteConfig.facebook_pixel_id);
+      } else {
+        console.error('[Tracking] Invalid Facebook Pixel ID format:', siteConfig.facebook_pixel_id);
+      }
     }
   }, [siteConfig?.gtm_container_id, siteConfig?.google_analytics_id, siteConfig?.facebook_pixel_id, isLoading]);
 };
