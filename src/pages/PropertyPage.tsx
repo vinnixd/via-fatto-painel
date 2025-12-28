@@ -548,7 +548,7 @@ const PropertyPage = () => {
 
             {/* Property Info (Sidebar) */}
             <div ref={stickySidebarRef} className="lg:sticky lg:top-24 lg:self-start">
-              <div className="space-y-4 sm:space-y-6 lg:max-h-[calc(100vh-96px)] lg:overflow-auto lg:pr-1">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
                   <div className="flex items-start justify-between mb-2">
