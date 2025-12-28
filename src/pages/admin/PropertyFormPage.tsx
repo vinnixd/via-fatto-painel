@@ -198,6 +198,8 @@ const PropertyFormPage = () => {
   const [isImprovingTitle, setIsImprovingTitle] = useState(false);
   const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
   const [isLookingUpCep, setIsLookingUpCep] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
   // CEP lookup function
   const handleCepLookup = useCallback(async (cep: string) => {
@@ -299,6 +301,13 @@ const PropertyFormPage = () => {
     seo_description: '',
   });
 
+  // Track unsaved changes
+  useEffect(() => {
+    if (initialDataLoaded || !isEditing) {
+      setHasUnsavedChanges(true);
+    }
+  }, [formData, images]);
+
   useEffect(() => {
     const fetchCategories = async () => {
       const { data } = await supabase.from('categories').select('id, name');
@@ -368,6 +377,8 @@ const PropertyFormPage = () => {
         .order('order_index');
 
       setImages(propertyImages || []);
+      setInitialDataLoaded(true);
+      setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Error fetching property:', error);
       toast.error('Erro ao carregar imóvel');
@@ -642,6 +653,7 @@ const PropertyFormPage = () => {
         await supabase.from('property_images').insert(uploadedImages);
       }
 
+      setHasUnsavedChanges(false);
       toast.success(isEditing ? 'Imóvel atualizado com sucesso!' : 'Imóvel criado com sucesso!');
       navigate('/admin/imoveis');
     } catch (error: any) {
@@ -1757,7 +1769,12 @@ const PropertyFormPage = () => {
                       Próximo
                     </Button>
                   ) : (
-                    <Button type="submit" variant="admin" disabled={saving} className="min-w-[140px]">
+                    <Button 
+                      type="submit" 
+                      variant="admin" 
+                      disabled={saving} 
+                      className={`min-w-[140px] ${hasUnsavedChanges ? 'ring-2 ring-warning ring-offset-2' : ''}`}
+                    >
                       {saving ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -1767,6 +1784,7 @@ const PropertyFormPage = () => {
                         <>
                           <Check className="h-4 w-4 mr-2" />
                           {isEditing ? 'Salvar' : 'Cadastrar'}
+                          {hasUnsavedChanges && <span className="ml-1 text-xs">•</span>}
                         </>
                       )}
                     </Button>
