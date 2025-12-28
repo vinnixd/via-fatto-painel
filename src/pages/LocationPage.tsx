@@ -236,6 +236,7 @@ export default function LocationPage() {
                     price: property.price,
                     type: property.type as 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'rural',
                     status: property.status as 'venda' | 'aluguel' | 'vendido' | 'alugado',
+                    condition: property.condition || undefined,
                     bedrooms: property.bedrooms,
                     bathrooms: property.bathrooms,
                     garages: property.garages,

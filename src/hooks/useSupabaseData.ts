@@ -13,6 +13,7 @@ export interface PropertyFromDB {
   status: 'venda' | 'aluguel' | 'vendido' | 'alugado';
   type: string;
   profile: string;
+  condition: 'lancamento' | 'novo' | 'usado' | 'pronto_para_morar' | null;
   address_street: string | null;
   address_neighborhood: string | null;
   address_city: string;
