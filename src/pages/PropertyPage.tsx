@@ -40,6 +40,7 @@ const PropertyPage = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(64);
   const thumbnailsPerPage = 4;
 
   // Touch/swipe handling for gallery
@@ -47,6 +48,20 @@ const PropertyPage = () => {
   const touchEndX = useRef<number>(0);
   const mainImageRef = useRef<HTMLDivElement>(null);
   const stickySidebarRef = useRef<HTMLDivElement>(null);
+
+  // Measure header height dynamically
+  useEffect(() => {
+    const measureHeader = () => {
+      const header = document.querySelector('header');
+      if (header) {
+        setHeaderHeight(header.offsetHeight);
+      }
+    };
+    
+    measureHeader();
+    window.addEventListener('resize', measureHeader);
+    return () => window.removeEventListener('resize', measureHeader);
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.targetTouches[0].clientX;
@@ -547,7 +562,11 @@ const PropertyPage = () => {
             </div>
 
             {/* Property Info (Sidebar) */}
-            <div ref={stickySidebarRef} className="lg:sticky lg:top-24 lg:self-start">
+            <div 
+              ref={stickySidebarRef} 
+              className="lg:sticky lg:self-start"
+              style={{ top: headerHeight + 16 }}
+            >
               <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
