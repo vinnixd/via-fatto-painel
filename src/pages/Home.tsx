@@ -116,7 +116,7 @@ const Home = () => {
     status: property.status as 'venda' | 'aluguel',
     type: property.type as 'casa' | 'apartamento' | 'terreno' | 'comercial' | 'rural',
     profile: property.profile as 'residencial' | 'comercial' | 'industrial' | 'misto',
-    condition: (property as any).condition as 'lancamento' | 'novo' | 'usado' | undefined,
+    condition: property.condition || undefined,
     address: {
       street: property.address_street || '',
       neighborhood: property.address_neighborhood || '',
