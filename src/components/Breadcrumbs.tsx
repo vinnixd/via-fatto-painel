@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 interface BreadcrumbItem {
   label: string;
@@ -15,29 +15,32 @@ export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className={`flex items-center gap-1.5 text-sm ${className}`}
+      className={`flex items-center gap-2 text-sm whitespace-nowrap overflow-hidden min-w-0 ${className}`}
     >
       <Link
         to="/"
-        className="text-muted-foreground hover:text-primary transition-colors"
+        className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors"
         aria-label="Página inicial"
       >
         <Home size={16} />
       </Link>
 
       {items.map((item, index) => (
-        <span key={index} className="flex items-center gap-1.5">
-          <ChevronRight size={14} className="text-muted-foreground" />
+        <span key={index} className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0 text-muted-foreground" aria-hidden="true">
+            ›
+          </span>
           {item.href ? (
             <Link
               to={item.href}
-              className="text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
+              className="min-w-0 truncate text-muted-foreground hover:text-primary transition-colors"
+              title={item.label}
             >
               {item.label}
             </Link>
           ) : (
             <span
-              className="text-foreground font-medium line-clamp-1"
+              className="min-w-0 truncate text-foreground font-medium"
               aria-current="page"
               title={item.label}
             >

@@ -505,160 +505,162 @@ const PropertyPage = () => {
               )}
             </div>
 
-            {/* Property Info - Normal flow, scrolls with page */}
-            <div className="space-y-4 sm:space-y-6">
-              {/* Header */}
-              <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
-                <div className="flex items-start justify-between mb-2">
-                  <span className={`px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                    property.status === 'venda' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-info text-white'
-                  }`}>
-                    {property.status === 'venda' ? 'À Venda' : 'Aluguel'}
-                  </span>
-                  <div className="flex space-x-1.5 sm:space-x-2">
-                    <button
-                      onClick={handleFavorite}
-                      className={`p-2.5 sm:p-2 rounded-lg transition-colors touch-manipulation ${
-                        isFavorited 
-                          ? 'bg-red-500 text-white' 
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-red-500 hover:text-white'
-                      }`}
-                      aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
-                    >
-                      <Heart size={18} fill={isFavorited ? 'currentColor' : 'none'} />
-                    </button>
-                    <button
-                      onClick={handleShareWhatsApp}
-                      className="p-2.5 sm:p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors touch-manipulation"
-                      aria-label="Compartilhar no WhatsApp"
-                      title="Compartilhar no WhatsApp"
-                    >
-                      <WhatsAppIcon size={18} />
-                    </button>
-                    <button
-                      onClick={handleShare}
-                      className={`p-2.5 sm:p-2 rounded-lg transition-colors touch-manipulation ${
-                        shareCopied 
-                          ? 'bg-green-500 text-white' 
-                          : 'bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white'
-                      }`}
-                      aria-label={shareCopied ? 'Link copiado!' : 'Copiar link'}
-                      title={shareCopied ? 'Link copiado!' : 'Copiar link de compartilhamento'}
-                    >
-                      {shareCopied ? <Check size={18} /> : <Copy size={18} />}
-                    </button>
-                    <button
-                      onClick={() => window.print()}
-                      className="hidden sm:block p-2 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white transition-colors"
-                      aria-label="Imprimir"
-                    >
-                      <Printer size={18} />
-                    </button>
-                  </div>
-                </div>
-                
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{property.title}</h1>
-                <div className="flex items-center text-muted-foreground mb-3 sm:mb-4">
-                  <MapPin size={14} className="mr-1 flex-shrink-0 sm:w-4 sm:h-4" />
-                  <span className="text-sm sm:text-base truncate">{property.address_neighborhood}, {property.address_city}</span>
-                </div>
-                <div className="text-2xl sm:text-3xl font-bold text-primary mb-2">
-                  {formatPrice(property.price)}
-                </div>
-                
-                {/* Condo fee and IPTU */}
-                <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-2">
-                  {(property.condo_exempt || (property.condo_fee !== null && property.condo_fee !== undefined)) && (
-                    <span>
-                      Condomínio: {property.condo_exempt ? 'Isento' : formatPrice(property.condo_fee)}
-                    </span>
-                  )}
-                  {property.iptu !== null && property.iptu !== undefined && property.iptu > 0 && (
-                    <span>IPTU: {formatPrice(property.iptu)}/ano</span>
-                  )}
-                </div>
-
-                <div className="text-xs sm:text-sm text-muted-foreground">
-                  Ref: {property.reference || property.id.substring(0, 8)}
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
-                {property.bedrooms > 0 && (
-                  <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
-                    <Bed size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>{property.bedrooms} quarto{property.bedrooms > 1 ? 's' : ''}</span>
-                  </div>
-                )}
-                {property.bathrooms > 0 && (
-                  <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
-                    <Bath size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>{property.bathrooms} banheiro{property.bathrooms > 1 ? 's' : ''}</span>
-                  </div>
-                )}
-                {property.garages > 0 && (
-                  <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
-                    <Car size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>{property.garages} vaga{property.garages > 1 ? 's' : ''}</span>
-                  </div>
-                )}
-                <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
-                  <Maximize size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span>{property.area}m²</span>
-                </div>
-              </div>
-
-              {/* Características as tags */}
-              {property.features && property.features.length > 0 && (
+            {/* Property Info (Sidebar) */}
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <div className="space-y-4 sm:space-y-6 lg:max-h-[calc(100vh-96px)] lg:overflow-auto lg:pr-1">
+                {/* Header */}
                 <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
-                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Características</h3>
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                    {property.features.map((feature, index) => (
-                      <span
-                        key={index}
-                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-primary text-primary rounded-full hover:bg-primary/10 transition-colors"
+                  <div className="flex items-start justify-between mb-2">
+                    <span className={`px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                      property.status === 'venda' 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'bg-info text-white'
+                    }`}>
+                      {property.status === 'venda' ? 'À Venda' : 'Aluguel'}
+                    </span>
+                    <div className="flex space-x-1.5 sm:space-x-2">
+                      <button
+                        onClick={handleFavorite}
+                        className={`p-2.5 sm:p-2 rounded-lg transition-colors touch-manipulation ${
+                          isFavorited 
+                            ? 'bg-red-500 text-white' 
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-red-500 hover:text-white'
+                        }`}
+                        aria-label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                       >
-                        {feature}
+                        <Heart size={18} fill={isFavorited ? 'currentColor' : 'none'} />
+                      </button>
+                      <button
+                        onClick={handleShareWhatsApp}
+                        className="p-2.5 sm:p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors touch-manipulation"
+                        aria-label="Compartilhar no WhatsApp"
+                        title="Compartilhar no WhatsApp"
+                      >
+                        <WhatsAppIcon size={18} />
+                      </button>
+                      <button
+                        onClick={handleShare}
+                        className={`p-2.5 sm:p-2 rounded-lg transition-colors touch-manipulation ${
+                          shareCopied 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white'
+                        }`}
+                        aria-label={shareCopied ? 'Link copiado!' : 'Copiar link'}
+                        title={shareCopied ? 'Link copiado!' : 'Copiar link de compartilhamento'}
+                      >
+                        {shareCopied ? <Check size={18} /> : <Copy size={18} />}
+                      </button>
+                      <button
+                        onClick={() => window.print()}
+                        className="hidden sm:block p-2 rounded-lg bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-white transition-colors"
+                        aria-label="Imprimir"
+                      >
+                        <Printer size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{property.title}</h1>
+                  <div className="flex items-center text-muted-foreground mb-3 sm:mb-4">
+                    <MapPin size={14} className="mr-1 flex-shrink-0 sm:w-4 sm:h-4" />
+                    <span className="text-sm sm:text-base truncate">{property.address_neighborhood}, {property.address_city}</span>
+                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold text-primary mb-2">
+                    {formatPrice(property.price)}
+                  </div>
+                  
+                  {/* Condo fee and IPTU */}
+                  <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-2">
+                    {(property.condo_exempt || (property.condo_fee !== null && property.condo_fee !== undefined)) && (
+                      <span>
+                        Condomínio: {property.condo_exempt ? 'Isento' : formatPrice(property.condo_fee)}
                       </span>
-                    ))}
+                    )}
+                    {property.iptu !== null && property.iptu !== undefined && property.iptu > 0 && (
+                      <span>IPTU: {formatPrice(property.iptu)}/ano</span>
+                    )}
                   </div>
-                </div>
-              )}
 
-              {/* Financing - Only show when enabled */}
-              {property.financing && (
-                <div className="flex items-center space-x-2 bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
-                  <CheckCircle size={18} className="text-success sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm">Aceita financiamento</span>
+                  <div className="text-xs sm:text-sm text-muted-foreground">
+                    Ref: {property.reference || property.id.substring(0, 8)}
+                  </div>
                 </div>
-              )}
 
-              {/* Contact - Fixed on mobile */}
-              <div className="border border-border rounded-lg p-4">
-                <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Contato</h3>
-                <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
-                  <div className="text-sm">
-                    <strong>Via Fatto Imóveis</strong>
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    CRECI-DF: 29588 | CRECI-GO: 42119
-                  </div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    {siteConfig?.phone || '(11) 99988-7766'}
+                {/* Features */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
+                  {property.bedrooms > 0 && (
+                    <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
+                      <Bed size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span>{property.bedrooms} quarto{property.bedrooms > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                  {property.bathrooms > 0 && (
+                    <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
+                      <Bath size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span>{property.bathrooms} banheiro{property.bathrooms > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                  {property.garages > 0 && (
+                    <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
+                      <Car size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                      <span>{property.garages} vaga{property.garages > 1 ? 's' : ''}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2 text-muted-foreground text-sm sm:text-base">
+                    <Maximize size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span>{property.area}m²</span>
                   </div>
                 </div>
-                <a
-                  href={getWhatsAppUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary w-full text-center flex items-center justify-center gap-2"
-                >
-                  <WhatsAppIcon size={18} />
-                  <span className="text-sm sm:text-base">Falar no WhatsApp</span>
-                </a>
+
+                {/* Características as tags */}
+                {property.features && property.features.length > 0 && (
+                  <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
+                    <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Características</h3>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                      {property.features.map((feature, index) => (
+                        <span
+                          key={index}
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-primary text-primary rounded-full hover:bg-primary/10 transition-colors"
+                        >
+                          {feature}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Financing - Only show when enabled */}
+                {property.financing && (
+                  <div className="flex items-center space-x-2 bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
+                    <CheckCircle size={18} className="text-success sm:w-5 sm:h-5" />
+                    <span className="text-xs sm:text-sm">Aceita financiamento</span>
+                  </div>
+                )}
+
+                {/* Contact - Fixed on mobile */}
+                <div className="border border-border rounded-lg p-4">
+                  <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Contato</h3>
+                  <div className="space-y-1 sm:space-y-2 mb-3 sm:mb-4">
+                    <div className="text-sm">
+                      <strong>Via Fatto Imóveis</strong>
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">
+                      CRECI-DF: 29588 | CRECI-GO: 42119
+                    </div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">
+                      {siteConfig?.phone || '(11) 99988-7766'}
+                    </div>
+                  </div>
+                  <a
+                    href={getWhatsAppUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary w-full text-center flex items-center justify-center gap-2"
+                  >
+                    <WhatsAppIcon size={18} />
+                    <span className="text-sm sm:text-base">Falar no WhatsApp</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
