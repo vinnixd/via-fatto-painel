@@ -570,7 +570,7 @@ const PropertyPage = () => {
               <div className="space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="bg-card p-4 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-border">
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
                     <span className={`px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
                       property.status === 'venda' 
                         ? 'bg-primary text-primary-foreground' 
@@ -578,6 +578,19 @@ const PropertyPage = () => {
                     }`}>
                       {property.status === 'venda' ? 'À Venda' : 'Aluguel'}
                     </span>
+                    {property.condition && (
+                      <span className={`px-2.5 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                        property.condition === 'lancamento' ? 'bg-primary text-primary-foreground' :
+                        property.condition === 'pronto_para_morar' ? 'bg-emerald-500 text-white' :
+                        property.condition === 'novo' ? 'bg-green-500 text-white' :
+                        'bg-neutral-500 text-white'
+                      }`}>
+                        {property.condition === 'lancamento' ? 'Lançamento' :
+                         property.condition === 'pronto_para_morar' ? 'Pronto para Morar' :
+                         property.condition === 'novo' ? 'Novo' : 'Usado'}
+                      </span>
+                    )}
+                    <div className="flex-1" />
                     <div className="flex space-x-1.5 sm:space-x-2">
                       <button
                         onClick={handleFavorite}
