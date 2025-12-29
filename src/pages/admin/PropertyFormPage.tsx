@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -688,11 +687,6 @@ const PropertyFormPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader 
-        title={isEditing ? 'Editar Imóvel' : 'Novo Imóvel'} 
-        subtitle={isEditing ? 'Atualize as informações do imóvel' : 'Cadastre um novo imóvel no sistema'}
-      />
-      
       <div className="p-6">
         <Button variant="ghost" onClick={() => navigate('/admin/imoveis')} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />

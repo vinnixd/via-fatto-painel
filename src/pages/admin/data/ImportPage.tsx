@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
 import DataLayout from "./DataLayout";
-import AdminHeader from "@/components/admin/AdminHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -490,11 +489,6 @@ const ImportPage = () => {
 
   return (
     <DataLayout>
-      <AdminHeader 
-        title="Importar Imóveis (CSV)" 
-        subtitle="Importe imóveis em massa a partir de um arquivo CSV exportado do WordPress"
-      />
-      
       <div className="space-y-6">
         {/* Instructions Card */}
         <Card>

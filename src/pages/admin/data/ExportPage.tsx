@@ -1,6 +1,5 @@
 import { useState } from "react";
 import DataLayout from "./DataLayout";
-import AdminHeader from "@/components/admin/AdminHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -214,11 +213,6 @@ const ExportPage = () => {
 
   return (
     <DataLayout>
-      <AdminHeader 
-        title="Exportar Imóveis" 
-        subtitle="Exporte seus imóveis para CSV ou JSON"
-      />
-      
       <div className="space-y-6">
         {/* Instructions Card */}
         <Card>

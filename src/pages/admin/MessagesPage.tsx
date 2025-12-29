@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -128,11 +127,6 @@ const MessagesPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader 
-        title="Mensagens" 
-        subtitle={`${contacts.length} mensagens recebidas${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
-      />
-      
       <div className="p-6">
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">

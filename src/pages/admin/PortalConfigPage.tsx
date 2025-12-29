@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminHeader from '@/components/admin/AdminHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -317,11 +316,6 @@ const PortalConfigPage = () => {
 
   return (
     <AdminLayout>
-      <AdminHeader
-        title={portal.nome}
-        subtitle={`Configuração do portal ${portal.slug}`}
-      />
-
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <Button variant="ghost" onClick={() => navigate('/admin/portais')}>
