@@ -56,6 +56,8 @@ const ExportPage = () => {
           featured,
           active,
           reference,
+          condition,
+          location_type,
           seo_title,
           seo_description,
           created_at,
@@ -115,12 +117,19 @@ const ExportPage = () => {
                            property.type === 'rural' ? 'Rural' :
                            property.type === 'cobertura' ? 'Cobertura' :
                            property.type === 'flat' ? 'Flat' :
-                           property.type === 'galpao' ? 'Galpão' : 'Casa',
+                           property.type === 'galpao' ? 'Galpão' :
+                           property.type === 'loft' ? 'Loft' : 'Casa',
           Finalidade: property.status === 'venda' ? 'Venda' :
                      property.status === 'aluguel' ? 'Aluguel' :
                      property.status === 'vendido' ? 'Vendido' :
                      property.status === 'alugado' ? 'Alugado' : 'Venda',
           Perfil: property.profile,
+          
+          // Condition (Estado de Conservação)
+          'Estado de Conservação': property.condition === 'lancamento' ? 'Lançamento' :
+                                   property.condition === 'novo' ? 'Novo' :
+                                   property.condition === 'usado' ? 'Usado' :
+                                   property.condition === 'pronto_para_morar' ? 'Pronto para Morar' : '',
           
           // Price - usar ?? para preservar zeros válidos
           Preço: property.price ?? 0,
@@ -145,6 +154,9 @@ const ExportPage = () => {
           Financiamento: property.financing ? 'Sim' : 'Não',
           Documentação: property.documentation,
           Ativo: property.active ? 'Sim' : 'Não',
+          
+          // Location type
+          'Tipo de Localização': property.location_type || 'approximate',
           
           // Reference and SEO
           Referência: property.reference || '',

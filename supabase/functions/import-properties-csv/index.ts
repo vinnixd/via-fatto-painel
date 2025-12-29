@@ -196,6 +196,24 @@ function mapPropertyStatus(finalidade: string): string {
   return statusMap[finalidade] || 'venda';
 }
 
+function mapPropertyCondition(condition: string): string | null {
+  if (!condition) return null;
+  
+  const conditionMap: Record<string, string> = {
+    'Lançamento': 'lancamento',
+    'lancamento': 'lancamento',
+    'Novo': 'novo',
+    'novo': 'novo',
+    'Usado': 'usado',
+    'usado': 'usado',
+    'Pronto para Morar': 'pronto_para_morar',
+    'pronto_para_morar': 'pronto_para_morar',
+    'Pronto para morar': 'pronto_para_morar',
+  };
+  
+  return conditionMap[condition] || null;
+}
+
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -800,7 +818,15 @@ async function processProperty(
     const seoTitulo = getRowValue(row, 'SEO Título', 'seo_titulo');
     const seoDescricao = getRowValue(row, 'SEO Descrição', 'seo_descricao');
     
-    console.log(`[MAPPED] Extra fields: Ref="${referencia}" Perfil="${perfil}" Condo=${condominio} CondoIsento=${condominioIsento} IPTU=${iptu} Financ=${financiamento} Doc="${documentacao}" Ativo=${ativo}`);
+    // Estado de Conservação (condition)
+    const conservacaoRaw = getRowValue(row, 'Estado de Conservação', 'estado_conservacao', 'Condition', 'condition');
+    const conservacao = mapPropertyCondition(conservacaoRaw);
+    
+    // Tipo de Localização (location_type)
+    const localizacaoTipoRaw = getRowValue(row, 'Tipo de Localização', 'tipo_localizacao', 'Location Type');
+    const localizacaoTipo = localizacaoTipoRaw || 'approximate';
+    
+    console.log(`[MAPPED] Extra fields: Ref="${referencia}" Perfil="${perfil}" Condo=${condominio} CondoIsento=${condominioIsento} IPTU=${iptu} Financ=${financiamento} Doc="${documentacao}" Ativo=${ativo} Conservação="${conservacao}" LocTipo="${localizacaoTipo}"`);
     
     // Features and Amenities - split by ";" (semicolon) as exported
     const caracteristicasRaw = getRowValue(row, 'Características', 'caracteristicas', 'Features');
@@ -849,6 +875,8 @@ async function processProperty(
       documentation: documentacao,
       active: ativo,
       reference: referencia,
+      condition: conservacao,
+      location_type: localizacaoTipo,
       seo_title: seoTitulo,
       seo_description: seoDescricao,
       updated_at: new Date().toISOString()
