@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAdminBreadcrumbs } from '@/hooks/useAdminBreadcrumbs';
+import { useUnreadCount } from '@/hooks/useUnreadCount';
 
 interface AdminHeaderProps {
   title: string;
@@ -24,6 +25,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   const { profile } = useProfile();
   const { role } = usePermissions();
   const breadcrumbs = useAdminBreadcrumbs();
+  const unreadCount = useUnreadCount();
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -98,9 +100,15 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
             </Link>
           </Button>
 
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-destructive rounded-full" />
+          <Button variant="ghost" size="icon" className="relative" asChild>
+            <Link to="/admin/mensagens">
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-medium rounded-full">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
           </Button>
 
           <DropdownMenu>
