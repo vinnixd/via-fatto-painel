@@ -58,7 +58,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   return (
     <header className="bg-card border-b border-border px-6 py-4">
       {/* Breadcrumbs */}
-      <nav className="flex flex-wrap items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
+      <nav className="flex items-center text-sm mb-2" aria-label="Breadcrumb">
         <Link
           to="/admin"
           className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors"
@@ -67,21 +67,21 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
           <Home className="h-4 w-4" />
         </Link>
         {breadcrumbs.map((item, index) => (
-          <span key={index} className="flex items-center gap-1.5">
-            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" aria-hidden="true" />
+          <div key={index} className="flex items-center">
+            <ChevronRight className="h-3.5 w-3.5 mx-1.5 text-muted-foreground/60 flex-shrink-0" aria-hidden="true" />
             {item.href ? (
               <Link
                 to={item.href}
-                className="text-muted-foreground hover:text-primary transition-colors"
+                className="text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className="text-foreground font-medium" aria-current="page">
+              <span className="text-foreground font-medium whitespace-nowrap" aria-current="page">
                 {item.label}
               </span>
             )}
-          </span>
+          </div>
         ))}
       </nav>
 
