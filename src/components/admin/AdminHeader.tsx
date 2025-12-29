@@ -58,10 +58,10 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   return (
     <header className="bg-card border-b border-border px-6 py-4">
       {/* Breadcrumbs */}
-      <nav className="flex items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
+      <nav className="flex flex-wrap items-center gap-1.5 text-sm mb-2" aria-label="Breadcrumb">
         <Link
           to="/admin"
-          className="text-muted-foreground hover:text-primary transition-colors"
+          className="flex-shrink-0 text-muted-foreground hover:text-primary transition-colors"
           aria-label="Dashboard"
         >
           <Home className="h-4 w-4" />
