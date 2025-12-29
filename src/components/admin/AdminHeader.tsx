@@ -8,11 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, ExternalLink, Settings, User, LogOut, ChevronDown, ChevronRight, Home } from 'lucide-react';
+import { Bell, ExternalLink, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useAdminBreadcrumbs } from '@/hooks/useAdminBreadcrumbs';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 
 interface AdminHeaderProps {
@@ -24,7 +23,6 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   const { signOut } = useAuth();
   const { profile } = useProfile();
   const { role } = usePermissions();
-  const breadcrumbs = useAdminBreadcrumbs();
   const unreadCount = useUnreadCount();
 
   const getRoleLabel = (role: string) => {
@@ -57,37 +55,6 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
 
   return (
     <header className="bg-card border-b border-border px-6 py-4">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center text-sm mb-2 leading-none" aria-label="Breadcrumb">
-        <Link
-          to="/admin"
-          className="inline-flex items-center justify-center flex-shrink-0 text-muted-foreground hover:text-primary transition-colors leading-none"
-          aria-label="Dashboard"
-        >
-          <Home className="block h-4 w-4" />
-        </Link>
-        {breadcrumbs.map((item, index) => (
-          <span key={index} className="inline-flex items-center leading-none">
-            <ChevronRight
-              className="block h-3.5 w-3.5 mx-1.5 text-muted-foreground/60 flex-shrink-0"
-              aria-hidden="true"
-            />
-            {item.href ? (
-              <Link
-                to={item.href}
-                className="inline-flex items-center leading-none text-muted-foreground hover:text-primary transition-colors whitespace-nowrap"
-              >
-                {item.label}
-              </Link>
-            ) : (
-              <span className="inline-flex items-center leading-none text-foreground font-medium whitespace-nowrap" aria-current="page">
-                {item.label}
-              </span>
-            )}
-          </span>
-        ))}
-      </nav>
-
       {/* Title and Actions */}
       <div className="flex items-center justify-between">
         <div>
