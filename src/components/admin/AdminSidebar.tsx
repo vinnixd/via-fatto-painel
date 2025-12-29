@@ -163,11 +163,11 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         </ul>
       </nav>
 
-      {/* User & Logout */}
+      {/* Version & Logout */}
       <div className="border-t border-sidebar-border p-4">
         {!collapsed && (
-          <div className="mb-3 text-sm text-sidebar-muted truncate">
-            {user?.email}
+          <div className="mb-3 text-xs text-sidebar-muted">
+            v1.0.0
           </div>
         )}
         <Button
