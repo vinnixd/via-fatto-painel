@@ -153,12 +153,17 @@ const SortablePropertyCard = ({
             src={property.thumbnail}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement?.querySelector('.fallback-icon')?.classList.remove('hidden');
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-          </div>
-        )}
+        ) : null}
+        <div className={`w-full h-full flex items-center justify-center absolute inset-0 fallback-icon ${property.thumbnail ? 'hidden' : ''}`}>
+          <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+        </div>
 
         {/* Overlays */}
         <div className="absolute top-2 left-2 flex gap-1.5">
