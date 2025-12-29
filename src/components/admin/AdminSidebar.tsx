@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { APP_VERSION } from '@/lib/constants';
 import {
   LayoutDashboard,
   Palette,
@@ -167,7 +168,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       <div className="border-t border-sidebar-border p-4">
         {!collapsed && (
           <div className="mb-3 text-xs text-sidebar-muted">
-            v1.0.0
+            v{APP_VERSION}
           </div>
         )}
         <Button
