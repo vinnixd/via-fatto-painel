@@ -7,41 +7,41 @@
 @layer base {
   :root {
     /* Base colors */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
     
-    /* Brand colors - Azul profissional imobiliário (ProsperIMOB) */
-    --primary: 217 91% 30%;
+    /* Brand colors - Verde profissional imobiliário */
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 100%;
-    --primary-muted: 217 30% 95%;
-    --primary-hover: 217 91% 25%;
+    --primary-muted: 142 30% 95%;
+    --primary-hover: 142 76% 32%;
     
     /* Neutral palette - Grayscale */
-    --neutral-50: 210 20% 99%;
-    --neutral-100: 210 20% 96%;
-    --neutral-200: 220 13% 91%;
-    --neutral-300: 220 13% 80%;
-    --neutral-400: 220 13% 65%;
-    --neutral-500: 220 9% 46%;
-    --neutral-600: 220 13% 35%;
-    --neutral-700: 220 13% 25%;
-    --neutral-800: 220 13% 18%;
-    --neutral-900: 222 47% 11%;
+    --neutral-50: 0 0% 99%;
+    --neutral-100: 0 0% 96%;
+    --neutral-200: 0 0% 81%;
+    --neutral-300: 0 0% 75%;
+    --neutral-400: 0 0% 69%;
+    --neutral-500: 0 0% 50%;
+    --neutral-600: 0 0% 35%;
+    --neutral-700: 0 0% 25%;
+    --neutral-800: 0 0% 15%;
+    --neutral-900: 0 0% 10%;
     
     /* Semantic colors */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 13% 18%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 13% 18%;
     --border: 220 13% 91%;
-    --input: 210 20% 98%;
-    --ring: 217 91% 30%;
-    --muted: 210 20% 96%;
+    --input: 220 14% 96%;
+    --ring: 142 76% 36%;
+    --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
-    --accent: 217 30% 95%;
-    --accent-foreground: 217 91% 30%;
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --accent: 142 30% 95%;
+    --accent-foreground: 142 76% 36%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 18%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 76% 36%;
@@ -49,14 +49,14 @@
     --info: 217 91% 60%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 30%), hsl(217 91% 40%));
-    --gradient-subtle: linear-gradient(180deg, hsl(210 20% 98%), hsl(210 20% 96%));
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 42%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
     
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.08), 0 2px 4px -1px hsl(222 47% 11% / 0.04);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.08), 0 4px 6px -2px hsl(222 47% 11% / 0.04);
-    --shadow-xl: 0 20px 25px -5px hsl(222 47% 11% / 0.08), 0 10px 10px -5px hsl(222 47% 11% / 0.03);
+    --shadow-sm: 0 1px 2px 0 hsl(220 13% 18% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(220 13% 18% / 0.1), 0 2px 4px -1px hsl(220 13% 18% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(220 13% 18% / 0.1), 0 4px 6px -2px hsl(220 13% 18% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(220 13% 18% / 0.1), 0 10px 10px -5px hsl(220 13% 18% / 0.04);
     
     /* Typography */
     --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -74,66 +74,28 @@
     --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
     
-    /* Sidebar - Professional Dark Blue */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 217 91% 60%;
-    --sidebar-muted: 220 13% 65%;
+    /* Sidebar - Admin Panel Dark Palette */
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 0 0% 99%;
+    --sidebar-primary: 0 0% 99%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 99%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 0% 69%;
+    --sidebar-muted: 0 0% 69%;
     
     /* Admin specific colors */
-    --admin-background: 210 20% 98%;
+    --admin-background: 0 0% 99%;
     --admin-card: 0 0% 100%;
-    --admin-border: 220 13% 91%;
-    --admin-muted: 220 13% 91%;
-    --admin-muted-foreground: 220 9% 46%;
-    --admin-accent: 217 33% 17%;
-    --admin-accent-foreground: 0 0% 98%;
-    --admin-primary: 217 91% 30%;
+    --admin-border: 0 0% 81%;
+    --admin-muted: 0 0% 81%;
+    --admin-muted-foreground: 0 0% 69%;
+    --admin-accent: 0 0% 15%;
+    --admin-accent-foreground: 0 0% 99%;
+    --admin-primary: 0 0% 10%;
     --admin-primary-foreground: 0 0% 100%;
-    --admin-primary-hover: 217 91% 25%;
-  }
-
-  .dark {
-    /* Dark mode colors */
-    --background: 222 47% 11%;
-    --foreground: 210 20% 98%;
-    
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --primary-muted: 217 33% 17%;
-    --primary-hover: 217 91% 65%;
-    
-    --card: 217 33% 14%;
-    --card-foreground: 210 20% 98%;
-    --popover: 217 33% 14%;
-    --popover-foreground: 210 20% 98%;
-    --border: 217 33% 20%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 220 13% 65%;
-    --accent: 217 33% 20%;
-    --accent-foreground: 210 20% 98%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 20% 98%;
-    
-    /* Sidebar in dark mode */
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-accent: 217 33% 14%;
-    --sidebar-border: 217 33% 14%;
-    
-    /* Admin in dark mode */
-    --admin-background: 222 47% 11%;
-    --admin-card: 217 33% 14%;
-    --admin-border: 217 33% 20%;
-    --admin-muted: 217 33% 20%;
-    --admin-muted-foreground: 220 13% 65%;
+    --admin-primary-hover: 0 0% 15%;
   }
 }
 
