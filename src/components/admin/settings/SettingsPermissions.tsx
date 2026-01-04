@@ -1,196 +1,167 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Save, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Info, Check } from 'lucide-react';
+import { 
+  useRolePermissions, 
+  PAGE_KEYS, 
+  ROLE_LABELS,
+  type AppRole 
+} from '@/hooks/useRolePermissions';
 
-const roles = [
-  { 
-    id: 'admin', 
-    name: 'Administrador', 
-    color: 'bg-destructive text-destructive-foreground',
-    description: 'Administradores têm acesso total por padrão, mas você pode restringir se necessário.' 
-  },
-  { 
-    id: 'gestor', 
-    name: 'Gerente', 
-    color: 'bg-warning text-warning-foreground',
-    description: 'Gerentes podem ter acesso amplo, configure conforme necessário.' 
-  },
-  { 
-    id: 'corretor', 
-    name: 'Corretor', 
-    color: 'bg-primary text-primary-foreground',
-    description: 'Corretores têm acesso limitado por padrão. Ative apenas o necessário.' 
-  },
-];
-
-const pagePermissions = [
-  { id: 'dashboard', name: 'Dashboard', description: 'Visualizar estatísticas gerais' },
-  { id: 'diagnostico', name: 'Diagnóstico', description: 'Visualizar análise de desempenho' },
-  { id: 'desempenho', name: 'Desempenho', description: 'Visualizar metas e resultados' },
-  { id: 'funil', name: 'Funil de Vendas', description: 'Visualizar pipeline de vendas' },
-  { id: 'contratos', name: 'Contratos', description: 'Visualizar contratos' },
-  { id: 'proprietarios', name: 'Proprietários', description: 'Visualizar dados de proprietários' },
-  { id: 'financeiro', name: 'Financeiro', description: 'Visualizar transações financeiras' },
-  { id: 'relatorios', name: 'Relatórios', description: 'Gerar e visualizar relatórios' },
-  { id: 'equipe', name: 'Equipe', description: 'Visualizar membros da equipe' },
-  { id: 'configuracoes', name: 'Configurações da Imobiliária', description: 'Acessar configurações do escritório' },
-];
-
-const actionPermissions = [
-  { id: 'gerenciar_equipe', name: 'Gerenciar Equipe', description: 'Adicionar/remover membros' },
-  { id: 'gerenciar_convites', name: 'Gerenciar Convites', description: 'Enviar convites para equipe' },
-  { id: 'editar_configuracoes', name: 'Editar Configurações', description: 'Alterar configurações do escritório' },
-  { id: 'excluir_dados', name: 'Excluir Dados', description: 'Permissão para excluir registros' },
-  { id: 'exportar_dados', name: 'Exportar Dados', description: 'Exportar dados e relatórios' },
-];
-
-interface RolePermissions {
-  pages: Record<string, boolean>;
-  actions: Record<string, boolean>;
-}
-
-const defaultPermissions: Record<string, RolePermissions> = {
-  admin: {
-    pages: Object.fromEntries(pagePermissions.map(p => [p.id, true])),
-    actions: Object.fromEntries(actionPermissions.map(a => [a.id, true])),
-  },
-  gestor: {
-    pages: Object.fromEntries(pagePermissions.map(p => [p.id, true])),
-    actions: {
-      gerenciar_equipe: false,
-      gerenciar_convites: false,
-      editar_configuracoes: false,
-      excluir_dados: false,
-      exportar_dados: true,
-    },
-  },
-  corretor: {
-    pages: {
-      dashboard: false,
-      diagnostico: false,
-      desempenho: true,
-      funil: false,
-      contratos: false,
-      proprietarios: false,
-      financeiro: false,
-      relatorios: false,
-      equipe: false,
-      configuracoes: false,
-    },
-    actions: Object.fromEntries(actionPermissions.map(a => [a.id, false])),
-  },
-};
+const EDITABLE_ROLES: AppRole[] = ['gestor', 'marketing', 'corretor', 'user'];
+const PERMISSION_TYPES = [
+  { key: 'can_view', label: 'Visualizar' },
+  { key: 'can_create', label: 'Criar' },
+  { key: 'can_edit', label: 'Editar' },
+  { key: 'can_delete', label: 'Excluir' },
+] as const;
 
 const SettingsPermissions = () => {
   const { toast } = useToast();
-  const [saving, setSaving] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<Record<string, RolePermissions>>(defaultPermissions);
+  const { permissions, loading, updatePermission, getPermissionsForRole } = useRolePermissions();
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const handleToggle = (roleId: string, type: 'pages' | 'actions', permId: string) => {
-    setPermissions(prev => ({
-      ...prev,
-      [roleId]: {
-        ...prev[roleId],
-        [type]: {
-          ...prev[roleId][type],
-          [permId]: !prev[roleId][type][permId],
-        },
-      },
-    }));
+  const handleToggle = async (
+    role: AppRole, 
+    pageKey: string, 
+    field: 'can_view' | 'can_create' | 'can_edit' | 'can_delete',
+    currentValue: boolean
+  ) => {
+    const updateKey = `${role}-${pageKey}-${field}`;
+    setUpdating(updateKey);
+    
+    const success = await updatePermission(role, pageKey, field, !currentValue);
+    
+    if (success) {
+      toast({
+        title: 'Permissão atualizada',
+        description: (
+          <span className="flex items-center gap-2">
+            <Check className="h-4 w-4" />
+            Alteração salva automaticamente
+          </span>
+        ),
+      });
+    }
+    
+    setUpdating(null);
   };
 
-  const handleSave = async (roleId: string) => {
-    setSaving(roleId);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    toast({ title: `Permissões de ${roles.find(r => r.id === roleId)?.name} salvas!` });
-    setSaving(null);
-  };
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-20 w-full" />
+        {[1, 2, 3].map(i => (
+          <Skeleton key={i} className="h-64 w-full" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <Alert>
         <Info className="h-4 w-4" />
         <AlertDescription>
-          Configure as permissões para cada função. O proprietário sempre tem acesso total e não pode ser alterado. 
-          Administradores também têm acesso total por padrão.
+          Configure as permissões para cada função. Administradores sempre têm acesso total.
+          As alterações são salvas automaticamente.
         </AlertDescription>
       </Alert>
 
-      {roles.map((role) => (
-        <Card key={role.id}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div className="flex items-center gap-3">
-              <Badge className={role.color}>{role.name}</Badge>
-              <CardTitle className="text-lg">{role.name}</CardTitle>
-            </div>
-            <Button 
-              size="sm" 
-              onClick={() => handleSave(role.id)}
-              disabled={saving === role.id}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {saving === role.id ? 'Salvando...' : 'Salvar'}
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-6">{role.description}</p>
+      {/* Admin info card */}
+      <Card className="border-destructive/20 bg-destructive/5">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-3">
+            <Badge className={ROLE_LABELS.admin.color}>{ROLE_LABELS.admin.name}</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            {ROLE_LABELS.admin.description} Administradores não podem ter suas permissões alteradas.
+          </p>
+        </CardContent>
+      </Card>
 
-            {/* Page Permissions */}
-            <div className="mb-6">
-              <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                Acesso a Páginas
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {pagePermissions.map((perm) => (
-                  <div 
-                    key={perm.id} 
-                    className="flex items-center justify-between p-3 rounded-lg border border-border"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{perm.name}</p>
-                      <p className="text-xs text-muted-foreground">{perm.description}</p>
-                    </div>
-                    <Switch
-                      checked={permissions[role.id]?.pages[perm.id] ?? false}
-                      onCheckedChange={() => handleToggle(role.id, 'pages', perm.id)}
-                    />
+      {/* Editable roles */}
+      {EDITABLE_ROLES.map((role) => {
+        const roleInfo = ROLE_LABELS[role];
+        const rolePerms = getPermissionsForRole(role);
+        
+        return (
+          <Card key={role}>
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-3">
+                <Badge className={roleInfo.color}>{roleInfo.name}</Badge>
+                <CardTitle className="text-lg">{roleInfo.name}</CardTitle>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">{roleInfo.description}</p>
+            </CardHeader>
+            <CardContent>
+              {/* Table header */}
+              <div className="grid grid-cols-5 gap-4 mb-4 pb-2 border-b border-border">
+                <div className="text-sm font-semibold text-muted-foreground">Página</div>
+                {PERMISSION_TYPES.map(type => (
+                  <div key={type.key} className="text-sm font-semibold text-muted-foreground text-center">
+                    {type.label}
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Action Permissions */}
-            <div>
-              <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">
-                Ações Permitidas
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {actionPermissions.map((perm) => (
-                  <div 
-                    key={perm.id} 
-                    className="flex items-center justify-between p-3 rounded-lg border border-border"
-                  >
-                    <div>
-                      <p className="font-medium text-sm">{perm.name}</p>
-                      <p className="text-xs text-muted-foreground">{perm.description}</p>
+              {/* Permission rows */}
+              <div className="space-y-3">
+                {Object.values(PAGE_KEYS).map((page) => {
+                  const pagePerm = rolePerms[page.key] || {
+                    can_view: false,
+                    can_create: false,
+                    can_edit: false,
+                    can_delete: false,
+                  };
+
+                  return (
+                    <div 
+                      key={page.key} 
+                      className="grid grid-cols-5 gap-4 items-center py-2 hover:bg-muted/50 rounded-lg px-2 -mx-2"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{page.label}</p>
+                        <p className="text-xs text-muted-foreground">{page.description}</p>
+                      </div>
+                      
+                      {PERMISSION_TYPES.map(type => {
+                        const isUpdating = updating === `${role}-${page.key}-${type.key}`;
+                        const value = pagePerm[type.key as keyof typeof pagePerm];
+                        
+                        return (
+                          <div key={type.key} className="flex justify-center">
+                            <Switch
+                              checked={value}
+                              disabled={isUpdating}
+                              onCheckedChange={() => 
+                                handleToggle(
+                                  role, 
+                                  page.key, 
+                                  type.key as 'can_view' | 'can_create' | 'can_edit' | 'can_delete',
+                                  value
+                                )
+                              }
+                              className={isUpdating ? 'opacity-50' : ''}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
-                    <Switch
-                      checked={permissions[role.id]?.actions[perm.id] ?? false}
-                      onCheckedChange={() => handleToggle(role.id, 'actions', perm.id)}
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 };

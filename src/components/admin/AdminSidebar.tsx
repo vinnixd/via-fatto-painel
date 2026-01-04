@@ -11,8 +11,12 @@ import {
   LogOut,
   Settings,
   Headphones,
+  Heart,
+  FolderOpen,
+  Database,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentUserPermissions } from '@/hooks/useRolePermissions';
 import { Button } from '@/components/ui/button';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 
@@ -20,24 +24,26 @@ interface MenuItem {
   icon: typeof LayoutDashboard;
   label: string;
   path: string;
-  roles?: ('admin' | 'gestor' | 'marketing' | 'corretor')[];
-  external?: boolean;
+  pageKey?: string;
+  requireAdmin?: boolean;
 }
 
-const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
-  { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
-  { icon: Users, label: 'Usuários', path: '/admin/usuarios', roles: ['admin'] },
-  { icon: Settings, label: 'Configurações', path: '/admin/configuracoes', roles: ['admin', 'gestor', 'marketing'] },
+const allMenuItems: MenuItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin', pageKey: 'dashboard' },
+  { icon: Building2, label: 'Imóveis', path: '/admin/imoveis', pageKey: 'imoveis' },
+  { icon: FolderOpen, label: 'Categorias', path: '/admin/categorias', pageKey: 'categorias' },
+  { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens', pageKey: 'mensagens' },
+  { icon: Heart, label: 'Favoritos', path: '/admin/favoritos', pageKey: 'favoritos' },
+  { icon: Database, label: 'Dados', path: '/admin/dados', pageKey: 'dados' },
+  { icon: Users, label: 'Usuários', path: '/admin/usuarios', pageKey: 'usuarios', requireAdmin: true },
+  { icon: Settings, label: 'Configurações', path: '/admin/configuracoes', pageKey: 'configuracoes' },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', path: '/admin/perfil' };
-const supportItem: MenuItem = { 
+const supportItem = { 
   icon: Headphones, 
   label: 'Suporte', 
   path: 'https://wa.me/5511999999999', // Placeholder - será configurado depois
-  external: true 
 };
 
 interface AdminSidebarProps {
@@ -47,17 +53,17 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
-  const { signOut, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
+  const { signOut } = useAuth();
+  const { canAccess, isAdmin } = useCurrentUserPermissions();
   const { data: siteConfig } = useSiteConfig();
 
-  // Filter menu items based on user role
-  const visibleMenuItems = menuItems.filter((item) => {
-    if (!item.roles) return true;
-    if (isAdmin && item.roles.includes('admin')) return true;
-    if (isGestor && item.roles.includes('gestor')) return true;
-    if (isMarketing && item.roles.includes('marketing')) return true;
-    if (isCorretor && item.roles.includes('corretor')) return true;
-    return false;
+  // Filter menu items based on permissions from database
+  const visibleMenuItems = allMenuItems.filter((item) => {
+    // Admin-only pages
+    if (item.requireAdmin) return isAdmin;
+    // Check database permissions
+    if (item.pageKey) return canAccess(item.pageKey, 'view');
+    return true;
   });
 
   const isProfileActive = location.pathname === profileItem.path;

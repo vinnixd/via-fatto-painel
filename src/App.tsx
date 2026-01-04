@@ -12,6 +12,7 @@ import { useAutoPageTracking } from "@/hooks/usePageTracking";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import ProtectedRoute from "@/components/admin/ProtectedRoute";
 import Index from "./pages/Index";
 import PropertyPage from "./pages/PropertyPage";
 import PropertiesPage from "./pages/PropertiesPage";
@@ -69,22 +70,77 @@ const App = () => (
                 <Route path="/contato" element={<ContactPage />} />
                 <Route path="/favoritos" element={<FavoritesPage />} />
 
-                {/* Admin Routes */}
+                {/* Auth Routes (no protection) */}
                 <Route path="/admin/login" element={<AuthPage />} />
+                <Route path="/admin/auth" element={<AuthPage />} />
                 <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
-                <Route path="/admin" element={<DashboardPage />} />
-                <Route path="/admin/imoveis" element={<PropertiesListPage />} />
-                <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
-                <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
-                <Route path="/admin/categorias" element={<CategoriesPage />} />
-                <Route path="/admin/perfil" element={<ProfilePage />} />
-                <Route path="/admin/configuracoes" element={<SettingsPage />} />
-                <Route path="/admin/favoritos" element={<FavoritesListPage />} />
-                <Route path="/admin/mensagens" element={<MessagesPage />} />
-                <Route path="/admin/dados" element={<ExportPage />} />
-                <Route path="/admin/dados/importar" element={<ImportDataPage />} />
-                <Route path="/admin/usuarios" element={<UsersPage />} />
-                <Route path="/admin/compartilhamento" element={<ShareTestPage />} />
+
+                {/* Protected Admin Routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute pageKey="dashboard">
+                    <DashboardPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/imoveis" element={
+                  <ProtectedRoute pageKey="imoveis">
+                    <PropertiesListPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/imoveis/novo" element={
+                  <ProtectedRoute pageKey="imoveis" action="create">
+                    <PropertyFormPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/imoveis/:id" element={
+                  <ProtectedRoute pageKey="imoveis" action="edit">
+                    <PropertyFormPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/categorias" element={
+                  <ProtectedRoute pageKey="categorias">
+                    <CategoriesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/perfil" element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/configuracoes" element={
+                  <ProtectedRoute pageKey="configuracoes">
+                    <SettingsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/favoritos" element={
+                  <ProtectedRoute pageKey="favoritos">
+                    <FavoritesListPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/mensagens" element={
+                  <ProtectedRoute pageKey="mensagens">
+                    <MessagesPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/dados" element={
+                  <ProtectedRoute pageKey="dados">
+                    <ExportPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/dados/importar" element={
+                  <ProtectedRoute pageKey="dados" action="create">
+                    <ImportDataPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/usuarios" element={
+                  <ProtectedRoute pageKey="usuarios" requireAdmin>
+                    <UsersPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/compartilhamento" element={
+                  <ProtectedRoute>
+                    <ShareTestPage />
+                  </ProtectedRoute>
+                } />
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
