@@ -1,19 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { APP_VERSION } from '@/lib/constants';
 import {
   LayoutDashboard,
-  Palette,
   Building2,
-  Globe,
   MessageSquare,
   User,
   Users,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  CreditCard,
-  Plug,
+  Settings,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -24,20 +21,24 @@ interface MenuItem {
   label: string;
   path: string;
   roles?: ('admin' | 'gestor' | 'marketing' | 'corretor')[];
+  external?: boolean;
 }
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Palette, label: 'Designer', path: '/admin/designer' },
   { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
-  { icon: Globe, label: 'Portais', path: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
-  { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin', 'marketing'] },
-  { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
   { icon: Users, label: 'Usuários', path: '/admin/usuarios', roles: ['admin'] },
+  { icon: Settings, label: 'Configurações', path: '/admin/configuracoes', roles: ['admin', 'gestor', 'marketing'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', path: '/admin/perfil' };
+const supportItem: MenuItem = { 
+  icon: Headphones, 
+  label: 'Suporte', 
+  path: 'https://wa.me/5511999999999', // Placeholder - será configurado depois
+  external: true 
+};
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -46,7 +47,7 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
-  const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
+  const { signOut, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
   const { data: siteConfig } = useSiteConfig();
 
   // Filter menu items based on user role
@@ -60,6 +61,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   });
 
   const isProfileActive = location.pathname === profileItem.path;
+  const isSettingsActive = location.pathname.startsWith('/admin/configuracoes');
 
   return (
     <aside
@@ -75,7 +77,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
-                alt="Via Fatto Imóveis" 
+                alt="Logo" 
                 className="h-10 w-auto object-contain brightness-0 invert"
               />
             ) : (
@@ -83,7 +85,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <Building2 className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-lg">Via Fatto</span>
+                <span className="font-bold text-lg">Imobiliária</span>
               </>
             )}
           </Link>
@@ -93,7 +95,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             {(siteConfig?.logo_symbol_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_symbol_url || siteConfig.logo_url} 
-                alt="Via Fatto Imóveis" 
+                alt="Logo" 
                 className="h-8 w-8 object-contain brightness-0 invert"
               />
             ) : (
@@ -121,8 +123,10 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
-            const isActive = location.pathname === item.path || 
-              (item.path !== '/admin' && location.pathname.startsWith(item.path));
+            const isActive = item.path === '/admin/configuracoes' 
+              ? isSettingsActive
+              : location.pathname === item.path || 
+                (item.path !== '/admin' && location.pathname.startsWith(item.path));
             
             return (
               <li key={item.path}>
@@ -144,7 +148,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             );
           })}
 
-          {/* Profile - Always Last */}
+          {/* Profile */}
           <li>
             <Link
               to={profileItem.path}
@@ -164,13 +168,24 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         </ul>
       </nav>
 
-      {/* Version & Logout */}
-      <div className="border-t border-sidebar-border p-4">
-        {!collapsed && (
-          <div className="mb-3 text-xs text-sidebar-muted">
-            v{APP_VERSION}
-          </div>
-        )}
+      {/* Support & Logout */}
+      <div className="border-t border-sidebar-border p-4 space-y-2">
+        {/* Support */}
+        <a
+          href={supportItem.path}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={collapsed ? supportItem.label : undefined}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent',
+            collapsed && 'justify-center px-0'
+          )}
+        >
+          <supportItem.icon className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">{supportItem.label}</span>}
+        </a>
+
+        {/* Logout */}
         <Button
           variant="ghost"
           onClick={signOut}
