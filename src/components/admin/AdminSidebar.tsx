@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
   { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin', 'marketing'] },
   { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
-  { icon: Users, label: 'Usuários', path: '/admin/usuarios', roles: ['admin'] },
+  { icon: Users, label: 'Equipe', path: '/admin/usuarios', roles: ['admin'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', path: '/admin/perfil' };

@@ -8,14 +8,8 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -45,20 +39,24 @@ import {
   UserPlus,
   MoreHorizontal,
   Copy,
-  RefreshCw,
   Shield,
   UserX,
   UserCheck,
   Mail,
   Loader2,
+  Clock,
+  Crown,
+  Briefcase,
+  X,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface UserWithRole {
   id: string;
   name: string;
   email: string;
+  avatar_url: string | null;
   creci: string | null;
   status: string;
   created_at: string;
@@ -93,7 +91,6 @@ const UsersPage = () => {
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Check permissions with useEffect
   useEffect(() => {
     if (!permissionsLoading && !canAccessUsers) {
       toast.error('Sem permissão para acessar esta página');
@@ -107,12 +104,11 @@ const UsersPage = () => {
     queryFn: async () => {
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, name, email, creci, status, created_at')
+        .select('id, name, email, avatar_url, creci, status, created_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
 
-      // Get roles for all users
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -144,6 +140,14 @@ const UsersPage = () => {
     },
     enabled: canAccessUsers,
   });
+
+  // Statistics
+  const stats = {
+    total: users?.length || 0,
+    admins: users?.filter(u => u.role === 'admin').length || 0,
+    gestores: users?.filter(u => u.role === 'gestor').length || 0,
+    corretores: users?.filter(u => u.role === 'corretor').length || 0,
+  };
 
   // Create invite mutation
   const createInviteMutation = useMutation({
@@ -254,11 +258,11 @@ const UsersPage = () => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-primary">Administrador</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500/20"><Crown className="h-3 w-3 mr-1" />Proprietário</Badge>;
       case 'gestor':
-        return <Badge className="bg-blue-500">Gerente</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20"><Briefcase className="h-3 w-3 mr-1" />Gerente</Badge>;
       case 'marketing':
-        return <Badge className="bg-purple-500">Marketing</Badge>;
+        return <Badge className="bg-purple-500/10 text-purple-600 border border-purple-500/20 hover:bg-purple-500/20">Marketing</Badge>;
       case 'corretor':
         return <Badge variant="secondary">Corretor</Badge>;
       default:
@@ -266,12 +270,11 @@ const UsersPage = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' ? (
-      <Badge className="bg-green-500">Ativo</Badge>
-    ) : (
-      <Badge variant="destructive">Inativo</Badge>
-    );
+  const getInitials = (name: string | null, email: string) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
   };
 
   if (permissionsLoading) {
@@ -287,18 +290,65 @@ const UsersPage = () => {
   return (
     <AdminLayout>
       <div className="p-6 lg:p-8 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900 flex items-center gap-2">
-              <Users className="h-7 w-7 text-primary" />
-              Usuários
-            </h1>
-            <p className="text-neutral-500 mt-1">
-              Gerencie usuários e convites do sistema
-            </p>
-          </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Membros</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <Crown className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Administradores</p>
+                <p className="text-2xl font-bold text-foreground">{stats.admins}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Gerentes</p>
+                <p className="text-2xl font-bold text-foreground">{stats.gestores}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-card border">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Corretores</p>
+                <p className="text-2xl font-bold text-foreground">{stats.corretores}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
+        {/* Pending Invites Info + Button */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {(invites?.length || 0) > 0 && (
+              <span className="text-primary font-medium">{invites?.length} convite(s) pendente(s)</span>
+            )}
+          </p>
+          
           <Dialog open={inviteDialogOpen} onOpenChange={(open) => {
             if (!open) resetInviteDialog();
             else setInviteDialogOpen(true);
@@ -306,14 +356,14 @@ const UsersPage = () => {
             <DialogTrigger asChild>
               <Button variant="admin">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Convidar Usuário
+                Convidar Membro
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Convidar Novo Usuário</DialogTitle>
+                <DialogTitle>Convidar Novo Membro</DialogTitle>
                 <DialogDescription>
-                  Envie um convite para um novo usuário se cadastrar no sistema.
+                  Envie um convite para um novo membro se cadastrar na equipe.
                 </DialogDescription>
               </DialogHeader>
 
@@ -335,7 +385,7 @@ const UsersPage = () => {
                     <Input
                       id="invite-name"
                       type="text"
-                      placeholder="Nome do usuário"
+                      placeholder="Nome do membro"
                       value={inviteData.name}
                       onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
                     />
@@ -389,7 +439,7 @@ const UsersPage = () => {
                       Convite criado com sucesso!
                     </p>
                     <p className="text-xs text-green-600 mb-3">
-                      Copie o link abaixo e envie para o usuário:
+                      Copie o link abaixo e envie para o membro:
                     </p>
                     <div className="flex gap-2">
                       <Input value={generatedLink} readOnly className="text-xs" />
@@ -432,46 +482,98 @@ const UsersPage = () => {
           </Dialog>
         </div>
 
-        {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm border">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">Usuários Cadastrados</h2>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Função</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Criado em</TableHead>
-                <TableHead className="w-[50px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
-                  </TableCell>
-                </TableRow>
-              ) : users?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Nenhum usuário encontrado
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users?.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.name || '-'}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell>{getRoleBadge(u.role)}</TableCell>
-                    <TableCell>{getStatusBadge(u.status)}</TableCell>
-                    <TableCell>
-                      {format(new Date(u.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell>
+        {/* Pending Invites Section */}
+        {(invites?.length || 0) > 0 && (
+          <Card className="bg-amber-50/50 border-amber-200/50">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Clock className="h-5 w-5 text-amber-600" />
+                <h3 className="font-semibold text-foreground">Convites Pendentes</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {invites?.map((invite) => (
+                  <div key={invite.id} className="flex items-center justify-between bg-white rounded-lg p-4 border border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">{invite.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {getRoleBadge(invite.role)} • Expira em {formatDistanceToNow(new Date(invite.expires_at), { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Copiar link"
+                        onClick={() => copyToClipboard(`${window.location.origin}/admin/convite/${invite.token}`)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Remover convite"
+                        onClick={() => deleteInviteMutation.mutate(invite.id)}
+                      >
+                        <X className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Team Members Section */}
+        <Card>
+          <CardContent className="p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-foreground">Membros da Equipe ({users?.length || 0})</h3>
+            </div>
+
+            {usersLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : users?.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Nenhum membro encontrado
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {users?.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between bg-muted/30 rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={member.avatar_url || undefined} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {getInitials(member.name, member.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">{member.name || 'Sem nome'}</p>
+                          {member.id === user?.id && (
+                            <Badge variant="outline" className="text-xs">Você</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.email}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                      {getRoleBadge(member.role)}
+                      
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
@@ -481,17 +583,17 @@ const UsersPage = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
                             onClick={() => {
-                              setEditingUser(u);
+                              setEditingUser(member);
                               setEditDialogOpen(true);
                             }}
                           >
                             <Shield className="h-4 w-4 mr-2" />
                             Alterar Função
                           </DropdownMenuItem>
-                          {u.status === 'active' ? (
+                          {member.status === 'active' ? (
                             <DropdownMenuItem
                               onClick={() =>
-                                toggleStatusMutation.mutate({ userId: u.id, newStatus: 'inactive' })
+                                toggleStatusMutation.mutate({ userId: member.id, newStatus: 'inactive' })
                               }
                               className="text-destructive"
                             >
@@ -501,7 +603,7 @@ const UsersPage = () => {
                           ) : (
                             <DropdownMenuItem
                               onClick={() =>
-                                toggleStatusMutation.mutate({ userId: u.id, newStatus: 'active' })
+                                toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' })
                               }
                             >
                               <UserCheck className="h-4 w-4 mr-2" />
@@ -510,87 +612,19 @@ const UsersPage = () => {
                           )}
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Pending Invites */}
-        <div className="bg-white rounded-xl shadow-sm border">
-          <div className="p-4 border-b">
-            <h2 className="font-semibold">Convites Pendentes</h2>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Função</TableHead>
-                <TableHead>Expira em</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitesLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
-                  </TableCell>
-                </TableRow>
-              ) : invites?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhum convite pendente
-                  </TableCell>
-                </TableRow>
-              ) : (
-                invites?.map((invite) => (
-                  <TableRow key={invite.id}>
-                    <TableCell>{invite.email}</TableCell>
-                    <TableCell>{invite.name || '-'}</TableCell>
-                    <TableCell>{getRoleBadge(invite.role)}</TableCell>
-                    <TableCell>
-                      {format(new Date(invite.expires_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Copiar link"
-                          onClick={() =>
-                            copyToClipboard(
-                              `${window.location.origin}/admin/convite/${invite.token}`
-                            )
-                          }
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Remover convite"
-                          onClick={() => deleteInviteMutation.mutate(invite.id)}
-                        >
-                          <UserX className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Edit Role Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Alterar Função do Usuário</DialogTitle>
+              <DialogTitle>Alterar Função do Membro</DialogTitle>
               <DialogDescription>
                 Altere a função de {editingUser?.name || editingUser?.email}
               </DialogDescription>

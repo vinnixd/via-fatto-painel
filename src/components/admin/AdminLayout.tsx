@@ -18,7 +18,7 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
     '/admin/designer': { title: 'Designer', subtitle: 'Personalize seu site' },
     '/admin/configuracoes': { title: 'Configurações', subtitle: 'Configurações do sistema' },
     '/admin/perfil': { title: 'Meu Perfil', subtitle: 'Gerencie seu perfil' },
-    '/admin/usuarios': { title: 'Usuários', subtitle: 'Gerencie os usuários' },
+    '/admin/usuarios': { title: 'Equipe', subtitle: 'Gestão de usuários e permissões' },
     '/admin/portais': { title: 'Portais', subtitle: 'Integração com portais' },
     '/admin/integracoes': { title: 'Integrações', subtitle: 'Ferramentas de marketing' },
     '/admin/favoritos': { title: 'Favoritos', subtitle: 'Imóveis favoritados' },
