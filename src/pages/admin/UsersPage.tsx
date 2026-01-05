@@ -552,7 +552,7 @@ const UsersPage = () => {
                   <div key={member.id} className="flex items-center justify-between bg-muted/30 rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage src={member.avatar_url || undefined} />
+                        <AvatarImage src={member.avatar_url || undefined} className="object-cover" />
                         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                           {getInitials(member.name, member.email)}
                         </AvatarFallback>
