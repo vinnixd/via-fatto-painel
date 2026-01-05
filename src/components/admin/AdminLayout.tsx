@@ -6,6 +6,7 @@ import AdminHeader from './AdminHeader';
 import ImportProgressBar from './ImportProgressBar';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { APP_VERSION, SYSTEM_NAME, SYSTEM_YEAR } from '@/lib/constants';
 
 const getPageTitle = (pathname: string): { title: string; subtitle?: string } => {
   const routes: Record<string, { title: string; subtitle?: string }> = {
@@ -94,11 +95,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-admin">
+    <div className="min-h-screen bg-admin flex flex-col">
       <AdminSidebar collapsed={sidebarCollapsed} onToggle={handleToggleSidebar} />
       <main 
         className={cn(
-          'min-h-screen transition-all duration-300',
+          'flex-1 flex flex-col transition-all duration-300',
           sidebarCollapsed ? 'ml-16' : 'ml-64'
         )}
       >
@@ -107,7 +108,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         <div className="fixed bottom-4 right-4 z-50 w-96 max-w-[calc(100vw-2rem)]">
           <ImportProgressBar />
         </div>
-        {children}
+        <div className="flex-1">
+          {children}
+        </div>
+        {/* Footer */}
+        <footer className="py-4 px-6 text-center text-xs text-muted-foreground border-t border-border">
+          © {SYSTEM_YEAR} {SYSTEM_NAME} • v{APP_VERSION}
+        </footer>
       </main>
     </div>
   );

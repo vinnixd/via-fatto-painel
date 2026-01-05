@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { APP_VERSION } from '@/lib/constants';
+import { SUPPORT_WHATSAPP } from '@/lib/constants';
 import {
   LayoutDashboard,
   Palette,
@@ -14,6 +14,7 @@ import {
   LogOut,
   CreditCard,
   Plug,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -164,13 +165,21 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         </ul>
       </nav>
 
-      {/* Version & Logout */}
-      <div className="border-t border-sidebar-border p-4">
-        {!collapsed && (
-          <div className="mb-3 text-xs text-sidebar-muted">
-            v{APP_VERSION}
-          </div>
-        )}
+      {/* Support & Logout */}
+      <div className="border-t border-sidebar-border p-4 space-y-1">
+        <a
+          href={SUPPORT_WHATSAPP ? `https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, '')}` : '#'}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={collapsed ? 'Suporte' : undefined}
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent',
+            collapsed && 'justify-center px-0'
+          )}
+        >
+          <Headphones className="h-5 w-5 flex-shrink-0" />
+          {!collapsed && <span className="font-medium">Suporte</span>}
+        </a>
         <Button
           variant="ghost"
           onClick={signOut}
