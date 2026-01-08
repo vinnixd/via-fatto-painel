@@ -369,6 +369,7 @@ export type Database = {
       portal_publicacoes: {
         Row: {
           created_at: string
+          external_id: string | null
           id: string
           imovel_id: string
           mensagem_erro: string | null
@@ -380,6 +381,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          external_id?: string | null
           id?: string
           imovel_id: string
           mensagem_erro?: string | null
@@ -391,6 +393,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          external_id?: string | null
           id?: string
           imovel_id?: string
           mensagem_erro?: string | null
