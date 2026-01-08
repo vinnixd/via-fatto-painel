@@ -325,6 +325,63 @@ export type Database = {
         }
         Relationships: []
       }
+      portal_jobs: {
+        Row: {
+          action: string
+          attempts: number
+          created_at: string
+          id: string
+          imovel_id: string
+          last_error: string | null
+          max_attempts: number
+          next_run_at: string
+          portal_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          attempts?: number
+          created_at?: string
+          id?: string
+          imovel_id: string
+          last_error?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          portal_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          attempts?: number
+          created_at?: string
+          id?: string
+          imovel_id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_run_at?: string
+          portal_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_jobs_imovel_id_fkey"
+            columns: ["imovel_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "portal_jobs_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "portais"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_logs: {
         Row: {
           created_at: string
