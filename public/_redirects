@@ -1,0 +1,3 @@
+# Netlify/Vercel style redirects
+# Sitemap redirect to edge function
+/sitemap.xml https://lwxrneoeoqzlekusqgml.supabase.co/functions/v1/generate-sitemap?baseUrl=https://viafatto.com.br 200

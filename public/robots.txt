@@ -50,8 +50,8 @@ Allow: /sobre
 Allow: /contato
 Allow: /favoritos
 
-# Sitemap location
-Sitemap: https://lwxrneoeoqzlekusqgml.supabase.co/functions/v1/generate-sitemap
+# Sitemap location (use custom domain when deployed)
+Sitemap: https://viafatto.com.br/sitemap.xml
 
 # Crawl-delay for politeness
 Crawl-delay: 1
