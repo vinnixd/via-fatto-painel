@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.share-property]
 verify_jwt = false
+
+[functions.portal-push]
+verify_jwt = false
