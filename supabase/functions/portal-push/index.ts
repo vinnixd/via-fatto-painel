@@ -88,130 +88,522 @@ interface PortalAdapter {
 }
 
 // ============================================================
-// OLX ADAPTER
+// OLX ADAPTER - Real Implementation
 // ============================================================
-// Stub implementation - fill with real OLX API calls
+// Documentation: https://developers.olx.com.br/anuncio/api/home.html
+// Rate Limit: 5000 requests/minute, blocked for 10 min on 429
+
+const OLX_API_BASE = 'https://apps.olx.com.br';
+const OLX_AUTH_BASE = 'https://auth.olx.com.br';
+
+// OLX Category mappings
+const OLX_CATEGORIES = {
+  apartamento: 1020,
+  casa: 1020, // Could be 1040, but default to apartamentos
+  cobertura: 1020,
+  flat: 1020,
+  loft: 1020,
+  terreno: 1100,
+  comercial: 1120,
+  galpao: 1120,
+  rural: 1100,
+} as const;
+
+// OLX Apartment type mappings
+const OLX_APARTMENT_TYPES = {
+  padrao: '1',
+  cobertura: '2',
+  duplex: '3',
+  kitnet: '4',
+  loft: '5',
+} as const;
+
+// OLX House type mappings
+const OLX_HOUSE_TYPES = {
+  padrao: '1',
+  vila: '2',
+  condominio: '3',
+} as const;
+
+// OLX Commercial type mappings
+const OLX_COMMERCIAL_TYPES = {
+  escritorio: '1',
+  galpao: '2',
+  hotel: '3',
+  fabrica: '4',
+  garagem: '5',
+  loja: '6',
+  outros: '7',
+} as const;
+
+interface OlxCredentials {
+  client_id?: string;
+  client_secret?: string;
+  access_token?: string;
+  refresh_token?: string;
+  phone?: string;
+}
+
+interface OlxImportResponse {
+  token: string | null;
+  statusCode: number;
+  statusMessage: string;
+  errors: Array<{
+    id: string;
+    status: string;
+    messages: Array<{ category: string }>;
+  }>;
+}
+
+interface OlxPublishingStatusResponse {
+  statusCode: number;
+  statusMessage: string;
+  ad_list: Array<{
+    id: string;
+    status: string;
+    list_id?: number;
+    messages?: Array<{ category: string }>;
+  }>;
+}
+
+// HTTP client with rate limit handling
+async function olxFetch(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // Handle rate limit (429)
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('Retry-After');
+        const waitSeconds = retryAfter ? parseInt(retryAfter) : 60 * attempt; // Default: exponential backoff
+        console.log(`[OLX] Rate limited. Waiting ${waitSeconds}s before retry ${attempt}/${maxRetries}`);
+        
+        if (attempt < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+          continue;
+        }
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      console.error(`[OLX] Request failed (attempt ${attempt}/${maxRetries}):`, lastError.message);
+      
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+      }
+    }
+  }
+  
+  throw lastError || new Error('OLX request failed after all retries');
+}
+
+// Map property to OLX category
+function mapPropertyToCategory(prop: Property): number {
+  const typeKey = prop.type?.toLowerCase() as keyof typeof OLX_CATEGORIES;
+  return OLX_CATEGORIES[typeKey] || 1040; // Default: Casas
+}
+
+// Map property type to OLX subcategory type
+function mapPropertySubtype(prop: Property, category: number): string {
+  if (category === 1020) {
+    // Apartments
+    const typeMap: Record<string, string> = {
+      'cobertura': '2',
+      'flat': '4',
+      'loft': '5',
+    };
+    return typeMap[prop.type?.toLowerCase()] || '1'; // Default: Padrão
+  }
+  if (category === 1040) {
+    // Houses
+    return '1'; // Default: Padrão
+  }
+  if (category === 1120) {
+    // Commercial
+    const typeMap: Record<string, string> = {
+      'galpao': '2',
+      'comercial': '6',
+    };
+    return typeMap[prop.type?.toLowerCase()] || '7'; // Default: Outros
+  }
+  return '1';
+}
+
+// Map property features to OLX feature codes
+function mapPropertyFeatures(features: string[] | null): string[] {
+  if (!features) return [];
+  
+  const featureMap: Record<string, string> = {
+    'ar condicionado': '1',
+    'ar-condicionado': '1',
+    'academia': '2',
+    'armarios': '3',
+    'varanda': '4',
+    'area de servico': '5',
+    'churrasqueira': '6',
+    'quarto de servico': '7',
+    'piscina': '8',
+    'armarios cozinha': '11',
+    'mobiliado': '12',
+  };
+  
+  const mapped: string[] = [];
+  for (const feature of features) {
+    const key = feature.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (const [pattern, code] of Object.entries(featureMap)) {
+      if (key.includes(pattern)) {
+        if (!mapped.includes(code)) mapped.push(code);
+        break;
+      }
+    }
+  }
+  return mapped;
+}
+
+// Map amenities to OLX complex features
+function mapComplexFeatures(amenities: string[] | null): string[] {
+  if (!amenities) return [];
+  
+  const amenityMap: Record<string, string> = {
+    'condominio fechado': '1',
+    'elevador': '2',
+    'seguranca 24h': '3',
+    'portaria': '4',
+    'pet friendly': '5',
+    'animais': '5',
+    'academia': '6',
+    'piscina': '7',
+    'salao de festas': '8',
+  };
+  
+  const mapped: string[] = [];
+  for (const amenity of amenities) {
+    const key = amenity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    for (const [pattern, code] of Object.entries(amenityMap)) {
+      if (key.includes(pattern)) {
+        if (!mapped.includes(code)) mapped.push(code);
+        break;
+      }
+    }
+  }
+  return mapped;
+}
+
+// Limit number to OLX max values
+function limitNumber(value: number, max: number): string {
+  return Math.min(value, max).toString();
+}
+
+// Build OLX ad payload
+function buildOlxAdPayload(
+  prop: Property,
+  credentials: OlxCredentials,
+  operation: 'insert' | 'delete' = 'insert'
+): Record<string, unknown> {
+  const category = mapPropertyToCategory(prop);
+  
+  // For delete, only need id and operation
+  if (operation === 'delete') {
+    return {
+      id: prop.id.substring(0, 19), // OLX max 19 chars
+      operation: 'delete',
+    };
+  }
+  
+  // Build params based on category
+  const params: Record<string, unknown> = {
+    rooms: limitNumber(prop.bedrooms, 5),
+  };
+  
+  if (prop.bathrooms > 0) {
+    params.bathrooms = limitNumber(prop.bathrooms, 5);
+  }
+  if (prop.garages >= 0) {
+    params.garage_spaces = limitNumber(prop.garages, 5);
+  }
+  if (prop.area > 0) {
+    params.size = prop.area.toString();
+  }
+  if (prop.iptu && prop.iptu > 0) {
+    params.iptu = prop.iptu.toString();
+  }
+  if (prop.condo_fee && prop.condo_fee > 0) {
+    params.condominio = prop.condo_fee.toString();
+  }
+  
+  // Category-specific params
+  if (category === 1020) {
+    // Apartment
+    params.apartment_type = mapPropertySubtype(prop, category);
+    const features = mapPropertyFeatures(prop.features);
+    if (features.length > 0) params.apartment_features = features;
+    const complexFeatures = mapComplexFeatures(prop.amenities);
+    if (complexFeatures.length > 0) params.apartment_complex_features = complexFeatures;
+  } else if (category === 1040) {
+    // House
+    params.home_type = mapPropertySubtype(prop, category);
+    const features = mapPropertyFeatures(prop.features);
+    if (features.length > 0) params.home_features = features;
+  } else if (category === 1120) {
+    // Commercial
+    params.commercial_type = mapPropertySubtype(prop, category);
+    const features = mapPropertyFeatures(prop.amenities);
+    if (features.length > 0) params.commercial_features = features;
+  }
+  
+  // Get images (max 20)
+  const images = (prop.images || [])
+    .slice(0, 20)
+    .map(img => img.url);
+  
+  if (images.length === 0) {
+    throw new Error('OLX requires at least 1 image');
+  }
+  
+  return {
+    id: prop.id.substring(0, 19), // OLX allows max 19 chars
+    operation: 'insert',
+    category,
+    subject: prop.title.substring(0, 90), // Max 90 chars
+    body: (prop.description || prop.title).substring(0, 6000), // Max 6000 chars
+    phone: parseInt((credentials.phone || '11999999999').replace(/\D/g, '')),
+    type: prop.status === 'aluguel' ? 'u' : 's', // u = rental, s = sale
+    price: Math.floor(prop.price), // No decimals
+    zipcode: (prop.address_zipcode || '').replace(/\D/g, ''),
+    params,
+    images,
+  };
+}
 
 const olxAdapter: PortalAdapter = {
   async testConnection(credentials) {
     console.log('[OLX] Testing connection...');
     
-    if (!credentials?.access_token && !credentials?.api_key) {
-      return { success: false, error: 'Missing OLX credentials (access_token or api_key)' };
+    const creds = credentials as OlxCredentials | undefined;
+    
+    if (!creds?.access_token) {
+      return { 
+        success: false, 
+        error: 'Missing OLX access_token. Configure OAuth credentials first.' 
+      };
     }
 
-    // TODO: Implement real OLX API health check
-    // Example: GET https://api.olx.com.br/v1/autoupload/health
-    // Headers: Authorization: Bearer {access_token}
-    
-    return { 
-      success: true, 
-      response_data: { message: 'Connection stub - implement real API call' } 
-    };
+    try {
+      // Test by fetching published ads list (empty is fine, just need success)
+      const response = await olxFetch(
+        `${OLX_API_BASE}/autoupload/published_ads`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            access_token: creds.access_token,
+            fetch_size: 1,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.log('[OLX] Connection test failed:', response.status, errorText);
+        
+        if (response.status === 401 || response.status === 403) {
+          return { 
+            success: false, 
+            error: 'Token inválido ou expirado. Necessário renovar autorização OAuth.',
+            response_data: { status: response.status }
+          };
+        }
+        
+        return { 
+          success: false, 
+          error: `OLX API error: ${response.status}`,
+          response_data: { status: response.status, body: errorText.substring(0, 200) }
+        };
+      }
+
+      const data = await response.json();
+      console.log('[OLX] Connection test successful');
+      
+      return { 
+        success: true, 
+        response_data: { 
+          message: 'Conexão com OLX estabelecida com sucesso',
+          ads_count: data.ads?.length || 0,
+        } 
+      };
+    } catch (error) {
+      console.error('[OLX] Connection test error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Connection test failed' 
+      };
+    }
   },
 
   async publish(imovel, credentials, settings) {
     console.log(`[OLX] Publishing property: ${imovel.id}`);
     
-    if (!credentials?.access_token) {
+    const creds = credentials as OlxCredentials | undefined;
+    
+    if (!creds?.access_token) {
       return { success: false, error: 'Missing OLX access_token' };
     }
 
-    // TODO: Implement real OLX publish API
-    // POST https://api.olx.com.br/v1/autoupload/publish
-    // 
-    // Payload structure:
-    // {
-    //   "category": settings?.default_category || mapPropertyType(imovel.type),
-    //   "subject": imovel.title,
-    //   "body": imovel.description,
-    //   "price": imovel.price,
-    //   "images": imovel.images?.map(img => img.url),
-    //   "location": {
-    //     "zipcode": imovel.address_zipcode,
-    //     "neighborhood": imovel.address_neighborhood,
-    //     "city": imovel.address_city,
-    //     "state": imovel.address_state
-    //   },
-    //   "params": {
-    //     "rooms": imovel.bedrooms,
-    //     "bathrooms": imovel.bathrooms,
-    //     "garage_spaces": imovel.garages,
-    //     "size": imovel.area,
-    //     "built_area": imovel.built_area
-    //   }
-    // }
-
-    // Stub response - simulating success
-    const stubExternalId = `olx_${Date.now()}_${imovel.id.substring(0, 8)}`;
-    
-    return {
-      success: true,
-      external_id: stubExternalId,
-      response_data: {
-        message: 'Publish stub - implement real API call',
-        stub_id: stubExternalId,
-        property_title: imovel.title
+    try {
+      // Validate required fields
+      if (!imovel.address_zipcode) {
+        return { success: false, error: 'CEP é obrigatório para OLX' };
       }
-    };
+      if (!imovel.images || imovel.images.length === 0) {
+        return { success: false, error: 'Pelo menos 1 imagem é obrigatória para OLX' };
+      }
+
+      // Get phone from settings or credentials
+      const phone = settings?.default_phone || creds.phone;
+      if (phone) {
+        (creds as OlxCredentials).phone = phone as string;
+      }
+
+      const adPayload = buildOlxAdPayload(imovel, creds, 'insert');
+      
+      const requestBody = {
+        access_token: creds.access_token,
+        ad_list: [adPayload],
+      };
+
+      console.log('[OLX] Publishing ad with category:', adPayload.category);
+
+      const response = await olxFetch(
+        `${OLX_API_BASE}/autoupload/import`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const data: OlxImportResponse = await response.json();
+      console.log('[OLX] Import response:', { statusCode: data.statusCode, statusMessage: data.statusMessage });
+
+      if (data.statusCode === 0 && data.token) {
+        // Success - ads queued for processing
+        return {
+          success: true,
+          external_id: data.token, // We'll use import token, then fetch list_id later
+          response_data: {
+            import_token: data.token,
+            message: data.statusMessage,
+            ad_id: adPayload.id,
+          }
+        };
+      } else {
+        // Error
+        const errorDetails = data.errors?.[0]?.messages?.map(m => m.category).join(', ') || data.statusMessage;
+        return {
+          success: false,
+          error: `OLX Error ${data.statusCode}: ${errorDetails}`,
+          response_data: {
+            statusCode: data.statusCode,
+            errors: data.errors,
+          }
+        };
+      }
+    } catch (error) {
+      console.error('[OLX] Publish error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Publish failed' 
+      };
+    }
   },
 
   async update(external_id, imovel, credentials, settings) {
     console.log(`[OLX] Updating property: ${external_id}`);
     
-    if (!credentials?.access_token) {
-      return { success: false, error: 'Missing OLX access_token' };
-    }
-
-    // TODO: Implement real OLX update API
-    // PUT https://api.olx.com.br/v1/autoupload/ad/{external_id}
-    
-    return {
-      success: true,
-      external_id,
-      response_data: {
-        message: 'Update stub - implement real API call',
-        updated_id: external_id
-      }
-    };
+    // OLX uses the same endpoint for insert and update
+    // If the ID already exists, it's treated as an update
+    return this.publish(imovel, credentials, settings);
   },
 
   async pause(external_id, credentials) {
     console.log(`[OLX] Pausing ad: ${external_id}`);
     
-    if (!credentials?.access_token) {
-      return { success: false, error: 'Missing OLX access_token' };
-    }
-
-    // TODO: Implement real OLX pause API
-    // POST https://api.olx.com.br/v1/autoupload/ad/{external_id}/pause
-    
+    // OLX doesn't have a pause endpoint
+    // To "pause", we need to delete
+    // But we can implement this as a no-op or actual delete
     return {
-      success: true,
+      success: false,
+      error: 'OLX não suporta pausar anúncios. Use "remover" para despublicar.',
       external_id,
-      response_data: {
-        message: 'Pause stub - implement real API call'
-      }
     };
   },
 
   async remove(external_id, credentials) {
     console.log(`[OLX] Removing ad: ${external_id}`);
     
-    if (!credentials?.access_token) {
+    const creds = credentials as OlxCredentials | undefined;
+    
+    if (!creds?.access_token) {
       return { success: false, error: 'Missing OLX access_token' };
     }
 
-    // TODO: Implement real OLX delete API
-    // DELETE https://api.olx.com.br/v1/autoupload/ad/{external_id}
-    
-    return {
-      success: true,
-      external_id,
-      response_data: {
-        message: 'Remove stub - implement real API call'
+    try {
+      // OLX uses the same import endpoint with operation: delete
+      const requestBody = {
+        access_token: creds.access_token,
+        ad_list: [{
+          id: external_id.substring(0, 19),
+          operation: 'delete',
+        }],
+      };
+
+      const response = await olxFetch(
+        `${OLX_API_BASE}/autoupload/import`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      const data: OlxImportResponse = await response.json();
+      
+      if (data.statusCode === 0) {
+        return {
+          success: true,
+          external_id,
+          response_data: {
+            message: 'Anúncio removido com sucesso',
+            token: data.token,
+          }
+        };
+      } else {
+        return {
+          success: false,
+          error: `OLX Error ${data.statusCode}: ${data.statusMessage}`,
+          response_data: { statusCode: data.statusCode, errors: data.errors }
+        };
       }
-    };
+    } catch (error) {
+      console.error('[OLX] Remove error:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Remove failed' 
+      };
+    }
   }
 };
 

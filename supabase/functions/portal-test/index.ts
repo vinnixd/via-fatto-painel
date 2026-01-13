@@ -6,6 +6,48 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// OLX API test connection
+async function testOlxConnection(credentials: Record<string, unknown>): Promise<{
+  ok: boolean;
+  error?: string;
+  accountInfo?: Record<string, unknown>;
+}> {
+  const accessToken = credentials?.access_token as string;
+  
+  if (!accessToken) {
+    return { ok: false, error: 'Token de acesso não configurado' };
+  }
+
+  try {
+    const response = await fetch('https://apps.olx.com.br/autoupload/published_ads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_token: accessToken,
+        fetch_size: 1,
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        return { ok: false, error: 'Token inválido ou expirado. Autorize novamente via OAuth.' };
+      }
+      return { ok: false, error: `Erro HTTP ${response.status}` };
+    }
+
+    const data = await response.json();
+    return {
+      ok: true,
+      accountInfo: {
+        ads_count: data.ads?.length || 0,
+        connected_at: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Erro de conexão' };
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -42,13 +84,36 @@ serve(async (req) => {
     const config = portal.config || {};
     const filtros = config.filtros || {};
     const warnings: string[] = [];
+    
+    // API connection test for API method portals
+    let apiConnectionResult: { ok: boolean; error?: string; accountInfo?: Record<string, unknown> } | null = null;
+    
+    if (portal.metodo === 'api') {
+      const credentials = config.api_credentials || {};
+      
+      // Test connection based on portal slug
+      if (portal.slug === 'olx') {
+        apiConnectionResult = await testOlxConnection(credentials);
+      } else {
+        // Generic check for access_token presence
+        if (credentials.access_token) {
+          apiConnectionResult = { ok: true, accountInfo: { message: 'Credenciais configuradas' } };
+        } else {
+          apiConnectionResult = { ok: false, error: 'Credenciais de API não configuradas' };
+        }
+      }
+      
+      if (!apiConnectionResult.ok) {
+        warnings.push(`Conexão API: ${apiConnectionResult.error}`);
+      }
+    }
 
     // Build query
     let query = supabase
       .from('properties')
       .select(`
         id, title, slug, description, price, status, active, featured,
-        address_city, address_state,
+        address_city, address_state, address_zipcode,
         property_images (id)
       `);
 
@@ -79,6 +144,7 @@ serve(async (req) => {
     const withoutImages = filteredProperties.filter((p: any) => !p.property_images || p.property_images.length === 0);
     const withoutDescription = filteredProperties.filter((p: any) => !p.description);
     const withoutAddress = filteredProperties.filter((p: any) => !p.address_city || !p.address_state);
+    const withoutZipcode = filteredProperties.filter((p: any) => !p.address_zipcode);
 
     if (withoutPrice.length > 0) {
       warnings.push(`${withoutPrice.length} imóveis sem preço`);
@@ -91,6 +157,10 @@ serve(async (req) => {
     }
     if (withoutAddress.length > 0) {
       warnings.push(`${withoutAddress.length} imóveis sem endereço completo`);
+    }
+    // CEP is required for OLX
+    if (portal.slug === 'olx' && withoutZipcode.length > 0) {
+      warnings.push(`${withoutZipcode.length} imóveis sem CEP (obrigatório para OLX)`);
     }
 
     // Apply post-filters
@@ -120,12 +190,15 @@ serve(async (req) => {
       price: p.price,
       images: p.property_images?.length || 0,
       hasDescription: !!p.description,
+      hasZipcode: !!p.address_zipcode,
       location: `${p.address_city || '?'}, ${p.address_state || '?'}`,
     }));
 
-    const valid = warnings.length === 0 || (warnings.length === 1 && excluded > 0);
+    // Valid if no critical warnings (API connection is critical for API portals)
+    const hasApiError = portal.metodo === 'api' && apiConnectionResult && !apiConnectionResult.ok;
+    const valid = !hasApiError && (warnings.length === 0 || (warnings.length === 1 && excluded > 0));
 
-    console.log(`Portal test for ${portal.slug}: ${finalCount} properties, ${warnings.length} warnings`);
+    console.log(`Portal test for ${portal.slug}: ${finalCount} properties, ${warnings.length} warnings, API: ${apiConnectionResult?.ok ?? 'N/A'}`);
 
     return new Response(
       JSON.stringify({
@@ -135,9 +208,11 @@ serve(async (req) => {
         preview,
         config: {
           formato: portal.formato_feed,
+          metodo: portal.metodo,
           limite_fotos: config.limite_fotos,
           filtros,
         },
+        apiConnection: apiConnectionResult,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
