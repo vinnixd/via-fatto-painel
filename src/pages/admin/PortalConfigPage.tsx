@@ -26,6 +26,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -38,10 +49,19 @@ import {
   XCircle,
   Loader2,
   Link as LinkIcon,
-  Map,
+  Map as MapIcon,
   Filter,
   FileText,
   Eye,
+  Key,
+  Zap,
+  Upload,
+  Pause,
+  Trash2,
+  RotateCcw,
+  AlertTriangle,
+  Clock,
+  Play,
 } from 'lucide-react';
 
 interface Portal {
@@ -72,6 +92,17 @@ interface PortalConfig {
     excluir_sem_endereco?: boolean;
     categorias?: string[];
   };
+  api_credentials?: {
+    client_id?: string;
+    client_secret?: string;
+    access_token?: string;
+    refresh_token?: string;
+    phone?: string;
+  };
+  settings?: {
+    default_phone?: string;
+    auto_renew?: boolean;
+  };
   limite_fotos?: number;
   preco_consulte?: boolean;
   remover_html?: boolean;
@@ -88,6 +119,41 @@ interface PortalLog {
   created_at: string;
 }
 
+interface PortalPublicacao {
+  id: string;
+  portal_id: string;
+  imovel_id: string;
+  status: 'pending' | 'published' | 'error' | 'disabled';
+  external_id: string | null;
+  mensagem_erro: string | null;
+  ultima_tentativa: string | null;
+  payload_snapshot: any;
+  created_at: string;
+  updated_at: string;
+  property?: {
+    id: string;
+    title: string;
+    slug: string;
+    price: number;
+    address_city: string;
+    address_state: string;
+    active: boolean;
+    property_images: { id: string }[];
+  };
+}
+
+interface PortalJob {
+  id: string;
+  portal_id: string;
+  imovel_id: string;
+  action: string;
+  status: string;
+  attempts: number;
+  max_attempts: number;
+  next_run_at: string;
+  last_error: string | null;
+}
+
 const PortalConfigPage = () => {
   const { portalId } = useParams();
   const navigate = useNavigate();
@@ -95,6 +161,9 @@ const PortalConfigPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingApi, setIsTestingApi] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<{ ok: boolean; error?: string; accountInfo?: any } | null>(null);
+  const [processingJobs, setProcessingJobs] = useState<Set<string>>(new Set());
 
   const [formData, setFormData] = useState<{
     nome: string;
@@ -114,6 +183,8 @@ const PortalConfigPage = () => {
       filtros: {
         apenas_ativos: true,
       },
+      api_credentials: {},
+      settings: {},
       limite_fotos: 20,
       preco_consulte: true,
       remover_html: true,
@@ -164,6 +235,56 @@ const PortalConfigPage = () => {
     },
   });
 
+  // Fetch publications with property data
+  const { data: publicacoes, isLoading: isLoadingPublicacoes, refetch: refetchPublicacoes } = useQuery({
+    queryKey: ['portal-publicacoes', portalId],
+    queryFn: async () => {
+      // First get all active properties
+      const { data: properties, error: propError } = await supabase
+        .from('properties')
+        .select('id, title, slug, price, address_city, address_state, active, property_images(id)')
+        .eq('active', true)
+        .order('title');
+
+      if (propError) throw propError;
+
+      // Then get existing publications for this portal
+      const { data: pubs, error: pubError } = await supabase
+        .from('portal_publicacoes')
+        .select('*')
+        .eq('portal_id', portalId);
+
+      if (pubError) throw pubError;
+
+      // Map publications to properties
+      const pubMap = new Map((pubs || []).map(p => [p.imovel_id, p]));
+      
+      return (properties || []).map(prop => ({
+        property: prop,
+        publication: pubMap.get(prop.id) || null,
+      }));
+    },
+    enabled: !!portalId && formData.metodo === 'api',
+  });
+
+  // Fetch pending jobs
+  const { data: pendingJobs } = useQuery({
+    queryKey: ['portal-jobs', portalId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('portal_jobs')
+        .select('*')
+        .eq('portal_id', portalId)
+        .in('status', ['queued', 'processing'])
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as PortalJob[];
+    },
+    enabled: !!portalId && formData.metodo === 'api',
+    refetchInterval: 5000, // Poll every 5 seconds
+  });
+
   useEffect(() => {
     if (portal) {
       setFormData({
@@ -175,6 +296,8 @@ const PortalConfigPage = () => {
         config: {
           mapeamento: portal.config?.mapeamento || {},
           filtros: portal.config?.filtros || { apenas_ativos: true },
+          api_credentials: portal.config?.api_credentials || {},
+          settings: portal.config?.settings || {},
           limite_fotos: portal.config?.limite_fotos || 20,
           preco_consulte: portal.config?.preco_consulte ?? true,
           remover_html: portal.config?.remover_html ?? true,
@@ -279,7 +402,133 @@ const PortalConfigPage = () => {
     toast.success('Link do feed copiado!');
   };
 
-  const formatDate = (date: string) => {
+  // Test API connection
+  const testApiConnection = async () => {
+    setIsTestingApi(true);
+    setApiTestResult(null);
+    try {
+      // First save credentials
+      await handleSave();
+      
+      const { data, error } = await supabase.functions.invoke('portal-test', {
+        body: { portalId },
+      });
+
+      if (error) throw error;
+
+      if (data.apiConnection) {
+        setApiTestResult(data.apiConnection);
+        if (data.apiConnection.ok) {
+          toast.success('Conexão com API estabelecida com sucesso!');
+        } else {
+          toast.error(`Falha na conexão: ${data.apiConnection.error}`);
+        }
+      } else {
+        toast.warning('Teste de API não suportado para este portal');
+      }
+    } catch (error: any) {
+      console.error('API test error:', error);
+      toast.error('Erro ao testar conexão');
+      setApiTestResult({ ok: false, error: error.message });
+    } finally {
+      setIsTestingApi(false);
+    }
+  };
+
+  // Create or update publication and queue job
+  const createPublishJob = async (propertyId: string, action: 'publish' | 'update' | 'pause' | 'remove') => {
+    if (!portalId) return;
+    
+    setProcessingJobs(prev => new Set(prev).add(propertyId));
+    
+    try {
+      // Upsert publication record
+      const { error: pubError } = await supabase
+        .from('portal_publicacoes')
+        .upsert({
+          portal_id: portalId,
+          imovel_id: propertyId,
+          status: 'pending',
+          mensagem_erro: null,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'portal_id,imovel_id',
+        });
+
+      if (pubError) throw pubError;
+
+      // Create job
+      const { error: jobError } = await supabase
+        .from('portal_jobs')
+        .insert({
+          portal_id: portalId,
+          imovel_id: propertyId,
+          action,
+          status: 'queued',
+          attempts: 0,
+          max_attempts: 5,
+          next_run_at: new Date().toISOString(),
+        });
+
+      if (jobError) throw jobError;
+
+      toast.success(`Ação "${action}" agendada com sucesso`);
+      refetchPublicacoes();
+      queryClient.invalidateQueries({ queryKey: ['portal-jobs', portalId] });
+    } catch (error: any) {
+      console.error('Create job error:', error);
+      toast.error('Erro ao agendar ação');
+    } finally {
+      setProcessingJobs(prev => {
+        const next = new Set(prev);
+        next.delete(propertyId);
+        return next;
+      });
+    }
+  };
+
+  // Run portal-push manually
+  const runPortalPush = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('portal-push', {
+        body: { action: 'run' },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Processados: ${data.succeeded} sucesso, ${data.failed} falhas`);
+      refetchPublicacoes();
+      queryClient.invalidateQueries({ queryKey: ['portal-jobs', portalId] });
+    } catch (error: any) {
+      console.error('Portal push error:', error);
+      toast.error('Erro ao processar fila');
+    }
+  };
+
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+      pending: { label: 'Pendente', className: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-3 w-3" /> },
+      published: { label: 'Publicado', className: 'bg-green-100 text-green-800', icon: <CheckCircle className="h-3 w-3" /> },
+      error: { label: 'Erro', className: 'bg-red-100 text-red-800', icon: <XCircle className="h-3 w-3" /> },
+      disabled: { label: 'Desativado', className: 'bg-gray-100 text-gray-800', icon: <Pause className="h-3 w-3" /> },
+    };
+    const variant = variants[status] || variants.pending;
+    return (
+      <Badge className={`${variant.className} flex items-center gap-1`}>
+        {variant.icon}
+        {variant.label}
+      </Badge>
+    );
+  };
+
+  // Check if property has pending job
+  const hasPendingJob = (propertyId: string) => {
+    return pendingJobs?.some(j => j.imovel_id === propertyId);
+  };
+
+  const formatDate = (date: string | null) => {
+    if (!date) return '-';
     return new Date(date).toLocaleString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
@@ -351,13 +600,19 @@ const PortalConfigPage = () => {
         </div>
 
         <Tabs defaultValue="conexao" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${formData.metodo === 'api' ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="conexao" className="flex items-center gap-2">
               <LinkIcon className="h-4 w-4" />
               Conexão
             </TabsTrigger>
+            {formData.metodo === 'api' && (
+              <TabsTrigger value="publicacoes" className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Publicações
+              </TabsTrigger>
+            )}
             <TabsTrigger value="mapeamento" className="flex items-center gap-2">
-              <Map className="h-4 w-4" />
+              <MapIcon className="h-4 w-4" />
               Mapeamento
             </TabsTrigger>
             <TabsTrigger value="filtros" className="flex items-center gap-2">
@@ -499,9 +754,370 @@ const PortalConfigPage = () => {
                     {`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/portal-feed?portal=${portal.slug}&token=${formData.token_feed}`}
                   </code>
                 </div>
+
+                {/* API Credentials Section */}
+                {formData.metodo === 'api' && (
+                  <Card className="border-2 border-dashed">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Key className="h-5 w-5" />
+                        Credenciais API {portal.slug.toUpperCase()}
+                      </CardTitle>
+                      <CardDescription>
+                        {portal.slug === 'olx' 
+                          ? 'Configure suas credenciais OAuth da OLX. Obtenha em developers.olx.com.br'
+                          : 'Configure as credenciais de acesso à API do portal'
+                        }
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {portal.slug === 'olx' && (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Client ID</Label>
+                              <Input
+                                value={formData.config.api_credentials?.client_id || ''}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    config: {
+                                      ...prev.config,
+                                      api_credentials: {
+                                        ...prev.config.api_credentials,
+                                        client_id: e.target.value,
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="Seu client_id da OLX"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Client Secret</Label>
+                              <Input
+                                type="password"
+                                value={formData.config.api_credentials?.client_secret || ''}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    config: {
+                                      ...prev.config,
+                                      api_credentials: {
+                                        ...prev.config.api_credentials,
+                                        client_secret: e.target.value,
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="Seu client_secret"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Access Token</Label>
+                            <Input
+                              value={formData.config.api_credentials?.access_token || ''}
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  config: {
+                                    ...prev.config,
+                                    api_credentials: {
+                                      ...prev.config.api_credentials,
+                                      access_token: e.target.value,
+                                    },
+                                  },
+                                }))
+                              }
+                              placeholder="Token de acesso OAuth"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Token obtido após autorização do usuário via fluxo OAuth
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label>Refresh Token (opcional)</Label>
+                              <Input
+                                value={formData.config.api_credentials?.refresh_token || ''}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    config: {
+                                      ...prev.config,
+                                      api_credentials: {
+                                        ...prev.config.api_credentials,
+                                        refresh_token: e.target.value,
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="Refresh token para renovação"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Telefone para Anúncios</Label>
+                              <Input
+                                value={formData.config.api_credentials?.phone || formData.config.settings?.default_phone || ''}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    config: {
+                                      ...prev.config,
+                                      api_credentials: {
+                                        ...prev.config.api_credentials,
+                                        phone: e.target.value,
+                                      },
+                                    },
+                                  }))
+                                }
+                                placeholder="11999999999"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                DDD + número (sem espaços ou caracteres)
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Test Connection Button */}
+                      <div className="pt-4 border-t flex items-center justify-between">
+                        <div>
+                          {apiTestResult && (
+                            <div className={`flex items-center gap-2 ${apiTestResult.ok ? 'text-green-600' : 'text-red-600'}`}>
+                              {apiTestResult.ok ? (
+                                <>
+                                  <CheckCircle className="h-5 w-5" />
+                                  <span>Conexão estabelecida</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="h-5 w-5" />
+                                  <span>{apiTestResult.error}</span>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Button 
+                          onClick={testApiConnection} 
+                          disabled={isTestingApi || !formData.config.api_credentials?.access_token}
+                        >
+                          {isTestingApi ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Zap className="h-4 w-4 mr-2" />
+                          )}
+                          Testar Conexão
+                        </Button>
+                      </div>
+
+                      {/* OLX specific info */}
+                      {portal.slug === 'olx' && (
+                        <div className="p-4 bg-blue-50 rounded-lg text-sm space-y-2">
+                          <p className="font-medium text-blue-800">Como obter credenciais OLX:</p>
+                          <ol className="list-decimal list-inside text-blue-700 space-y-1">
+                            <li>Contate suporteintegrador@olxbr.com para registrar sua aplicação</li>
+                            <li>Você receberá client_id e client_secret</li>
+                            <li>Autorize sua conta via OAuth em auth.olx.com.br/oauth</li>
+                            <li>Use o authorization code para obter o access_token</li>
+                          </ol>
+                          <p className="text-blue-600 text-xs mt-2">
+                            Documentação: developers.olx.com.br/anuncio/api/oauth.html
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Tab: Publicações (only for API method) */}
+          {formData.metodo === 'api' && (
+            <TabsContent value="publicacoes">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Publicações no {portal.nome}</CardTitle>
+                      <CardDescription>
+                        Gerencie os imóveis publicados via API
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      {(pendingJobs?.length || 0) > 0 && (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {pendingJobs?.length} na fila
+                        </Badge>
+                      )}
+                      <Button variant="outline" onClick={runPortalPush}>
+                        <Play className="h-4 w-4 mr-2" />
+                        Processar Fila
+                      </Button>
+                      <Button variant="outline" onClick={() => refetchPublicacoes()}>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Atualizar
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingPublicacoes ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : publicacoes && publicacoes.length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Imóvel</TableHead>
+                          <TableHead>Preço</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Última Tentativa</TableHead>
+                          <TableHead className="text-right">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {publicacoes.map(({ property, publication }) => {
+                          const isProcessing = processingJobs.has(property.id) || hasPendingJob(property.id);
+                          const status = publication?.status || 'not_published';
+                          
+                          return (
+                            <TableRow key={property.id}>
+                              <TableCell>
+                                <div>
+                                  <p className="font-medium truncate max-w-xs">{property.title}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {property.address_city}, {property.address_state}
+                                  </p>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                {property.price > 0 
+                                  ? `R$ ${property.price.toLocaleString('pt-BR')}`
+                                  : <span className="text-muted-foreground">-</span>
+                                }
+                              </TableCell>
+                              <TableCell>
+                                {publication ? (
+                                  <div className="space-y-1">
+                                    {getStatusBadge(publication.status)}
+                                    {publication.status === 'error' && publication.mensagem_erro && (
+                                      <p className="text-xs text-red-600 max-w-xs truncate" title={publication.mensagem_erro}>
+                                        {publication.mensagem_erro}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <Badge variant="outline">Não publicado</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {formatDate(publication?.ultima_tentativa)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  {isProcessing ? (
+                                    <Button size="sm" variant="ghost" disabled>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    </Button>
+                                  ) : (
+                                    <>
+                                      {(!publication || publication.status === 'error' || publication.status === 'disabled') && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => createPublishJob(property.id, 'publish')}
+                                          title="Publicar"
+                                        >
+                                          <Upload className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                      {publication?.status === 'published' && (
+                                        <>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => createPublishJob(property.id, 'update')}
+                                            title="Atualizar"
+                                          >
+                                            <RefreshCw className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => createPublishJob(property.id, 'remove')}
+                                            title="Remover"
+                                          >
+                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                          </Button>
+                                        </>
+                                      )}
+                                      {publication?.status === 'error' && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => createPublishJob(property.id, 'publish')}
+                                          title="Tentar novamente"
+                                        >
+                                          <RotateCcw className="h-4 w-4" />
+                                        </Button>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Nenhum imóvel ativo encontrado
+                    </div>
+                  )}
+
+                  {/* Pending Jobs */}
+                  {pendingJobs && pendingJobs.length > 0 && (
+                    <div className="mt-6 pt-6 border-t">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Jobs na Fila ({pendingJobs.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {pendingJobs.slice(0, 5).map(job => (
+                          <div key={job.id} className="flex items-center justify-between p-2 bg-muted rounded text-sm">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={job.status === 'processing' ? 'default' : 'secondary'}>
+                                {job.status}
+                              </Badge>
+                              <span className="text-muted-foreground">{job.action}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              Tentativa {job.attempts + 1}/{job.max_attempts}
+                            </span>
+                          </div>
+                        ))}
+                        {pendingJobs.length > 5 && (
+                          <p className="text-xs text-muted-foreground text-center">
+                            +{pendingJobs.length - 5} mais na fila
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           {/* Tab: Mapeamento */}
           <TabsContent value="mapeamento">
