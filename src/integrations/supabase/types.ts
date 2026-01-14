@@ -541,6 +541,7 @@ export type Database = {
           financing: boolean
           garages: number
           id: string
+          integrar_portais: boolean
           iptu: number | null
           location_type: string
           old_url: string | null
@@ -586,6 +587,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          integrar_portais?: boolean
           iptu?: number | null
           location_type?: string
           old_url?: string | null
@@ -631,6 +633,7 @@ export type Database = {
           financing?: boolean
           garages?: number
           id?: string
+          integrar_portais?: boolean
           iptu?: number | null
           location_type?: string
           old_url?: string | null

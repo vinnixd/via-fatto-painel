@@ -39,7 +39,9 @@ import {
   Check,
   GripVertical,
   RefreshCw,
-  Settings2
+  Settings2,
+  Share2,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { compressImage } from '@/lib/imageCompression';
@@ -113,6 +115,7 @@ interface FormData {
   category_id: string;
   seo_title: string;
   seo_description: string;
+  integrar_portais: boolean;
 }
 
 // Sortable Image Component for drag-and-drop
@@ -199,6 +202,7 @@ const PropertyFormPage = () => {
   const [isLookingUpCep, setIsLookingUpCep] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [activePortalsCount, setActivePortalsCount] = useState(0);
 
   // CEP lookup function
   const handleCepLookup = useCallback(async (cep: string) => {
@@ -298,6 +302,7 @@ const PropertyFormPage = () => {
     category_id: '',
     seo_title: '',
     seo_description: '',
+    integrar_portais: false,
   });
 
   // Track unsaved changes
@@ -313,6 +318,16 @@ const PropertyFormPage = () => {
       setCategories(data || []);
     };
     fetchCategories();
+    
+    // Fetch active portals count
+    const fetchActivePortals = async () => {
+      const { count } = await supabase
+        .from('portais')
+        .select('*', { count: 'exact', head: true })
+        .eq('ativo', true);
+      setActivePortalsCount(count || 0);
+    };
+    fetchActivePortals();
   }, []);
 
   useEffect(() => {
@@ -366,6 +381,7 @@ const PropertyFormPage = () => {
         category_id: property.category_id || '',
         seo_title: property.seo_title || '',
         seo_description: property.seo_description || '',
+        integrar_portais: property.integrar_portais || false,
       });
 
       // Fetch images
@@ -551,6 +567,7 @@ const PropertyFormPage = () => {
         category_id: formData.category_id || null,
         seo_title: formData.seo_title || null,
         seo_description: formData.seo_description || null,
+        integrar_portais: formData.integrar_portais,
         created_by: user?.id,
       };
 
@@ -1147,6 +1164,59 @@ const PropertyFormPage = () => {
                             {formData.financing ? 'Sim' : 'Não'}
                           </span>
                         </button>
+                      </div>
+                    </div>
+
+                    {/* Integração com Portais */}
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Share2 className="h-4 w-4" />
+                        Integração com Portais
+                      </div>
+                      <div 
+                        className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                          formData.integrar_portais 
+                            ? 'border-blue-500 bg-blue-500/10' 
+                            : 'border-border bg-muted/30 hover:bg-muted/50'
+                        }`}
+                        onClick={() => setFormData(prev => ({ ...prev, integrar_portais: !prev.integrar_portais }))}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Share2 className={`h-5 w-5 ${formData.integrar_portais ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                          <div>
+                            <p className="font-medium">Integrar com Portais</p>
+                            <p className="text-sm text-muted-foreground">
+                              Exportar para portais imobiliários (ZAP, OLX, VivaReal, etc.)
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            checked={formData.integrar_portais}
+                            onCheckedChange={(checked) => setFormData(prev => ({ ...prev, integrar_portais: checked }))}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        {activePortalsCount > 0 ? (
+                          <>
+                            <span className="text-muted-foreground">Portais ativos:</span>
+                            <Badge variant="secondary">{activePortalsCount}</Badge>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground flex items-center gap-2">
+                            <ExternalLink className="h-3 w-3" />
+                            Nenhum portal ativo. Ative em{' '}
+                            <button 
+                              type="button"
+                              onClick={() => navigate('/admin/portais')}
+                              className="text-primary hover:underline"
+                            >
+                              Configurações → Portais
+                            </button>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </CardContent>

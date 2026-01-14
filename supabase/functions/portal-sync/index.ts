@@ -45,10 +45,11 @@ serve(async (req) => {
     const config = portal.config || {};
     const filtros = config.filtros || {};
 
-    // Build query
+    // Build query - ALWAYS filter by integrar_portais = true
     let query = supabase
       .from('properties')
-      .select('id, title, slug, price, status, active, featured, address_city, address_state, property_images(id)');
+      .select('id, title, slug, price, status, active, featured, address_city, address_state, integrar_portais, property_images(id)')
+      .eq('integrar_portais', true);
 
     if (filtros.apenas_ativos !== false) {
       query = query.eq('active', true);

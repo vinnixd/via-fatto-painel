@@ -704,6 +704,26 @@ async function processJobs(supabase: ReturnType<typeof createClient>, batchSize 
           throw new Error(`Property not found: ${job.imovel_id}`);
         }
 
+        // Check if property has portal integration disabled
+        if (!prop.integrar_portais) {
+          console.log(`Property ${job.imovel_id} has integrar_portais=false, cancelling job`);
+          
+          // Cancel job with reason
+          await supabase
+            .from('portal_jobs')
+            .update({
+              status: 'error',
+              last_error: 'Integração com portais desativada pelo usuário',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', job.id);
+          
+          result.processed++;
+          result.failed++;
+          result.errors.push(`Job ${job.id}: Portal integration disabled for property`);
+          continue;
+        }
+
         // Fetch images
         const { data: images } = await supabase
           .from('property_images')

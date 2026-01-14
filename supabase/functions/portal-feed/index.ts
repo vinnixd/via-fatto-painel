@@ -270,7 +270,9 @@ serve(async (req) => {
         property_images (url, alt, order_index)
       `);
 
-    // Apply filters
+    // Apply filters - ALWAYS filter by integrar_portais = true
+    query = query.eq('integrar_portais', true);
+    
     if (filtros.apenas_ativos !== false) {
       query = query.eq('active', true);
     }
