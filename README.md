@@ -2,15 +2,13 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/441800bb-875b-4228-a5de-e1a02447ce7a
+https://viafatto.com.br/
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
 **Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/441800bb-875b-4228-a5de-e1a02447ce7a) and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
