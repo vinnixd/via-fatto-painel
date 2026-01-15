@@ -292,9 +292,10 @@ serve(async (req) => {
       },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[share-property] Error:", error);
-    return new Response(`Error: ${error.message}`, {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(`Error: ${errorMessage}`, {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "text/plain" },
     });

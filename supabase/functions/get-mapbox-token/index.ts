@@ -26,10 +26,11 @@ serve(async (req) => {
       JSON.stringify({ token: MAPBOX_TOKEN }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error getting token:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to get token";
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to get token" }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

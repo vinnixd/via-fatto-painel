@@ -168,9 +168,10 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
 
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(`Error processing ${property.title}:`, err);
-        results.errors.push(`${property.title}: ${err.message}`);
+        const errMessage = err instanceof Error ? err.message : "Unknown error";
+        results.errors.push(`${property.title}: ${errMessage}`);
       }
     }
 
@@ -179,9 +180,10 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
     return new Response(JSON.stringify(results), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in batch-improve-descriptions:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro ao processar" }), {
+    const errorMessage = error instanceof Error ? error.message : "Erro ao processar";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

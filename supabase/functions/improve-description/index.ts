@@ -47,7 +47,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const typeLabel = {
+    const typeLabelMap: Record<string, string> = {
       casa: 'Casa',
       apartamento: 'Apartamento',
       terreno: 'Terreno',
@@ -56,7 +56,8 @@ serve(async (req) => {
       cobertura: 'Cobertura',
       flat: 'Flat',
       galpao: 'Galpão'
-    }[propertyInfo?.type] || 'Imóvel';
+    };
+    const typeLabel = typeLabelMap[propertyInfo?.type as string] || 'Imóvel';
 
     const statusLabel = propertyInfo?.status === 'venda' ? 'à venda' : 'para alugar';
 
@@ -160,9 +161,10 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
     return new Response(JSON.stringify({ improvedDescription }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in improve-description function:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro ao melhorar descrição" }), {
+    const errorMessage = error instanceof Error ? error.message : "Erro ao melhorar descrição";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

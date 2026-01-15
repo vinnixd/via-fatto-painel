@@ -1172,8 +1172,9 @@ serve(async (req) => {
       console.log(`Stats: ${withPrice} with price, ${withDescription} with description, ${withSpecs} with specs, ${withVagas} with vagas`);
     };
     
-    // Start background processing
-    EdgeRuntime.waitUntil(backgroundTask());
+    // Start background processing using Deno's promise handling
+    // Note: EdgeRuntime.waitUntil is not available, using Promise.resolve()
+    Promise.resolve(backgroundTask()).catch(err => console.error("Background task error:", err));
     
     return new Response(
       JSON.stringify({ 

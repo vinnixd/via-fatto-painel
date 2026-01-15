@@ -88,10 +88,11 @@ serve(async (req) => {
       JSON.stringify({ success: false, error: "Location not found" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Geocoding error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Geocoding failed";
     return new Response(
-      JSON.stringify({ error: error.message || "Geocoding failed" }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

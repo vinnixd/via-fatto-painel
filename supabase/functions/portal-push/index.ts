@@ -38,6 +38,7 @@ interface Portal {
       default_category?: string;
       default_purpose?: string;
       auto_renew?: boolean;
+      default_phone?: string;
     };
   };
 }
@@ -624,7 +625,8 @@ function getAdapter(portalSlug: string): PortalAdapter | null {
 // JOB PROCESSOR
 // ============================================================
 
-async function processJobs(supabase: ReturnType<typeof createClient>, batchSize = 10): Promise<{
+// deno-lint-ignore no-explicit-any
+async function processJobs(supabase: any, batchSize = 10): Promise<{
   processed: number;
   succeeded: number;
   failed: number;

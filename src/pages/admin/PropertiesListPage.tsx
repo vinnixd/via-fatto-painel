@@ -37,7 +37,8 @@ import {
   Square,
   AlertTriangle,
   Sparkles,
-  Share2
+  Share2,
+  Radio
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -87,6 +88,7 @@ interface Property {
   area: number;
   order_index: number;
   thumbnail?: string;
+  integrar_portais?: boolean;
 }
 
 interface SortablePropertyCardProps {
@@ -166,11 +168,16 @@ const SortablePropertyCard = ({
         </div>
 
         {/* Overlays */}
-        <div className="absolute top-2 left-2 flex gap-1.5">
+        <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap max-w-[calc(100%-48px)]">
           {getStatusBadge(property.status)}
           {property.featured && (
             <Badge className="bg-yellow-500 hover:bg-yellow-500 text-yellow-950 text-xs px-1.5 py-0.5">
               <Star className="h-2.5 w-2.5 fill-current" />
+            </Badge>
+          )}
+          {property.integrar_portais && (
+            <Badge className="bg-blue-500 hover:bg-blue-500 text-white text-xs px-1.5 py-0.5" title="Integrado com portais">
+              <Radio className="h-2.5 w-2.5" />
             </Badge>
           )}
         </div>

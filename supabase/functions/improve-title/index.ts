@@ -106,9 +106,10 @@ Gere um título mais atraente e persuasivo.`;
     return new Response(JSON.stringify({ improvedTitle }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in improve-title function:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro ao melhorar título" }), {
+    const errorMessage = error instanceof Error ? error.message : "Erro ao melhorar título";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

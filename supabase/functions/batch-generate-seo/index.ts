@@ -187,9 +187,10 @@ Retorne APENAS o JSON com seo_title e seo_description.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error in batch-generate-seo:", error);
-    return new Response(JSON.stringify({ error: error.message || "Erro ao processar" }), {
+    const errorMessage = error instanceof Error ? error.message : "Erro ao processar";
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
