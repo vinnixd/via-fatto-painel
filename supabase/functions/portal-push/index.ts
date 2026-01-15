@@ -609,12 +609,325 @@ const olxAdapter: PortalAdapter = {
 };
 
 // ============================================================
+// ZAP IMÓVEIS / VIVAREAL ADAPTER
+// ============================================================
+// ZAP Imóveis and VivaReal are part of Grupo OLX/Grupo ZAP
+// They use VRSync XML feed format for integration
+// Documentation: https://developers.grupozap.com/feeds/vrsync/
+//
+// VRSync is a PULL-based integration (portal fetches our feed)
+// The adapter here manages portal_publicacoes status for feed inclusion
+// Real publication happens via portal-feed edge function
+
+interface GrupoZapCredentials {
+  client_id?: string;
+  client_token?: string;
+  feed_url?: string;
+}
+
+// Helper to validate property for VRSync requirements
+function validatePropertyForVRSync(prop: Property): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!prop.address_zipcode) {
+    errors.push('CEP (PostalCode) é obrigatório');
+  }
+  if (!prop.address_city) {
+    errors.push('Cidade é obrigatória');
+  }
+  if (!prop.address_state) {
+    errors.push('Estado é obrigatório');
+  }
+  if (!prop.title || prop.title.length < 10) {
+    errors.push('Título deve ter pelo menos 10 caracteres');
+  }
+  if (!prop.description || prop.description.length < 50) {
+    errors.push('Descrição deve ter pelo menos 50 caracteres');
+  }
+  if (!prop.images || prop.images.length < 3) {
+    errors.push('Mínimo de 3 imagens é obrigatório');
+  }
+  if (prop.price <= 0) {
+    errors.push('Preço é obrigatório');
+  }
+  if (prop.area <= 0) {
+    errors.push('Área é obrigatória');
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
+
+// ZAP Imóveis Adapter
+const zapAdapter: PortalAdapter = {
+  async testConnection(credentials) {
+    console.log('[ZAP] Testing connection...');
+    
+    const creds = credentials as GrupoZapCredentials | undefined;
+    
+    // ZAP uses feed-based integration
+    // Connection test verifies credentials are configured
+    if (!creds?.client_id || !creds?.client_token) {
+      return { 
+        success: false, 
+        error: 'Credenciais ZAP não configuradas. Configure Client ID e Token na página do portal.' 
+      };
+    }
+    
+    // Verify feed URL is accessible (if configured)
+    if (creds.feed_url) {
+      try {
+        const response = await fetch(creds.feed_url, { method: 'HEAD' });
+        if (response.ok) {
+          return { 
+            success: true, 
+            response_data: { 
+              message: 'Credenciais válidas e feed acessível',
+              feed_url: creds.feed_url
+            } 
+          };
+        }
+      } catch (e) {
+        // Feed URL check is optional
+        console.log('[ZAP] Feed URL check failed:', e);
+      }
+    }
+
+    return { 
+      success: true, 
+      response_data: { 
+        message: 'Credenciais ZAP configuradas. O portal ZAP buscará o feed automaticamente.',
+        client_id: creds.client_id,
+        integration_type: 'VRSync XML Feed'
+      } 
+    };
+  },
+
+  async publish(imovel, credentials, settings) {
+    console.log(`[ZAP] Publishing property: ${imovel.id}`);
+    
+    // Validate property has required fields for VRSync
+    const validation = validatePropertyForVRSync(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para ZAP: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    // For feed-based portals, "publish" means marking as ready for feed
+    // The actual publication happens when ZAP fetches our feed
+    // We generate a listing ID to track the property
+    const listingId = `ZAP-${imovel.id.substring(0, 8).toUpperCase()}`;
+    
+    console.log('[ZAP] Property validated for feed inclusion:', listingId);
+    
+    return {
+      success: true,
+      external_id: listingId,
+      response_data: {
+        message: 'Imóvel adicionado ao feed VRSync. O ZAP buscará o feed automaticamente.',
+        listing_id: listingId,
+        integration_type: 'VRSync XML Feed',
+        next_sync: 'O portal sincroniza o feed periodicamente (geralmente a cada 4 horas)'
+      }
+    };
+  },
+
+  async update(external_id, imovel, credentials, settings) {
+    console.log(`[ZAP] Updating property: ${external_id}`);
+    
+    // Validate updated property
+    const validation = validatePropertyForVRSync(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para ZAP: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel atualizado no feed VRSync. A atualização será sincronizada automaticamente.',
+        listing_id: external_id,
+        integration_type: 'VRSync XML Feed'
+      }
+    };
+  },
+
+  async pause(external_id, credentials) {
+    console.log(`[ZAP] Pausing property: ${external_id}`);
+    
+    // For VRSync, pausing means removing from feed
+    // When property is not in feed, ZAP will auto-unpublish after a period
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel pausado. Será removido do feed e despublicado automaticamente pelo ZAP.',
+        listing_id: external_id
+      }
+    };
+  },
+
+  async remove(external_id, credentials) {
+    console.log(`[ZAP] Removing property: ${external_id}`);
+    
+    // For VRSync, removing means excluding from feed
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel removido do feed. O ZAP despublicará automaticamente.',
+        listing_id: external_id
+      }
+    };
+  }
+};
+
+// VivaReal Adapter (same as ZAP - both use VRSync from Grupo OLX)
+const vivarealAdapter: PortalAdapter = {
+  async testConnection(credentials) {
+    console.log('[VivaReal] Testing connection...');
+    
+    const creds = credentials as GrupoZapCredentials | undefined;
+    
+    if (!creds?.client_id || !creds?.client_token) {
+      return { 
+        success: false, 
+        error: 'Credenciais VivaReal não configuradas. Configure Client ID e Token na página do portal.' 
+      };
+    }
+
+    return { 
+      success: true, 
+      response_data: { 
+        message: 'Credenciais VivaReal configuradas. O portal VivaReal buscará o feed automaticamente.',
+        client_id: creds.client_id,
+        integration_type: 'VRSync XML Feed'
+      } 
+    };
+  },
+
+  async publish(imovel, credentials, settings) {
+    console.log(`[VivaReal] Publishing property: ${imovel.id}`);
+    
+    const validation = validatePropertyForVRSync(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para VivaReal: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    const listingId = `VR-${imovel.id.substring(0, 8).toUpperCase()}`;
+    
+    console.log('[VivaReal] Property validated for feed inclusion:', listingId);
+    
+    return {
+      success: true,
+      external_id: listingId,
+      response_data: {
+        message: 'Imóvel adicionado ao feed VRSync. O VivaReal buscará o feed automaticamente.',
+        listing_id: listingId,
+        integration_type: 'VRSync XML Feed',
+        next_sync: 'O portal sincroniza o feed periodicamente'
+      }
+    };
+  },
+
+  async update(external_id, imovel, credentials, settings) {
+    console.log(`[VivaReal] Updating property: ${external_id}`);
+    
+    const validation = validatePropertyForVRSync(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para VivaReal: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel atualizado no feed VRSync.',
+        listing_id: external_id
+      }
+    };
+  },
+
+  async pause(external_id, credentials) {
+    console.log(`[VivaReal] Pausing property: ${external_id}`);
+    
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel pausado. Será removido do feed e despublicado automaticamente.',
+        listing_id: external_id
+      }
+    };
+  },
+
+  async remove(external_id, credentials) {
+    console.log(`[VivaReal] Removing property: ${external_id}`);
+    
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel removido do feed VRSync.',
+        listing_id: external_id
+      }
+    };
+  }
+};
+
+// ============================================================
+// IMOVELWEB ADAPTER (placeholder)
+// ============================================================
+// ImovelWeb uses a different integration (will be implemented later)
+
+const imovelwebAdapter: PortalAdapter = {
+  async testConnection(credentials) {
+    console.log('[ImovelWeb] Testing connection...');
+    return { 
+      success: false, 
+      error: 'Adapter ImovelWeb ainda não implementado. Em breve!' 
+    };
+  },
+
+  async publish(imovel, credentials) {
+    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  },
+
+  async update(external_id, imovel, credentials) {
+    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  },
+
+  async pause(external_id, credentials) {
+    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  },
+
+  async remove(external_id, credentials) {
+    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  }
+};
+
+// ============================================================
 // ADAPTER REGISTRY
 // ============================================================
 
 const adapters: Record<string, PortalAdapter> = {
   olx: olxAdapter,
-  // Future adapters: vivareal, zap, imovelweb, etc.
+  zap: zapAdapter,
+  'zap-imoveis': zapAdapter,
+  'zapimoveis': zapAdapter,
+  vivareal: vivarealAdapter,
+  'viva-real': vivarealAdapter,
+  imovelweb: imovelwebAdapter,
 };
 
 function getAdapter(portalSlug: string): PortalAdapter | null {

@@ -15,11 +15,14 @@ interface Property {
   status: string;
   type: string;
   profile: string;
+  condition: string | null;
   address_street: string | null;
   address_neighborhood: string | null;
   address_city: string;
   address_state: string;
   address_zipcode: string | null;
+  address_lat: number | null;
+  address_lng: number | null;
   bedrooms: number;
   suites: number;
   bathrooms: number;
@@ -28,6 +31,10 @@ interface Property {
   built_area: number | null;
   featured: boolean;
   reference: string | null;
+  condo_fee: number | null;
+  iptu: number | null;
+  features: string[] | null;
+  amenities: string[] | null;
   property_images: { url: string; alt: string | null; order_index: number }[];
 }
 
@@ -94,6 +101,176 @@ ${images}
 ${items}
   </Imoveis>
 </Carga>`;
+}
+
+// ============================================================
+// VRSync XML Feed Format (ZAP Imóveis / VivaReal)
+// ============================================================
+// Documentation: https://developers.grupozap.com/feeds/vrsync/
+
+function buildVRSyncFeed(properties: Property[], config: any, baseUrl: string): string {
+  const listings = properties.map((p) => {
+    // Map property type to VRSync PropertyType
+    const propertyType = mapToVRSyncPropertyType(p.type);
+    
+    // Transaction type
+    const transactionType = p.status === 'aluguel' ? 'For Rent' : 'For Sale';
+    
+    // Price elements
+    let priceElement = '';
+    if (p.status === 'aluguel') {
+      priceElement = `      <RentalPrice currency="BRL">${p.price}</RentalPrice>`;
+    } else {
+      priceElement = `      <ListPrice currency="BRL">${p.price}</ListPrice>`;
+    }
+    
+    // Images (minimum 3, max 50 for VRSync)
+    const images = p.property_images
+      .sort((a, b) => a.order_index - b.order_index)
+      .slice(0, config.limite_fotos || 50)
+      .map((img, idx) => `        <Item caption="${escapeXml(img.alt || `Imagem ${idx + 1}`)}" primary="${idx === 0 ? 'true' : 'false'}">${escapeXml(img.url)}</Item>`)
+      .join('\n');
+    
+    // Features
+    const features: string[] = [];
+    if (p.features) {
+      features.push(...p.features.map(f => mapToVRSyncFeature(f)));
+    }
+    if (p.amenities) {
+      features.push(...p.amenities.map(a => mapToVRSyncFeature(a)));
+    }
+    
+    const featuresXml = [...new Set(features.filter(Boolean))]
+      .map(f => `        <Feature>${escapeXml(f)}</Feature>`)
+      .join('\n');
+    
+    // Description with CDATA
+    const description = p.description 
+      ? stripHtml(p.description).substring(0, 10000) 
+      : `${translateType(p.type)} ${p.status === 'venda' ? 'à venda' : 'para alugar'} em ${p.address_neighborhood || p.address_city}`;
+    
+    // Title validation (10-100 chars)
+    const title = (p.title || '').substring(0, 100);
+    
+    return `    <Listing>
+      <ListingID>${escapeXml(p.reference || p.id.substring(0, 50))}</ListingID>
+      <Title><![CDATA[${title}]]></Title>
+      <TransactionType>${transactionType}</TransactionType>
+      <Featured>${p.featured}</Featured>
+      <ListDate>${new Date().toISOString().split('T')[0]}</ListDate>
+      <Details>
+        <PropertyType>${propertyType}</PropertyType>
+        <Description><![CDATA[${description}]]></Description>
+        <UsableArea unit="square metres">${p.area || 0}</UsableArea>
+        <LotArea unit="square metres">${p.built_area || p.area || 0}</LotArea>
+        <Bedrooms>${p.bedrooms || 0}</Bedrooms>
+        <Suites>${p.suites || 0}</Suites>
+        <Bathrooms>${p.bathrooms || 0}</Bathrooms>
+        <Garage type="Parking Spaces">${p.garages || 0}</Garage>
+${p.condo_fee && p.condo_fee > 0 ? `        <PropertyAdministrationFee currency="BRL">${p.condo_fee}</PropertyAdministrationFee>` : ''}
+${p.iptu && p.iptu > 0 ? `        <YearlyTax currency="BRL">${p.iptu}</YearlyTax>` : ''}
+${featuresXml ? `        <Features>\n${featuresXml}\n        </Features>` : ''}
+      </Details>
+      <Location displayAddress="${config.exibir_endereco === 'completo' ? 'All' : config.exibir_endereco === 'rua' ? 'Street' : 'Neighborhood'}">
+        <Country abbreviation="BR">Brasil</Country>
+        <State abbreviation="${escapeXml(p.address_state)}">${escapeXml(getStateName(p.address_state))}</State>
+        <City>${escapeXml(p.address_city)}</City>
+        <Neighborhood>${escapeXml(p.address_neighborhood || '')}</Neighborhood>
+${p.address_street ? `        <Address>${escapeXml(p.address_street)}</Address>` : ''}
+        <PostalCode>${escapeXml((p.address_zipcode || '').replace(/\D/g, ''))}</PostalCode>
+${p.address_lat && p.address_lng ? `        <Latitude>${p.address_lat}</Latitude>\n        <Longitude>${p.address_lng}</Longitude>` : ''}
+      </Location>
+${priceElement}
+      <Media>
+${images}
+      </Media>
+      <ContactInfo>
+        <Website>${escapeXml(baseUrl)}/imovel/${escapeXml(p.slug)}</Website>
+      </ContactInfo>
+    </Listing>`;
+  }).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<ListingDataFeed xmlns="http://www.vivareal.com/schemas/1.0/VRSync"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://www.vivareal.com/schemas/1.0/VRSync http://xml.vivareal.com/vrsync.xsd">
+  <Header>
+    <Provider>Imobiliária</Provider>
+    <Email>${config.email || 'contato@imobiliaria.com.br'}</Email>
+  </Header>
+  <Listings>
+${listings}
+  </Listings>
+</ListingDataFeed>`;
+}
+
+// Map property type to VRSync PropertyType
+function mapToVRSyncPropertyType(type: string): string {
+  const typeMap: Record<string, string> = {
+    casa: 'Residential / Home',
+    apartamento: 'Residential / Apartment',
+    cobertura: 'Residential / Penthouse',
+    flat: 'Residential / Flat',
+    loft: 'Residential / Loft',
+    terreno: 'Residential / Land Lot',
+    comercial: 'Commercial / Building',
+    galpao: 'Commercial / Industrial',
+    rural: 'Residential / Farm/Ranch',
+  };
+  return typeMap[type] || 'Residential / Home';
+}
+
+// Map features to VRSync feature names
+function mapToVRSyncFeature(feature: string): string {
+  const featureLower = feature.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  const featureMap: Record<string, string> = {
+    'ar condicionado': 'Air conditioning',
+    'ar-condicionado': 'Air conditioning',
+    'piscina': 'Pool',
+    'churrasqueira': 'BBQ',
+    'academia': 'Gym',
+    'sauna': 'Sauna',
+    'quadra': 'Sports court',
+    'playground': 'Playground',
+    'salao de festas': 'Party room',
+    'portaria': 'Gated community',
+    'seguranca': 'Security 24h',
+    'elevador': 'Elevator',
+    'varanda': 'Balcony',
+    'jardim': 'Garden',
+    'lavanderia': 'Laundry',
+    'mobiliado': 'Furnished',
+    'garagem': 'Parking',
+    'suite': 'Suite',
+    'closet': 'Closet',
+    'cozinha americana': 'American kitchen',
+    'quintal': 'Backyard',
+    'area de servico': 'Service area',
+    'depedencia de empregada': 'Maid room',
+  };
+  
+  for (const [key, value] of Object.entries(featureMap)) {
+    if (featureLower.includes(key)) {
+      return value;
+    }
+  }
+  
+  return feature;
+}
+
+// Get state full name from abbreviation
+function getStateName(abbr: string): string {
+  const states: Record<string, string> = {
+    AC: 'Acre', AL: 'Alagoas', AP: 'Amapá', AM: 'Amazonas', BA: 'Bahia',
+    CE: 'Ceará', DF: 'Distrito Federal', ES: 'Espírito Santo', GO: 'Goiás',
+    MA: 'Maranhão', MT: 'Mato Grosso', MS: 'Mato Grosso do Sul', MG: 'Minas Gerais',
+    PA: 'Pará', PB: 'Paraíba', PR: 'Paraná', PE: 'Pernambuco', PI: 'Piauí',
+    RJ: 'Rio de Janeiro', RN: 'Rio Grande do Norte', RS: 'Rio Grande do Sul',
+    RO: 'Rondônia', RR: 'Roraima', SC: 'Santa Catarina', SP: 'São Paulo',
+    SE: 'Sergipe', TO: 'Tocantins',
+  };
+  return states[abbr.toUpperCase()] || abbr;
 }
 
 function buildJsonFeed(properties: Property[], config: any, baseUrl: string): object {
@@ -264,9 +441,11 @@ serve(async (req) => {
     let query = supabase
       .from('properties')
       .select(`
-        id, title, slug, description, price, status, type, profile,
+        id, title, slug, description, price, status, type, profile, condition,
         address_street, address_neighborhood, address_city, address_state, address_zipcode,
+        address_lat, address_lng,
         bedrooms, suites, bathrooms, garages, area, built_area, featured, reference,
+        condo_fee, iptu, features, amenities,
         property_images (url, alt, order_index)
       `);
 
@@ -314,6 +493,9 @@ serve(async (req) => {
     let content: string;
     let contentType: string;
 
+    // Determine if this is a VRSync portal (ZAP, VivaReal)
+    const isVRSyncPortal = ['zap', 'zapimoveis', 'zap-imoveis', 'vivareal', 'viva-real'].includes(portalSlug.toLowerCase());
+
     switch (portal.formato_feed) {
       case 'json':
         content = JSON.stringify(buildJsonFeed(filteredProperties, config, baseUrl));
@@ -323,8 +505,22 @@ serve(async (req) => {
         content = buildCsvFeed(filteredProperties, config, baseUrl);
         contentType = 'text/csv';
         break;
+      case 'xml':
+        // Use VRSync format for ZAP/VivaReal portals, standard XML for others
+        if (isVRSyncPortal || config.formato_vrsync) {
+          content = buildVRSyncFeed(filteredProperties, config, baseUrl);
+        } else {
+          content = buildXmlFeed(filteredProperties, config, baseUrl);
+        }
+        contentType = 'application/xml';
+        break;
       default:
-        content = buildXmlFeed(filteredProperties, config, baseUrl);
+        // Default to VRSync for ZAP/VivaReal, standard XML for others
+        if (isVRSyncPortal) {
+          content = buildVRSyncFeed(filteredProperties, config, baseUrl);
+        } else {
+          content = buildXmlFeed(filteredProperties, config, baseUrl);
+        }
         contentType = 'application/xml';
     }
 
