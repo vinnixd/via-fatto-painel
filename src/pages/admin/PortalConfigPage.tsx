@@ -99,6 +99,13 @@ interface PortalConfig {
     refresh_token?: string;
     phone?: string;
   };
+  vrsync?: {
+    client_id?: string;
+    client_token?: string;
+    show_full_address?: boolean;
+    show_street_number?: boolean;
+    show_complement?: boolean;
+  };
   settings?: {
     default_phone?: string;
     auto_renew?: boolean;
@@ -297,6 +304,13 @@ const PortalConfigPage = () => {
           mapeamento: portal.config?.mapeamento || {},
           filtros: portal.config?.filtros || { apenas_ativos: true },
           api_credentials: portal.config?.api_credentials || {},
+          vrsync: portal.config?.vrsync || {
+            client_id: '',
+            client_token: '',
+            show_full_address: true,
+            show_street_number: false,
+            show_complement: false,
+          },
           settings: portal.config?.settings || {},
           limite_fotos: portal.config?.limite_fotos || 20,
           preco_consulte: portal.config?.preco_consulte ?? true,
@@ -756,16 +770,21 @@ const PortalConfigPage = () => {
                 </div>
 
                 {/* API Credentials Section */}
-                {formData.metodo === 'api' && (
+                {(formData.metodo === 'api' || portal.slug === 'zap' || portal.slug === 'vivareal') && (
                   <Card className="border-2 border-dashed">
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Key className="h-5 w-5" />
-                        Credenciais API {portal.slug.toUpperCase()}
+                        {portal.slug === 'zap' || portal.slug === 'vivareal' 
+                          ? 'Credenciais VRSync' 
+                          : `Credenciais API ${portal.slug.toUpperCase()}`
+                        }
                       </CardTitle>
                       <CardDescription>
                         {portal.slug === 'olx' 
                           ? 'Configure suas credenciais OAuth da OLX. Obtenha em developers.olx.com.br'
+                          : portal.slug === 'zap' || portal.slug === 'vivareal'
+                          ? 'Configure suas credenciais VRSync para integração com ZAP Imóveis e VivaReal'
                           : 'Configure as credenciais de acesso à API do portal'
                         }
                       </CardDescription>
@@ -879,6 +898,149 @@ const PortalConfigPage = () => {
                               <p className="text-xs text-muted-foreground">
                                 DDD + número (sem espaços ou caracteres)
                               </p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* VRSync Credentials (ZAP/VivaReal) */}
+                      {(portal.slug === 'zap' || portal.slug === 'vivareal') && (
+                        <>
+                          <div className="space-y-4">
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-sm text-blue-800">
+                                <strong>VRSync:</strong> ZAP Imóveis e VivaReal utilizam o sistema VRSync para integração.
+                                Obtenha suas credenciais no portal do parceiro VRSync.
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label>Client ID</Label>
+                                <Input
+                                  value={formData.config.vrsync?.client_id || ''}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      config: {
+                                        ...prev.config,
+                                        vrsync: {
+                                          ...prev.config.vrsync,
+                                          client_id: e.target.value,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                  placeholder="Seu client_id VRSync"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Identificador único da sua conta no VRSync
+                                </p>
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Client Token</Label>
+                                <Input
+                                  type="password"
+                                  value={formData.config.vrsync?.client_token || ''}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      config: {
+                                        ...prev.config,
+                                        vrsync: {
+                                          ...prev.config.vrsync,
+                                          client_token: e.target.value,
+                                        },
+                                      },
+                                    }))
+                                  }
+                                  placeholder="Seu token de autenticação"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Token secreto para autenticação no feed
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-4 mt-4">
+                              <Label className="text-base font-medium mb-3 block">Exibição de Endereço</Label>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                Configure quais informações de endereço serão exibidas nos anúncios do portal
+                              </p>
+                              
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                  <div>
+                                    <Label className="font-medium">Exibir endereço completo</Label>
+                                    <p className="text-sm text-muted-foreground">
+                                      Mostra rua, número e bairro no anúncio
+                                    </p>
+                                  </div>
+                                  <Switch
+                                    checked={formData.config.vrsync?.show_full_address ?? true}
+                                    onCheckedChange={(checked) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        config: {
+                                          ...prev.config,
+                                          vrsync: {
+                                            ...prev.config.vrsync,
+                                            show_full_address: checked,
+                                          },
+                                        },
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                  <div>
+                                    <Label className="font-medium">Exibir número do imóvel</Label>
+                                    <p className="text-sm text-muted-foreground">
+                                      Mostra o número na rua (ex: "Rua ABC, 123")
+                                    </p>
+                                  </div>
+                                  <Switch
+                                    checked={formData.config.vrsync?.show_street_number ?? false}
+                                    onCheckedChange={(checked) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        config: {
+                                          ...prev.config,
+                                          vrsync: {
+                                            ...prev.config.vrsync,
+                                            show_street_number: checked,
+                                          },
+                                        },
+                                      }))
+                                    }
+                                  />
+                                </div>
+
+                                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                                  <div>
+                                    <Label className="font-medium">Exibir complemento</Label>
+                                    <p className="text-sm text-muted-foreground">
+                                      Mostra apartamento, bloco ou andar
+                                    </p>
+                                  </div>
+                                  <Switch
+                                    checked={formData.config.vrsync?.show_complement ?? false}
+                                    onCheckedChange={(checked) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        config: {
+                                          ...prev.config,
+                                          vrsync: {
+                                            ...prev.config.vrsync,
+                                            show_complement: checked,
+                                          },
+                                        },
+                                      }))
+                                    }
+                                  />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </>
