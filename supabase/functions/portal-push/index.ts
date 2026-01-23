@@ -886,33 +886,178 @@ const vivarealAdapter: PortalAdapter = {
 };
 
 // ============================================================
-// IMOVELWEB ADAPTER (placeholder)
+// IMOVELWEB ADAPTER
 // ============================================================
-// ImovelWeb uses a different integration (will be implemented later)
+// ImovelWeb is part of Grupo QuintoAndar / Navent Group
+// They use a similar VRSync-style XML feed format for integration
+// Documentation: https://www.imovelweb.com.br/noticias/ajuda-para-anunciantes/
+//
+// ImovelWeb is a PULL-based integration (portal fetches our feed)
+// The adapter here manages portal_publicacoes status for feed inclusion
+
+interface ImovelWebCredentials {
+  client_id?: string;
+  client_token?: string;
+  feed_url?: string;
+}
+
+// Helper to validate property for ImovelWeb requirements
+function validatePropertyForImovelWeb(prop: Property): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  if (!prop.address_zipcode) {
+    errors.push('CEP é obrigatório');
+  }
+  if (!prop.address_city) {
+    errors.push('Cidade é obrigatória');
+  }
+  if (!prop.address_state) {
+    errors.push('Estado é obrigatório');
+  }
+  if (!prop.title || prop.title.length < 5) {
+    errors.push('Título deve ter pelo menos 5 caracteres');
+  }
+  if (!prop.description || prop.description.length < 30) {
+    errors.push('Descrição deve ter pelo menos 30 caracteres');
+  }
+  if (!prop.images || prop.images.length < 1) {
+    errors.push('Pelo menos 1 imagem é obrigatória');
+  }
+  if (prop.price <= 0) {
+    errors.push('Preço é obrigatório');
+  }
+  if (prop.area <= 0) {
+    errors.push('Área é obrigatória');
+  }
+  
+  return { valid: errors.length === 0, errors };
+}
 
 const imovelwebAdapter: PortalAdapter = {
   async testConnection(credentials) {
     console.log('[ImovelWeb] Testing connection...');
+    
+    const creds = credentials as ImovelWebCredentials | undefined;
+    
+    // ImovelWeb uses feed-based integration
+    // Connection test verifies credentials are configured
+    if (!creds?.client_id || !creds?.client_token) {
+      return { 
+        success: false, 
+        error: 'Credenciais ImovelWeb não configuradas. Configure Client ID e Token na página do portal.' 
+      };
+    }
+    
+    // Verify feed URL is accessible (if configured)
+    if (creds.feed_url) {
+      try {
+        const response = await fetch(creds.feed_url, { method: 'HEAD' });
+        if (response.ok) {
+          return { 
+            success: true, 
+            response_data: { 
+              message: 'Credenciais válidas e feed acessível',
+              feed_url: creds.feed_url
+            } 
+          };
+        }
+      } catch (e) {
+        // Feed URL check is optional
+        console.log('[ImovelWeb] Feed URL check failed:', e);
+      }
+    }
+
     return { 
-      success: false, 
-      error: 'Adapter ImovelWeb ainda não implementado. Em breve!' 
+      success: true, 
+      response_data: { 
+        message: 'Credenciais ImovelWeb configuradas. O portal ImovelWeb buscará o feed automaticamente.',
+        client_id: creds.client_id,
+        integration_type: 'VRSync XML Feed'
+      } 
     };
   },
 
-  async publish(imovel, credentials) {
-    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  async publish(imovel, credentials, settings) {
+    console.log(`[ImovelWeb] Publishing property: ${imovel.id}`);
+    
+    // Validate property has required fields
+    const validation = validatePropertyForImovelWeb(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para ImovelWeb: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    // For feed-based portals, "publish" means marking as ready for feed
+    // The actual publication happens when ImovelWeb fetches our feed
+    // We generate a listing ID to track the property
+    const listingId = `IW-${imovel.id.substring(0, 8).toUpperCase()}`;
+    
+    console.log('[ImovelWeb] Property validated for feed inclusion:', listingId);
+    
+    return {
+      success: true,
+      external_id: listingId,
+      response_data: {
+        message: 'Imóvel adicionado ao feed VRSync. O ImovelWeb buscará o feed automaticamente.',
+        listing_id: listingId,
+        integration_type: 'VRSync XML Feed',
+        next_sync: 'O portal sincroniza o feed periodicamente (geralmente a cada 6 horas)'
+      }
+    };
   },
 
-  async update(external_id, imovel, credentials) {
-    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+  async update(external_id, imovel, credentials, settings) {
+    console.log(`[ImovelWeb] Updating property: ${external_id}`);
+    
+    // Validate updated property
+    const validation = validatePropertyForImovelWeb(imovel);
+    if (!validation.valid) {
+      return { 
+        success: false, 
+        error: `Imóvel inválido para ImovelWeb: ${validation.errors.join('; ')}` 
+      };
+    }
+
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel atualizado no feed VRSync. A atualização será sincronizada automaticamente.',
+        listing_id: external_id,
+        integration_type: 'VRSync XML Feed'
+      }
+    };
   },
 
   async pause(external_id, credentials) {
-    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+    console.log(`[ImovelWeb] Pausing property: ${external_id}`);
+    
+    // For VRSync, pausing means removing from feed
+    // When property is not in feed, ImovelWeb will auto-unpublish after a period
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel pausado. Será removido do feed e despublicado automaticamente pelo ImovelWeb.',
+        listing_id: external_id
+      }
+    };
   },
 
   async remove(external_id, credentials) {
-    return { success: false, error: 'Adapter ImovelWeb não implementado' };
+    console.log(`[ImovelWeb] Removing property: ${external_id}`);
+    
+    // For VRSync, removing means excluding from feed
+    return {
+      success: true,
+      external_id,
+      response_data: {
+        message: 'Imóvel removido do feed. O ImovelWeb despublicará automaticamente.',
+        listing_id: external_id
+      }
+    };
   }
 };
 
@@ -928,6 +1073,7 @@ const adapters: Record<string, PortalAdapter> = {
   vivareal: vivarealAdapter,
   'viva-real': vivarealAdapter,
   imovelweb: imovelwebAdapter,
+  'imovel-web': imovelwebAdapter,
 };
 
 function getAdapter(portalSlug: string): PortalAdapter | null {

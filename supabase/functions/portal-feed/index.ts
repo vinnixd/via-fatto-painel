@@ -493,8 +493,8 @@ serve(async (req) => {
     let content: string;
     let contentType: string;
 
-    // Determine if this is a VRSync portal (ZAP, VivaReal)
-    const isVRSyncPortal = ['zap', 'zapimoveis', 'zap-imoveis', 'vivareal', 'viva-real'].includes(portalSlug.toLowerCase());
+    // Determine if this is a VRSync portal (ZAP, VivaReal, ImovelWeb)
+    const isVRSyncPortal = ['zap', 'zapimoveis', 'zap-imoveis', 'vivareal', 'viva-real', 'imovelweb', 'imovel-web'].includes(portalSlug.toLowerCase());
 
     switch (portal.formato_feed) {
       case 'json':

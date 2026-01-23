@@ -770,12 +770,12 @@ const PortalConfigPage = () => {
                 </div>
 
                 {/* API Credentials Section */}
-                {(formData.metodo === 'api' || portal.slug === 'zap' || portal.slug === 'vivareal') && (
+                {(formData.metodo === 'api' || portal.slug === 'zap' || portal.slug === 'vivareal' || portal.slug === 'imovelweb') && (
                   <Card className="border-2 border-dashed">
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Key className="h-5 w-5" />
-                        {portal.slug === 'zap' || portal.slug === 'vivareal' 
+                        {portal.slug === 'zap' || portal.slug === 'vivareal' || portal.slug === 'imovelweb' 
                           ? 'Credenciais VRSync' 
                           : `Credenciais API ${portal.slug.toUpperCase()}`
                         }
@@ -783,8 +783,8 @@ const PortalConfigPage = () => {
                       <CardDescription>
                         {portal.slug === 'olx' 
                           ? 'Configure suas credenciais OAuth da OLX. Obtenha em developers.olx.com.br'
-                          : portal.slug === 'zap' || portal.slug === 'vivareal'
-                          ? 'Configure suas credenciais VRSync para integração com ZAP Imóveis e VivaReal'
+                          : portal.slug === 'zap' || portal.slug === 'vivareal' || portal.slug === 'imovelweb'
+                          ? `Configure suas credenciais VRSync para integração com ${portal.slug === 'imovelweb' ? 'ImovelWeb' : 'ZAP Imóveis e VivaReal'}`
                           : 'Configure as credenciais de acesso à API do portal'
                         }
                       </CardDescription>
@@ -903,14 +903,14 @@ const PortalConfigPage = () => {
                         </>
                       )}
 
-                      {/* VRSync Credentials (ZAP/VivaReal) */}
-                      {(portal.slug === 'zap' || portal.slug === 'vivareal') && (
+                      {/* VRSync Credentials (ZAP/VivaReal/ImovelWeb) */}
+                      {(portal.slug === 'zap' || portal.slug === 'vivareal' || portal.slug === 'imovelweb') && (
                         <>
                           <div className="space-y-4">
                             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <p className="text-sm text-blue-800">
-                                <strong>VRSync:</strong> ZAP Imóveis e VivaReal utilizam o sistema VRSync para integração.
-                                Obtenha suas credenciais no portal do parceiro VRSync.
+                                <strong>VRSync:</strong> {portal.slug === 'imovelweb' ? 'ImovelWeb' : 'ZAP Imóveis e VivaReal'} utiliza o sistema VRSync para integração.
+                                Obtenha suas credenciais no portal do parceiro.
                               </p>
                             </div>
 
