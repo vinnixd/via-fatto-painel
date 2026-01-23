@@ -62,6 +62,9 @@ import {
   AlertTriangle,
   Clock,
   Play,
+  ExternalLink,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface Portal {
@@ -171,6 +174,15 @@ const PortalConfigPage = () => {
   const [isTestingApi, setIsTestingApi] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<{ ok: boolean; error?: string; accountInfo?: any } | null>(null);
   const [processingJobs, setProcessingJobs] = useState<Set<string>>(new Set());
+  const [isAuthorizingOlx, setIsAuthorizingOlx] = useState(false);
+  const [isRefreshingToken, setIsRefreshingToken] = useState(false);
+  const [olxTokenStatus, setOlxTokenStatus] = useState<{
+    hasAccessToken: boolean;
+    hasRefreshToken: boolean;
+    isExpired: boolean;
+    expiresIn: number;
+    expiresAt: string | null;
+  } | null>(null);
 
   const [formData, setFormData] = useState<{
     nome: string;
@@ -448,6 +460,154 @@ const PortalConfigPage = () => {
       setIsTestingApi(false);
     }
   };
+
+  // OLX OAuth functions
+  const checkOlxTokenStatus = async () => {
+    if (!portalId || portal?.slug !== 'olx') return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('olx-oauth', {
+        body: { action: 'status', portalId },
+      });
+      
+      if (!error && data) {
+        setOlxTokenStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to check OLX token status:', error);
+    }
+  };
+
+  const startOlxAuthorization = async () => {
+    if (!portalId) return;
+    
+    const clientId = formData.config.api_credentials?.client_id;
+    const clientSecret = formData.config.api_credentials?.client_secret;
+    
+    if (!clientId || !clientSecret) {
+      toast.error('Configure Client ID e Client Secret antes de autorizar');
+      return;
+    }
+    
+    setIsAuthorizingOlx(true);
+    try {
+      // Save credentials first
+      await handleSave();
+      
+      // Get authorization URL
+      const { data, error } = await supabase.functions.invoke('olx-oauth', {
+        body: { 
+          action: 'authorize', 
+          portalId,
+          clientId,
+          redirectUri: `${window.location.origin}/admin/portais/${portalId}?oauth_callback=true`
+        },
+      });
+      
+      if (error) throw error;
+      
+      if (data.authUrl) {
+        // Open OLX authorization in new window
+        const authWindow = window.open(data.authUrl, 'olx_auth', 'width=600,height=700');
+        
+        // Listen for OAuth callback
+        const checkCallback = setInterval(async () => {
+          try {
+            if (authWindow?.closed) {
+              clearInterval(checkCallback);
+              setIsAuthorizingOlx(false);
+              // Check token status after window closed
+              await checkOlxTokenStatus();
+              queryClient.invalidateQueries({ queryKey: ['portal', portalId] });
+            }
+          } catch (e) {
+            // Cross-origin error expected
+          }
+        }, 1000);
+        
+        toast.info('Complete a autorização na janela aberta');
+      }
+    } catch (error: any) {
+      console.error('OLX authorization error:', error);
+      toast.error('Erro ao iniciar autorização OLX');
+      setIsAuthorizingOlx(false);
+    }
+  };
+
+  const refreshOlxToken = async () => {
+    if (!portalId) return;
+    
+    setIsRefreshingToken(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('olx-oauth', {
+        body: { action: 'refresh', portalId },
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success('Token renovado com sucesso');
+        await checkOlxTokenStatus();
+        queryClient.invalidateQueries({ queryKey: ['portal', portalId] });
+      } else if (data.needsReauth) {
+        toast.warning('Token expirado. Por favor, autorize novamente.');
+      }
+    } catch (error: any) {
+      console.error('Token refresh error:', error);
+      toast.error('Erro ao renovar token');
+    } finally {
+      setIsRefreshingToken(false);
+    }
+  };
+
+  // Check OLX token status on load for OLX portals
+  useEffect(() => {
+    if (portal?.slug === 'olx') {
+      checkOlxTokenStatus();
+    }
+  }, [portal?.slug, portalId]);
+
+  // Handle OAuth callback from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthCallback = urlParams.get('oauth_callback');
+    const oauthCode = urlParams.get('code');
+    const oauthError = urlParams.get('error');
+    
+    if (oauthCallback && portalId) {
+      if (oauthError) {
+        toast.error(`Erro na autorização: ${urlParams.get('error_description') || oauthError}`);
+      } else if (oauthCode) {
+        // Exchange code for tokens
+        (async () => {
+          try {
+            const { data, error } = await supabase.functions.invoke('olx-oauth', {
+              body: { 
+                action: 'exchange', 
+                portalId, 
+                code: oauthCode,
+                redirectUri: `${window.location.origin}/admin/portais/${portalId}?oauth_callback=true`
+              },
+            });
+            
+            if (error) throw error;
+            
+            if (data.success) {
+              toast.success('Autorização OLX concluída com sucesso!');
+              await checkOlxTokenStatus();
+              queryClient.invalidateQueries({ queryKey: ['portal', portalId] });
+            }
+          } catch (error: any) {
+            console.error('OAuth exchange error:', error);
+            toast.error('Erro ao processar autorização');
+          }
+        })();
+      }
+      
+      // Clean URL
+      window.history.replaceState({}, '', `/admin/portais/${portalId}`);
+    }
+  }, [portalId]);
 
   // Create or update publication and queue job
   const createPublishJob = async (propertyId: string, action: 'publish' | 'update' | 'pause' | 'remove') => {
@@ -792,9 +952,75 @@ const PortalConfigPage = () => {
                     <CardContent className="space-y-4">
                       {portal.slug === 'olx' && (
                         <>
+                          {/* OAuth Status Banner */}
+                          {olxTokenStatus && (
+                            <div className={`p-4 rounded-lg border ${
+                              olxTokenStatus.hasAccessToken && !olxTokenStatus.isExpired
+                                ? 'bg-green-50 border-green-200'
+                                : olxTokenStatus.hasAccessToken && olxTokenStatus.isExpired
+                                ? 'bg-yellow-50 border-yellow-200'
+                                : 'bg-gray-50 border-gray-200'
+                            }`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {olxTokenStatus.hasAccessToken && !olxTokenStatus.isExpired ? (
+                                    <>
+                                      <ShieldCheck className="h-5 w-5 text-green-600" />
+                                      <div>
+                                        <p className="font-medium text-green-800">Conta OLX conectada</p>
+                                        <p className="text-sm text-green-600">
+                                          Token válido por {Math.floor(olxTokenStatus.expiresIn / 3600)} horas
+                                        </p>
+                                      </div>
+                                    </>
+                                  ) : olxTokenStatus.hasAccessToken && olxTokenStatus.isExpired ? (
+                                    <>
+                                      <ShieldAlert className="h-5 w-5 text-yellow-600" />
+                                      <div>
+                                        <p className="font-medium text-yellow-800">Token expirado</p>
+                                        <p className="text-sm text-yellow-600">
+                                          {olxTokenStatus.hasRefreshToken 
+                                            ? 'Clique em renovar ou reautorize' 
+                                            : 'Reautorize sua conta OLX'}
+                                        </p>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ShieldAlert className="h-5 w-5 text-gray-500" />
+                                      <div>
+                                        <p className="font-medium text-gray-700">Conta não conectada</p>
+                                        <p className="text-sm text-gray-500">
+                                          Configure as credenciais e autorize sua conta OLX
+                                        </p>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                                <div className="flex gap-2">
+                                  {olxTokenStatus.hasRefreshToken && olxTokenStatus.isExpired && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm"
+                                      onClick={refreshOlxToken}
+                                      disabled={isRefreshingToken}
+                                    >
+                                      {isRefreshingToken ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <RefreshCw className="h-4 w-4" />
+                                      )}
+                                      Renovar
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <Label>Client ID</Label>
+                              <Label>Client ID *</Label>
                               <Input
                                 value={formData.config.api_credentials?.client_id || ''}
                                 onChange={(e) =>
@@ -811,9 +1037,12 @@ const PortalConfigPage = () => {
                                 }
                                 placeholder="Seu client_id da OLX"
                               />
+                              <p className="text-xs text-muted-foreground">
+                                Obtenha em <a href="https://developers.olx.com.br" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">developers.olx.com.br <ExternalLink className="inline h-3 w-3" /></a>
+                              </p>
                             </div>
                             <div className="space-y-2">
-                              <Label>Client Secret</Label>
+                              <Label>Client Secret *</Label>
                               <Input
                                 type="password"
                                 value={formData.config.api_credentials?.client_secret || ''}
@@ -834,71 +1063,104 @@ const PortalConfigPage = () => {
                             </div>
                           </div>
 
-                          <div className="space-y-2">
-                            <Label>Access Token</Label>
-                            <Input
-                              value={formData.config.api_credentials?.access_token || ''}
-                              onChange={(e) =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  config: {
-                                    ...prev.config,
-                                    api_credentials: {
-                                      ...prev.config.api_credentials,
-                                      access_token: e.target.value,
-                                    },
-                                  },
-                                }))
-                              }
-                              placeholder="Token de acesso OAuth"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              Token obtido após autorização do usuário via fluxo OAuth
-                            </p>
+                          {/* OAuth Authorization Button */}
+                          <div className="p-4 bg-muted rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="text-base font-medium">Autorização OAuth</Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Conecte sua conta OLX para publicar anúncios automaticamente
+                                </p>
+                              </div>
+                              <Button
+                                onClick={startOlxAuthorization}
+                                disabled={isAuthorizingOlx || !formData.config.api_credentials?.client_id || !formData.config.api_credentials?.client_secret}
+                                className="gap-2"
+                              >
+                                {isAuthorizingOlx ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <ExternalLink className="h-4 w-4" />
+                                )}
+                                {olxTokenStatus?.hasAccessToken ? 'Reconectar OLX' : 'Conectar OLX'}
+                              </Button>
+                            </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label>Refresh Token (opcional)</Label>
-                              <Input
-                                value={formData.config.api_credentials?.refresh_token || ''}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    config: {
-                                      ...prev.config,
-                                      api_credentials: {
-                                        ...prev.config.api_credentials,
-                                        refresh_token: e.target.value,
-                                      },
-                                    },
-                                  }))
-                                }
-                                placeholder="Refresh token para renovação"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Telefone para Anúncios</Label>
-                              <Input
-                                value={formData.config.api_credentials?.phone || formData.config.settings?.default_phone || ''}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    config: {
-                                      ...prev.config,
-                                      api_credentials: {
-                                        ...prev.config.api_credentials,
-                                        phone: e.target.value,
-                                      },
-                                    },
-                                  }))
-                                }
-                                placeholder="11999999999"
-                              />
-                              <p className="text-xs text-muted-foreground">
-                                DDD + número (sem espaços ou caracteres)
-                              </p>
-                            </div>
+                          <div className="border-t pt-4">
+                            <details className="group">
+                              <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
+                                <span>Configuração avançada (tokens manuais)</span>
+                              </summary>
+                              <div className="mt-4 space-y-4">
+                                <div className="space-y-2">
+                                  <Label>Access Token</Label>
+                                  <Input
+                                    value={formData.config.api_credentials?.access_token || ''}
+                                    onChange={(e) =>
+                                      setFormData((prev) => ({
+                                        ...prev,
+                                        config: {
+                                          ...prev.config,
+                                          api_credentials: {
+                                            ...prev.config.api_credentials,
+                                            access_token: e.target.value,
+                                          },
+                                        },
+                                      }))
+                                    }
+                                    placeholder="Token de acesso OAuth (preenchido automaticamente)"
+                                  />
+                                  <p className="text-xs text-muted-foreground">
+                                    Gerado automaticamente após autorização OAuth
+                                  </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="space-y-2">
+                                    <Label>Refresh Token</Label>
+                                    <Input
+                                      value={formData.config.api_credentials?.refresh_token || ''}
+                                      onChange={(e) =>
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          config: {
+                                            ...prev.config,
+                                            api_credentials: {
+                                              ...prev.config.api_credentials,
+                                              refresh_token: e.target.value,
+                                            },
+                                          },
+                                        }))
+                                      }
+                                      placeholder="Refresh token para renovação"
+                                    />
+                                  </div>
+                                  <div className="space-y-2">
+                                    <Label>Telefone para Anúncios</Label>
+                                    <Input
+                                      value={formData.config.api_credentials?.phone || formData.config.settings?.default_phone || ''}
+                                      onChange={(e) =>
+                                        setFormData((prev) => ({
+                                          ...prev,
+                                          config: {
+                                            ...prev.config,
+                                            api_credentials: {
+                                              ...prev.config.api_credentials,
+                                              phone: e.target.value,
+                                            },
+                                          },
+                                        }))
+                                      }
+                                      placeholder="11999999999"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                      DDD + número (sem espaços ou caracteres)
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </details>
                           </div>
                         </>
                       )}
