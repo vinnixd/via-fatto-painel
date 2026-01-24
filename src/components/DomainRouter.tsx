@@ -14,6 +14,14 @@ const SITE_ONLY_IMOVEIS_ROUTES = [
   '/imovel/', // página de detalhe do imóvel no site público
 ];
 
+/**
+ * Verifica se o hostname atual é um subdomínio painel.*
+ */
+const isPainelSubdomain = (): boolean => {
+  const hostname = window.location.hostname.toLowerCase();
+  return hostname.startsWith('painel.');
+};
+
 interface DomainRouterProps {
   children: React.ReactNode;
 }
@@ -21,11 +29,11 @@ interface DomainRouterProps {
 /**
  * Componente que gerencia roteamento baseado em domínio
  * 
- * - painel.viafatto.com.br → usa URLs limpas (/, /imoveis, /designer)
+ * - painel.viafatto.com.br → redireciona para /admin e usa URLs limpas
  * - viafatto.com.br → usa rotas públicas normais
  * - viafatto.com.br/admin → redireciona para painel.viafatto.com.br
  * 
- * No subdomínio admin, as rotas limpas são mapeadas internamente para /admin/*
+ * No subdomínio painel, as rotas limpas são mapeadas internamente para /admin/*
  */
 export const DomainRouter = ({ children }: DomainRouterProps) => {
   const location = useLocation();
@@ -34,6 +42,7 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
 
   useEffect(() => {
     const isAdmin = isAdminSubdomain();
+    const isPainel = isPainelSubdomain();
     const currentPath = location.pathname;
     const hostname = window.location.hostname;
 
@@ -42,6 +51,16 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
     const isLovableHosted = hostname.includes('lovable.app') || hostname.includes('localhost');
     const rootHostname = hostname.replace(/^www\./, '');
 
+    // NOVA REGRA: Se está no subdomínio painel.* e não está em rota admin, redireciona
+    if (isPainel && !isLovableHosted) {
+      // Se está na raiz ou em rota pública, redireciona para dashboard admin
+      if (currentPath === '/' || PUBLIC_SITE_ROUTES.includes(currentPath)) {
+        navigate('/', { replace: true });
+        setIsReady(true);
+        return;
+      }
+    }
+
     // Se está no domínio público e tentando acessar /admin, redireciona para subdomínio painel
     if (!isAdmin && currentPath.startsWith('/admin')) {
       if (isLovableHosted) {
@@ -49,7 +68,6 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
         return;
       }
 
-      const parts = hostname.split('.');
       // Constrói o subdomínio painel (ex: painel.viafatto.com.br)
       const adminDomain = `painel.${rootHostname}`;
       // Converte /admin/imoveis para /imoveis (URL limpa)
