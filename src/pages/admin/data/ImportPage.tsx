@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, Download, Loader2, Info, DollarSign, FileText, ListChecks, FileDown, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import AdminLink from "@/components/admin/AdminLink";
 
 interface ImportStats {
   withPrice: number;
@@ -922,9 +922,9 @@ const ImportPage = () => {
                   <AlertTitle className="text-green-600">Importação concluída com sucesso!</AlertTitle>
                   <AlertDescription>
                     Todos os imóveis foram importados sem erros.{" "}
-                    <Link to="/admin/imoveis" className="underline font-medium">
+                    <AdminLink to="/admin/imoveis" className="underline font-medium">
                       Ver imóveis
-                    </Link>
+                    </AdminLink>
                   </AlertDescription>
                 </Alert>
               ) : (
@@ -998,7 +998,7 @@ const ImportPage = () => {
                   Importar outro arquivo
                 </Button>
                 <Button variant="admin" asChild>
-                  <Link to="/admin/imoveis">Ver imóveis</Link>
+                  <AdminLink to="/admin/imoveis">Ver imóveis</AdminLink>
                 </Button>
               </div>
             </CardContent>

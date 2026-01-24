@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import AdminLink from '@/components/admin/AdminLink';
 import { cn } from '@/lib/utils';
 import { SUPPORT_WHATSAPP } from '@/lib/constants';
 import {
@@ -19,26 +20,27 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { useAdminRoutes } from '@/hooks/useAdminRoutes';
 
 interface MenuItem {
   icon: typeof LayoutDashboard;
   label: string;
-  path: string;
+  adminPath: string;
   roles?: ('admin' | 'gestor' | 'marketing' | 'corretor')[];
 }
 
 const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Palette, label: 'Designer', path: '/admin/designer' },
-  { icon: Building2, label: 'Imóveis', path: '/admin/imoveis' },
-  { icon: Globe, label: 'Portais', path: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
-  { icon: Plug, label: 'Integrações', path: '/admin/integracoes', roles: ['admin', 'marketing'] },
-  { icon: CreditCard, label: 'Assinaturas', path: '/admin/assinaturas', roles: ['admin'] },
-  { icon: MessageSquare, label: 'Mensagens', path: '/admin/mensagens' },
-  { icon: Users, label: 'Equipe', path: '/admin/usuarios', roles: ['admin'] },
+  { icon: LayoutDashboard, label: 'Dashboard', adminPath: '/admin' },
+  { icon: Palette, label: 'Designer', adminPath: '/admin/designer' },
+  { icon: Building2, label: 'Imóveis', adminPath: '/admin/imoveis' },
+  { icon: Globe, label: 'Portais', adminPath: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
+  { icon: Plug, label: 'Integrações', adminPath: '/admin/integracoes', roles: ['admin', 'marketing'] },
+  { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },
+  { icon: MessageSquare, label: 'Mensagens', adminPath: '/admin/mensagens' },
+  { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
 ];
 
-const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', path: '/admin/perfil' };
+const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };
 
 interface AdminSidebarProps {
   collapsed: boolean;
@@ -49,6 +51,10 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
   const { data: siteConfig } = useSiteConfig();
+  const { getPath, normalizeCurrentPath } = useAdminRoutes();
+
+  // Normaliza o pathname atual para comparação
+  const normalizedPath = normalizeCurrentPath(location.pathname);
 
   // Filter menu items based on user role
   const visibleMenuItems = menuItems.filter((item) => {
@@ -60,7 +66,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
     return false;
   });
 
-  const isProfileActive = location.pathname === profileItem.path;
+  const isProfileActive = normalizedPath === profileItem.adminPath;
 
   return (
     <aside
@@ -72,7 +78,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
-          <Link to="/admin" className="flex items-center gap-2">
+          <AdminLink to="/admin" className="flex items-center gap-2">
             {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
@@ -87,10 +93,10 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 <span className="font-bold text-lg">Via Fatto</span>
               </>
             )}
-          </Link>
+          </AdminLink>
         )}
         {collapsed && (
-          <Link to="/admin" className="mx-auto">
+          <AdminLink to="/admin" className="mx-auto">
             {(siteConfig?.logo_symbol_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_symbol_url || siteConfig.logo_url} 
@@ -102,7 +108,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
             )}
-          </Link>
+          </AdminLink>
         )}
       </div>
 
@@ -122,13 +128,14 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       <nav className="flex-1 py-4 px-2 overflow-y-auto">
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
-            const isActive = location.pathname === item.path || 
-              (item.path !== '/admin' && location.pathname.startsWith(item.path));
+            const itemPath = getPath(item.adminPath);
+            const isActive = normalizedPath === item.adminPath || 
+              (item.adminPath !== '/admin' && normalizedPath.startsWith(item.adminPath));
             
             return (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
+              <li key={item.adminPath}>
+                <AdminLink
+                  to={item.adminPath}
                   title={collapsed ? item.label : undefined}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
@@ -140,15 +147,15 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {!collapsed && <span className="font-medium">{item.label}</span>}
-                </Link>
+                </AdminLink>
               </li>
             );
           })}
 
           {/* Profile - Always Last */}
           <li>
-            <Link
-              to={profileItem.path}
+            <AdminLink
+              to={profileItem.adminPath}
               title={collapsed ? profileItem.label : undefined}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
@@ -160,7 +167,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             >
               <profileItem.icon className="h-5 w-5 flex-shrink-0" />
               {!collapsed && <span className="font-medium">{profileItem.label}</span>}
-            </Link>
+            </AdminLink>
           </li>
         </ul>
       </nav>

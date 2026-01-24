@@ -12,6 +12,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import { DomainRouter } from "@/components/DomainRouter";
+import { isAdminSubdomain } from "@/hooks/useAdminRoutes";
 import Index from "./pages/Index";
 import PropertyPage from "./pages/PropertyPage";
 import PropertiesPage from "./pages/PropertiesPage";
@@ -55,60 +56,83 @@ const BrandManager = () => {
   return null;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <BrandManager />
-        <AuthProvider>
-          <DomainRouter>
-            <AppErrorBoundary>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/imoveis" element={<PropertiesPage />} />
-                <Route path="/imoveis/localizacao" element={<LocationPage />} />
-                <Route path="/imovel/:slug" element={<PropertyPage />} />
-                <Route path="/sobre" element={<AboutPage />} />
-                <Route path="/contato" element={<ContactPage />} />
-                <Route path="/favoritos" element={<FavoritesPage />} />
+// Helper para gerar rotas admin
+const getAdminRoutes = (prefix: string = '') => [
+  { path: `${prefix}/`, element: <DashboardPage /> },
+  { path: `${prefix}/login`, element: <AuthPage /> },
+  { path: `${prefix}/convite/:token`, element: <InviteSignupPage /> },
+  { path: `${prefix}/designer`, element: <DesignerPage /> },
+  { path: `${prefix}/imoveis`, element: <PropertiesListPage /> },
+  { path: `${prefix}/imoveis/novo`, element: <PropertyFormPage /> },
+  { path: `${prefix}/imoveis/:id`, element: <PropertyFormPage /> },
+  { path: `${prefix}/categorias`, element: <CategoriesPage /> },
+  { path: `${prefix}/perfil`, element: <ProfilePage /> },
+  { path: `${prefix}/configuracoes`, element: <SettingsPage /> },
+  { path: `${prefix}/favoritos`, element: <FavoritesListPage /> },
+  { path: `${prefix}/mensagens`, element: <MessagesPage /> },
+  { path: `${prefix}/dados`, element: <ExportPage /> },
+  { path: `${prefix}/dados/importar`, element: <ImportDataPage /> },
+  { path: `${prefix}/portais`, element: <PortaisPage /> },
+  { path: `${prefix}/portais/:portalId`, element: <PortalConfigPage /> },
+  { path: `${prefix}/usuarios`, element: <UsersPage /> },
+  { path: `${prefix}/assinaturas`, element: <PaymentsPage /> },
+  { path: `${prefix}/assinaturas/planos`, element: <PlansPage /> },
+  { path: `${prefix}/assinaturas/faturas`, element: <InvoicesPage /> },
+  { path: `${prefix}/integracoes`, element: <IntegrationsPage /> },
+  { path: `${prefix}/compartilhamento`, element: <ShareTestPage /> },
+];
 
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AuthPage />} />
-                <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
-                <Route path="/admin" element={<DashboardPage />} />
-                <Route path="/admin/designer" element={<DesignerPage />} />
-                <Route path="/admin/imoveis" element={<PropertiesListPage />} />
-                <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
-                <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
-                <Route path="/admin/categorias" element={<CategoriesPage />} />
-                <Route path="/admin/perfil" element={<ProfilePage />} />
-                <Route path="/admin/configuracoes" element={<SettingsPage />} />
-                <Route path="/admin/favoritos" element={<FavoritesListPage />} />
-                <Route path="/admin/mensagens" element={<MessagesPage />} />
-                <Route path="/admin/dados" element={<ExportPage />} />
-                <Route path="/admin/dados/importar" element={<ImportDataPage />} />
-                <Route path="/admin/portais" element={<PortaisPage />} />
-                <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
-                <Route path="/admin/usuarios" element={<UsersPage />} />
-                <Route path="/admin/assinaturas" element={<PaymentsPage />} />
-                <Route path="/admin/assinaturas/planos" element={<PlansPage />} />
-                <Route path="/admin/assinaturas/faturas" element={<InvoicesPage />} />
-                <Route path="/admin/integracoes" element={<IntegrationsPage />} />
-                <Route path="/admin/compartilhamento" element={<ShareTestPage />} />
+const App = () => {
+  const isCleanUrlMode = isAdminSubdomain();
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <BrandManager />
+          <AuthProvider>
+            <DomainRouter>
+              <AppErrorBoundary>
+                <Routes>
+                  {isCleanUrlMode ? (
+                    <>
+                      {/* URLs limpas no subdomínio admin */}
+                      {getAdminRoutes('').map((route) => (
+                        <Route key={route.path} path={route.path} element={route.element} />
+                      ))}
+                      <Route path="*" element={<NotFound />} />
+                    </>
+                  ) : (
+                    <>
+                      {/* Public Routes */}
+                      <Route path="/" element={<Index />} />
+                      <Route path="/imoveis" element={<PropertiesPage />} />
+                      <Route path="/imoveis/localizacao" element={<LocationPage />} />
+                      <Route path="/imovel/:slug" element={<PropertyPage />} />
+                      <Route path="/sobre" element={<AboutPage />} />
+                      <Route path="/contato" element={<ContactPage />} />
+                      <Route path="/favoritos" element={<FavoritesPage />} />
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <FloatingWhatsApp />
-            </AppErrorBoundary>
-          </DomainRouter>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+                      {/* Admin Routes with /admin prefix */}
+                      {getAdminRoutes('/admin').map((route) => (
+                        <Route key={route.path} path={route.path} element={route.element} />
+                      ))}
+
+                      <Route path="*" element={<NotFound />} />
+                    </>
+                  )}
+                </Routes>
+                <FloatingWhatsApp />
+              </AppErrorBoundary>
+            </DomainRouter>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

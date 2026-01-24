@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
@@ -7,8 +7,13 @@ import ImportProgressBar from './ImportProgressBar';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_VERSION, SYSTEM_NAME, SYSTEM_YEAR } from '@/lib/constants';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import { toAdminPath } from '@/hooks/useAdminRoutes';
 
 const getPageTitle = (pathname: string): { title: string; subtitle?: string } => {
+  // Normaliza o pathname para o formato admin
+  const normalizedPath = pathname.startsWith('/admin') ? pathname : toAdminPath(pathname);
+  
   const routes: Record<string, { title: string; subtitle?: string }> = {
     '/admin': { title: 'Dashboard', subtitle: 'Visão geral do sistema' },
     '/admin/imoveis': { title: 'Imóveis', subtitle: 'Gerencie seus imóveis' },
@@ -31,17 +36,17 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
   };
 
   // Check for exact match first
-  if (routes[pathname]) {
-    return routes[pathname];
+  if (routes[normalizedPath]) {
+    return routes[normalizedPath];
   }
 
   // Check for property edit page
-  if (pathname.match(/^\/admin\/imoveis\/[^/]+$/)) {
+  if (normalizedPath.match(/^\/admin\/imoveis\/[^/]+$/)) {
     return { title: 'Editar Imóvel', subtitle: 'Atualize as informações do imóvel' };
   }
 
   // Check for portal config page
-  if (pathname.match(/^\/admin\/portais\/[^/]+$/)) {
+  if (normalizedPath.match(/^\/admin\/portais\/[^/]+$/)) {
     return { title: 'Configurar Portal', subtitle: 'Configure a integração' };
   }
 
@@ -54,7 +59,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, loading, canAccessAdmin } = useAuth();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // Persist sidebar state in localStorage
@@ -70,15 +75,15 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/admin/login');
+      navigateAdmin('/admin/login');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigateAdmin]);
 
   useEffect(() => {
     if (!loading && user && !canAccessAdmin) {
-      navigate('/admin/login');
+      navigateAdmin('/admin/login');
     }
-  }, [user, loading, canAccessAdmin, navigate]);
+  }, [user, loading, canAccessAdmin, navigateAdmin]);
 
   const { title, subtitle } = getPageTitle(location.pathname);
 

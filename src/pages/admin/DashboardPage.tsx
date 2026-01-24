@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import AdminLink from '@/components/admin/AdminLink';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -235,13 +235,13 @@ const DashboardPage = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25">
-              <Link to="/admin/imoveis/novo">
+              <AdminLink to="/admin/imoveis/novo">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Imóvel
-              </Link>
+              </AdminLink>
             </Button>
             <Button variant="outline" asChild className="border-2">
-              <Link to="/admin/mensagens">
+              <AdminLink to="/admin/mensagens">
                 <Mail className="h-4 w-4 mr-2" />
                 Mensagens
                 {stats.unreadMessages > 0 && (
@@ -249,13 +249,13 @@ const DashboardPage = () => {
                     {stats.unreadMessages}
                   </span>
                 )}
-              </Link>
+              </AdminLink>
             </Button>
             <Button variant="outline" asChild className="border-2">
-              <Link to="/admin/designer">
+              <AdminLink to="/admin/designer">
                 <Palette className="h-4 w-4 mr-2" />
                 Designer
-              </Link>
+              </AdminLink>
             </Button>
           </div>
         </div>
@@ -263,7 +263,7 @@ const DashboardPage = () => {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           {statCards.map((stat) => {
-            const CardWrapper = stat.link ? Link : 'div';
+            const CardWrapper = stat.link ? AdminLink : 'div';
             return (
               <CardWrapper 
                 key={stat.label} 
@@ -311,9 +311,9 @@ const DashboardPage = () => {
                 <CardTitle className="text-base font-semibold">Últimos Imóveis</CardTitle>
               </div>
               <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary">
-                <Link to="/admin/imoveis">
+                <AdminLink to="/admin/imoveis">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
-                </Link>
+                </AdminLink>
               </Button>
             </CardHeader>
             <CardContent className="pt-0">
@@ -324,16 +324,16 @@ const DashboardPage = () => {
                   </div>
                   <p className="text-muted-foreground text-sm mb-4">Nenhum imóvel cadastrado</p>
                   <Button size="sm" asChild>
-                    <Link to="/admin/imoveis/novo">
+                    <AdminLink to="/admin/imoveis/novo">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar
-                    </Link>
+                    </AdminLink>
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
                   {recentProperties.map((property) => (
-                    <Link 
+                    <AdminLink 
                       key={property.id} 
                       to={`/admin/imoveis/${property.id}`}
                       className="flex items-center justify-between p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
@@ -360,7 +360,7 @@ const DashboardPage = () => {
                           {property.status === 'venda' ? 'Venda' : 'Aluguel'}
                         </span>
                       </div>
-                    </Link>
+                    </AdminLink>
                   ))}
                 </div>
               )}
@@ -388,7 +388,7 @@ const DashboardPage = () => {
               ) : (
                 <div className="space-y-2">
                   {topProperties.map((property, index) => (
-                    <Link 
+                    <AdminLink 
                       key={property.id} 
                       to={`/admin/imoveis/${property.id}`}
                       className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
@@ -412,7 +412,7 @@ const DashboardPage = () => {
                         <Eye className="h-3.5 w-3.5" />
                         <span className="text-xs font-semibold">{property.views.toLocaleString('pt-BR')}</span>
                       </div>
-                    </Link>
+                    </AdminLink>
                   ))}
                 </div>
               )}
@@ -434,9 +434,9 @@ const DashboardPage = () => {
                 <CardTitle className="text-base font-semibold">Mensagens</CardTitle>
               </div>
               <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary">
-                <Link to="/admin/mensagens">
+                <AdminLink to="/admin/mensagens">
                   Ver todas <ArrowRight className="h-4 w-4 ml-1" />
-                </Link>
+                </AdminLink>
               </Button>
             </CardHeader>
             <CardContent className="pt-0">
@@ -450,7 +450,7 @@ const DashboardPage = () => {
               ) : (
                 <div className="space-y-2">
                   {recentMessages.map((msg) => (
-                    <Link 
+                    <AdminLink 
                       key={msg.id} 
                       to="/admin/mensagens"
                       className={`block p-3 rounded-xl transition-all ${
@@ -471,7 +471,7 @@ const DashboardPage = () => {
                         <span className="text-[10px] text-muted-foreground font-medium">{formatTimeAgo(msg.created_at)}</span>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2 pl-6">{msg.message}</p>
-                    </Link>
+                    </AdminLink>
                   ))}
                 </div>
               )}

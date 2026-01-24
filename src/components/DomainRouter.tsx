@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { isAdminSubdomain, toAdminPath } from '@/hooks/useAdminRoutes';
 
-// Subdomínios que devem acessar o painel admin
-const ADMIN_SUBDOMAINS = ['painel', 'admin', 'app'];
-
-// Rotas públicas do site
-const PUBLIC_ROUTES = [
-  '/',
-  '/imoveis',
-  '/imovel',
+// Rotas públicas do site (não-admin)
+const PUBLIC_SITE_ROUTES = [
   '/sobre',
   '/contato',
   '/favoritos',
+];
+
+// Rotas que são exclusivamente públicas (existem tanto no site quanto no admin com nomes diferentes)
+const SITE_ONLY_IMOVEIS_ROUTES = [
+  '/imovel/', // página de detalhe do imóvel no site público
 ];
 
 interface DomainRouterProps {
@@ -21,8 +21,10 @@ interface DomainRouterProps {
 /**
  * Componente que gerencia roteamento baseado em domínio
  * 
- * - painel.viafatto.com.br → redireciona para rotas /admin
- * - viafatto.com.br → mantém rotas públicas
+ * - painel.viafatto.com.br → usa URLs limpas (/, /imoveis, /designer)
+ * - viafatto.com.br → usa rotas públicas normais
+ * 
+ * No subdomínio admin, as rotas limpas são mapeadas internamente para /admin/*
  */
 export const DomainRouter = ({ children }: DomainRouterProps) => {
   const location = useLocation();
@@ -30,21 +32,25 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const hostname = window.location.hostname;
-    const subdomain = hostname.split('.')[0];
-    const isAdminSubdomain = ADMIN_SUBDOMAINS.includes(subdomain.toLowerCase());
+    const isAdmin = isAdminSubdomain();
     const currentPath = location.pathname;
 
-    // Verificar se é um subdomínio de admin
-    if (isAdminSubdomain) {
-      const isPublicRoute = PUBLIC_ROUTES.some(route => {
-        if (route === '/') return currentPath === '/';
-        return currentPath.startsWith(route);
-      });
+    if (isAdmin) {
+      // Verifica se está tentando acessar rotas exclusivas do site público
+      const isSiteOnlyRoute = PUBLIC_SITE_ROUTES.includes(currentPath) ||
+        SITE_ONLY_IMOVEIS_ROUTES.some(route => currentPath.startsWith(route));
 
-      // Se está em rota pública no subdomínio admin, redirecionar para /admin
-      if (isPublicRoute) {
-        navigate('/admin', { replace: true });
+      if (isSiteOnlyRoute) {
+        // Redireciona para o dashboard se tentar acessar rota pública no admin
+        navigate('/', { replace: true });
+        setIsReady(true);
+        return;
+      }
+
+      // Se a URL já está no formato /admin/*, converte para URL limpa
+      if (currentPath.startsWith('/admin')) {
+        const cleanPath = currentPath.replace('/admin', '') || '/';
+        navigate(cleanPath, { replace: true });
         setIsReady(true);
         return;
       }
@@ -62,22 +68,12 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
 };
 
 /**
- * Verifica se está em um subdomínio de admin
- */
-export const isAdminSubdomain = (): boolean => {
-  const hostname = window.location.hostname;
-  const subdomain = hostname.split('.')[0];
-  return ADMIN_SUBDOMAINS.includes(subdomain.toLowerCase());
-};
-
-/**
  * Obtém a URL pública (sem subdomínio admin)
  */
 export const getPublicDomainUrl = (path: string = '/'): string => {
   const hostname = window.location.hostname;
-  const subdomain = hostname.split('.')[0];
   
-  if (ADMIN_SUBDOMAINS.includes(subdomain.toLowerCase())) {
+  if (isAdminSubdomain()) {
     const parts = hostname.split('.');
     parts.shift();
     const publicDomain = parts.join('.');
@@ -87,4 +83,5 @@ export const getPublicDomainUrl = (path: string = '/'): string => {
   return path;
 };
 
+export { isAdminSubdomain };
 export default DomainRouter;

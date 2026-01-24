@@ -1,7 +1,9 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
+import AdminLink from '@/components/admin/AdminLink';
+import { useAdminRoutes } from '@/hooks/useAdminRoutes';
 import { CreditCard, FileText, Package, ChevronLeft } from 'lucide-react';
 
 interface SubscriptionsLayoutProps {
@@ -9,33 +11,35 @@ interface SubscriptionsLayoutProps {
 }
 
 const menuItems = [
-  { icon: CreditCard, label: 'Pagamentos', path: '/admin/assinaturas' },
-  { icon: Package, label: 'Planos', path: '/admin/assinaturas/planos' },
-  { icon: FileText, label: 'Faturas', path: '/admin/assinaturas/faturas' },
+  { icon: CreditCard, label: 'Pagamentos', adminPath: '/admin/assinaturas' },
+  { icon: Package, label: 'Planos', adminPath: '/admin/assinaturas/planos' },
+  { icon: FileText, label: 'Faturas', adminPath: '/admin/assinaturas/faturas' },
 ];
 
 const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
   const location = useLocation();
+  const { normalizeCurrentPath } = useAdminRoutes();
+  const normalizedPath = normalizeCurrentPath(location.pathname);
 
   return (
     <AdminLayout>
       {/* Mobile Menu */}
       <div className="lg:hidden border-b border-border bg-background p-4">
-        <Link 
+        <AdminLink 
           to="/admin" 
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
         >
           <ChevronLeft className="h-4 w-4" />
           <span className="font-medium">Assinaturas</span>
-        </Link>
+        </AdminLink>
         <div className="flex gap-2 overflow-x-auto pb-2">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = normalizedPath === item.adminPath;
             
             return (
-              <Link
-                key={item.path}
-                to={item.path}
+              <AdminLink
+                key={item.adminPath}
+                to={item.adminPath}
                 className={cn(
                   'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm whitespace-nowrap',
                   isActive
@@ -45,7 +49,7 @@ const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
               >
                 <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>
-              </Link>
+              </AdminLink>
             );
           })}
         </div>
@@ -54,22 +58,22 @@ const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
       <div className="flex min-h-[calc(100vh-4rem)]">
         {/* Submenu Sidebar */}
         <div className="w-64 border-r border-border bg-background p-4 hidden lg:block">
-          <Link 
+          <AdminLink 
             to="/admin" 
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
             <span className="font-medium">Assinaturas</span>
-          </Link>
+          </AdminLink>
           
           <nav className="space-y-1">
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = normalizedPath === item.adminPath;
               
               return (
-                <Link
-                  key={item.path}
-                  to={item.path}
+                <AdminLink
+                  key={item.adminPath}
+                  to={item.adminPath}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm',
                     isActive
@@ -79,7 +83,7 @@ const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                </Link>
+                </AdminLink>
               );
             })}
           </nav>

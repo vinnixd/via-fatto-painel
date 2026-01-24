@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom';
+import { useAdminRoutes, toAdminPath } from '@/hooks/useAdminRoutes';
 
 interface BreadcrumbItem {
   label: string;
@@ -28,20 +29,26 @@ const routeLabels: Record<string, string> = {
 
 export function useAdminBreadcrumbs(): BreadcrumbItem[] {
   const location = useLocation();
-  const pathname = location.pathname;
+  const { getPath, isCleanUrlMode } = useAdminRoutes();
+  
+  // Normaliza o pathname para o formato admin interno
+  const normalizedPath = isCleanUrlMode 
+    ? toAdminPath(location.pathname)
+    : location.pathname;
 
   // Always start with Dashboard
+  const dashboardHref = getPath('/admin');
   const breadcrumbs: BreadcrumbItem[] = [
-    { label: 'Dashboard', href: '/admin' }
+    { label: 'Dashboard', href: dashboardHref }
   ];
 
   // If we're on the dashboard, just return it as current page (no href)
-  if (pathname === '/admin' || pathname === '/admin/') {
+  if (normalizedPath === '/admin' || normalizedPath === '/admin/') {
     return [{ label: 'Dashboard' }];
   }
 
-  // Build breadcrumb trail based on pathname
-  const segments = pathname.split('/').filter(Boolean);
+  // Build breadcrumb trail based on normalized pathname
+  const segments = normalizedPath.split('/').filter(Boolean);
   let currentPath = '';
 
   for (let i = 0; i < segments.length; i++) {
@@ -57,19 +64,19 @@ export function useAdminBreadcrumbs(): BreadcrumbItem[] {
     if (routeLabels[currentPath]) {
       breadcrumbs.push({
         label: routeLabels[currentPath],
-        href: isLast ? undefined : currentPath
+        href: isLast ? undefined : getPath(currentPath)
       });
     } else {
       // Handle dynamic routes (property edit, portal config)
       if (currentPath.match(/^\/admin\/imoveis\/[^/]+$/) && segment !== 'novo') {
         breadcrumbs.push({
           label: 'Editar Imóvel',
-          href: isLast ? undefined : currentPath
+          href: isLast ? undefined : getPath(currentPath)
         });
       } else if (currentPath.match(/^\/admin\/portais\/[^/]+$/)) {
         breadcrumbs.push({
           label: 'Configurar Portal',
-          href: isLast ? undefined : currentPath
+          href: isLast ? undefined : getPath(currentPath)
         });
       }
     }

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -186,7 +187,7 @@ const SortableImage = ({ image, index, onRemove }: SortableImageProps) => {
 
 const PropertyFormPage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
   const { user } = useAuth();
   const isEditing = !!id;
 
@@ -671,7 +672,7 @@ const PropertyFormPage = () => {
 
       setHasUnsavedChanges(false);
       toast.success(isEditing ? 'Imóvel atualizado com sucesso!' : 'Imóvel criado com sucesso!');
-      navigate('/admin/imoveis');
+      navigateAdmin('/admin/imoveis');
     } catch (error: any) {
       console.error('Error saving property:', error);
       if (error?.code === '23505') {
@@ -705,7 +706,7 @@ const PropertyFormPage = () => {
   return (
     <AdminLayout>
       <div className="p-6">
-        <Button variant="ghost" onClick={() => navigate('/admin/imoveis')} className="mb-6 -ml-2">
+        <Button variant="ghost" onClick={() => navigateAdmin('/admin/imoveis')} className="mb-6 -ml-2">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para lista
         </Button>
@@ -1210,7 +1211,7 @@ const PropertyFormPage = () => {
                             Nenhum portal ativo. Ative em{' '}
                             <button 
                               type="button"
-                              onClick={() => navigate('/admin/portais')}
+                              onClick={() => navigateAdmin('/admin/portais')}
                               className="text-primary hover:underline"
                             >
                               Configurações → Portais
@@ -1814,7 +1815,7 @@ const PropertyFormPage = () => {
                     variant="ghost" 
                     onClick={(e) => {
                       e.preventDefault();
-                      navigate('/admin/imoveis');
+                      navigateAdmin('/admin/imoveis');
                     }}
                   >
                     Cancelar

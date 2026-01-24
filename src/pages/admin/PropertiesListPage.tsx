@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import AdminLink from '@/components/admin/AdminLink';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -234,14 +235,14 @@ const SortablePropertyCard = ({
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link
+                  <AdminLink
                     to={`/admin/imoveis/${property.id}`}
                     className="flex items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Pencil className="h-4 w-4" />
                     Editar
-                  </Link>
+                  </AdminLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -950,16 +951,16 @@ const PropertiesListPage = () => {
                       <span className="hidden sm:inline">Gerar SEO</span>
                     </Button>
                     <Button variant="outline" asChild className="gap-2">
-                      <Link to="/admin/dados">
+                      <AdminLink to="/admin/dados">
                         <Upload className="h-4 w-4" />
                         <span className="hidden sm:inline">Exportar e Importar</span>
-                      </Link>
+                      </AdminLink>
                     </Button>
                     <Button asChild className="gap-2 shadow-md">
-                      <Link to="/admin/imoveis/novo">
+                      <AdminLink to="/admin/imoveis/novo">
                         <Plus className="h-4 w-4" />
                         Novo Imóvel
-                      </Link>
+                      </AdminLink>
                     </Button>
                   </>
                 )}
@@ -1001,10 +1002,10 @@ const PropertiesListPage = () => {
               </p>
               {!search && (
                 <Button asChild>
-                  <Link to="/admin/imoveis/novo">
+                  <AdminLink to="/admin/imoveis/novo">
                     <Plus className="h-4 w-4 mr-2" />
                     Cadastrar Imóvel
-                  </Link>
+                  </AdminLink>
                 </Button>
               )}
             </CardContent>

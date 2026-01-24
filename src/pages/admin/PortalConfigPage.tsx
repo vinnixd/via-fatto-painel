@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -166,7 +167,7 @@ interface PortalJob {
 
 const PortalConfigPage = () => {
   const { portalId } = useParams();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -728,7 +729,7 @@ const PortalConfigPage = () => {
       <AdminLayout>
         <div className="flex flex-col items-center justify-center h-96 gap-4">
           <p className="text-muted-foreground">Portal não encontrado</p>
-          <Button variant="admin" onClick={() => navigate('/admin/portais')}>
+          <Button variant="admin" onClick={() => navigateAdmin('/admin/portais')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
@@ -741,7 +742,7 @@ const PortalConfigPage = () => {
     <AdminLayout>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <Button variant="ghost" onClick={() => navigate('/admin/portais')}>
+          <Button variant="ghost" onClick={() => navigateAdmin('/admin/portais')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para Portais
           </Button>

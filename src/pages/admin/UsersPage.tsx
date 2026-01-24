@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +50,7 @@ import {
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 
 interface UserWithRole {
   id: string;
@@ -77,7 +77,7 @@ interface Invite {
 const UsersPage = () => {
   const { user } = useAuth();
   const { canAccessUsers, loading: permissionsLoading } = usePermissions();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
   const queryClient = useQueryClient();
   
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -94,9 +94,9 @@ const UsersPage = () => {
   useEffect(() => {
     if (!permissionsLoading && !canAccessUsers) {
       toast.error('Sem permissão para acessar esta página');
-      navigate('/admin');
+      navigateAdmin('/admin');
     }
-  }, [permissionsLoading, canAccessUsers, navigate]);
+  }, [permissionsLoading, canAccessUsers, navigateAdmin]);
 
   // Fetch users with roles
   const { data: users, isLoading: usersLoading } = useQuery({

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { Building2, Eye, EyeOff, Mail, Lock, User, AlertCircle, Loader2, BadgeCheck } from 'lucide-react';
 import { z } from 'zod';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
@@ -45,13 +46,13 @@ const InviteSignupPage = () => {
     creci: '',
   });
   const { signUp, user, isAdmin } = useAuth();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
 
   useEffect(() => {
     if (user && isAdmin) {
-      navigate('/admin');
+      navigateAdmin('/admin');
     }
-  }, [user, isAdmin, navigate]);
+  }, [user, isAdmin, navigateAdmin]);
 
   useEffect(() => {
     const validateInvite = async () => {
@@ -136,7 +137,7 @@ const InviteSignupPage = () => {
       });
 
       toast.success('Conta criada com sucesso! Você já pode fazer login.');
-      navigate('/admin/login');
+      navigateAdmin('/admin/login');
     } catch (error: any) {
       console.error('Signup error:', error);
       if (error.message?.includes('already registered')) {
@@ -179,7 +180,7 @@ const InviteSignupPage = () => {
             <p className="text-sm text-muted-foreground mb-4">
               Entre em contato com o administrador para solicitar um novo convite.
             </p>
-            <Button variant="outline" onClick={() => navigate('/admin/login')}>
+            <Button variant="outline" onClick={() => navigateAdmin('/admin/login')}>
               Voltar para Login
             </Button>
           </CardContent>
@@ -304,7 +305,7 @@ const InviteSignupPage = () => {
               Já tem uma conta?{' '}
               <button
                 type="button"
-                onClick={() => navigate('/admin/login')}
+                onClick={() => navigateAdmin('/admin/login')}
                 className="text-primary hover:underline"
               >
                 Fazer login

@@ -1,20 +1,20 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import { SignIn1 } from '@/components/ui/modern-stunning-sign-in';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 
 const AuthPage = () => {
   const { signIn, user, canAccessAdmin } = useAuth();
-  const navigate = useNavigate();
+  const { navigateAdmin } = useAdminNavigation();
   const { data: siteConfig } = useSiteConfig();
 
   useEffect(() => {
     if (user && canAccessAdmin) {
-      navigate('/admin');
+      navigateAdmin('/admin');
     }
-  }, [user, canAccessAdmin, navigate]);
+  }, [user, canAccessAdmin, navigateAdmin]);
 
   const handleLogin = async (email: string, password: string) => {
     const { error } = await signIn(email, password);
