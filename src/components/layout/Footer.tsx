@@ -161,12 +161,26 @@ const Footer = () => {
               <Link to="/termos" className="text-neutral-400 hover:text-primary text-sm transition-colors">
                 Termos de Uso
               </Link>
-              <a 
-                href={`${window.location.protocol}//painel.${window.location.hostname.replace(/^www\./, '')}`}
-                className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors"
-              >
-                Área Restrita
-              </a>
+              {(() => {
+                const hostname = window.location.hostname;
+                const isLovablePreview = hostname.includes('lovable.app') || hostname.includes('localhost');
+                const adminUrl = isLovablePreview 
+                  ? '/admin' 
+                  : `${window.location.protocol}//painel.${hostname.replace(/^www\./, '')}`;
+                
+                return isLovablePreview ? (
+                  <Link to="/admin" className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors">
+                    Área Restrita
+                  </Link>
+                ) : (
+                  <a 
+                    href={adminUrl}
+                    className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors"
+                  >
+                    Área Restrita
+                  </a>
+                );
+              })()}
             </div>
           </div>
         </div>
