@@ -16,8 +16,12 @@ import {
   CreditCard,
   Plug,
   Headphones,
+  Settings,
+  GlobeLock,
+  UsersRound,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 import { Button } from '@/components/ui/button';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
 import { useAdminRoutes } from '@/hooks/useAdminRoutes';
@@ -27,6 +31,7 @@ interface MenuItem {
   label: string;
   adminPath: string;
   roles?: ('admin' | 'gestor' | 'marketing' | 'corretor')[];
+  tenantRoles?: ('owner' | 'admin' | 'agent')[];
 }
 
 const menuItems: MenuItem[] = [
@@ -38,6 +43,8 @@ const menuItems: MenuItem[] = [
   { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Mensagens', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
+  { icon: GlobeLock, label: 'Domínios', adminPath: '/admin/dominios', tenantRoles: ['owner', 'admin'] },
+  { icon: UsersRound, label: 'Membros', adminPath: '/admin/membros', tenantRoles: ['owner', 'admin'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };
@@ -50,14 +57,22 @@ interface AdminSidebarProps {
 const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
+  const { userRole: tenantUserRole, isOwnerOrAdmin: isTenantAdmin } = useTenant();
   const { data: siteConfig } = useSiteConfig();
   const { getPath, normalizeCurrentPath } = useAdminRoutes();
 
   // Normaliza o pathname atual para comparação
   const normalizedPath = normalizeCurrentPath(location.pathname);
 
-  // Filter menu items based on user role
+  // Filter menu items based on user role (legacy system + tenant system)
   const visibleMenuItems = menuItems.filter((item) => {
+    // Check tenant-based roles first
+    if (item.tenantRoles) {
+      if (!tenantUserRole) return false;
+      if (!item.tenantRoles.includes(tenantUserRole)) return false;
+    }
+    
+    // Check legacy roles
     if (!item.roles) return true;
     if (isAdmin && item.roles.includes('admin')) return true;
     if (isGestor && item.roles.includes('gestor')) return true;

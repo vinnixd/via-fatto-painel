@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.olx-oauth]
 verify_jwt = false
+
+[functions.verify-domain]
+verify_jwt = false

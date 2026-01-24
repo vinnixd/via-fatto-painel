@@ -25,6 +25,8 @@ const routeLabels: Record<string, string> = {
   '/admin/assinaturas/planos': 'Planos',
   '/admin/assinaturas/faturas': 'Faturas',
   '/admin/compartilhamento': 'Compartilhamento',
+  '/admin/dominios': 'Domínios',
+  '/admin/membros': 'Membros',
 };
 
 export function useAdminBreadcrumbs(): BreadcrumbItem[] {

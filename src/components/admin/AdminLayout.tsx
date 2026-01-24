@@ -33,6 +33,8 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
     '/admin/assinaturas/planos': { title: 'Planos', subtitle: 'Planos disponíveis' },
     '/admin/assinaturas/faturas': { title: 'Faturas', subtitle: 'Suas faturas' },
     '/admin/compartilhamento': { title: 'Compartilhamento', subtitle: 'Teste de compartilhamento' },
+    '/admin/dominios': { title: 'Domínios', subtitle: 'Gerencie seus domínios' },
+    '/admin/membros': { title: 'Membros', subtitle: 'Gerencie sua equipe' },
   };
 
   // Check for exact match first

@@ -35,6 +35,8 @@ const ADMIN_ROUTE_MAP: Record<string, string> = {
   '/admin/dados': '/dados',
   '/admin/dados/importar': '/dados/importar',
   '/admin/compartilhamento': '/compartilhamento',
+  '/admin/dominios': '/dominios',
+  '/admin/membros': '/membros',
 };
 
 /**
