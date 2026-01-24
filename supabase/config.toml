@@ -1,1 +1,4 @@
 project_id = "mpsusvpdjuqvjgdsvwpp"
+
+[functions.import-images]
+verify_jwt = false
