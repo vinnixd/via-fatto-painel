@@ -161,9 +161,12 @@ const Footer = () => {
               <Link to="/termos" className="text-neutral-400 hover:text-primary text-sm transition-colors">
                 Termos de Uso
               </Link>
-              <Link to="/admin/login" className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors">
+              <a 
+                href={`${window.location.protocol}//painel.${window.location.hostname.replace(/^www\./, '')}`}
+                className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors"
+              >
                 Área Restrita
-              </Link>
+              </a>
             </div>
           </div>
         </div>
