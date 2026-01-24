@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { isAdminSubdomain, toAdminPath } from '@/hooks/useAdminRoutes';
+import { isAdminSubdomain } from '@/hooks/useAdminRoutes';
 
 // Rotas públicas do site (não-admin)
 const PUBLIC_SITE_ROUTES = [
@@ -37,11 +37,21 @@ export const DomainRouter = ({ children }: DomainRouterProps) => {
     const currentPath = location.pathname;
     const hostname = window.location.hostname;
 
+    // Em ambientes Lovable (ex: *.lovable.app), não existe subdomínio painel.*.
+    // Então NÃO fazemos redirect cross-subdomain; mantemos o /admin funcionando no mesmo host.
+    const isLovableHosted = hostname.includes('lovable.app') || hostname.includes('localhost');
+    const rootHostname = hostname.replace(/^www\./, '');
+
     // Se está no domínio público e tentando acessar /admin, redireciona para subdomínio painel
     if (!isAdmin && currentPath.startsWith('/admin')) {
+      if (isLovableHosted) {
+        setIsReady(true);
+        return;
+      }
+
       const parts = hostname.split('.');
       // Constrói o subdomínio painel (ex: painel.viafatto.com.br)
-      const adminDomain = `painel.${parts.join('.')}`;
+      const adminDomain = `painel.${rootHostname}`;
       // Converte /admin/imoveis para /imoveis (URL limpa)
       const cleanPath = currentPath.replace('/admin', '') || '/';
       const protocol = window.location.protocol;
