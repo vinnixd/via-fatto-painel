@@ -2,26 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
-import { useFavicon } from "@/hooks/useFavicon";
-import { useBrandColors } from "@/hooks/useBrandColors";
-import { useTrackingScripts } from "@/hooks/useTrackingScripts";
-import { useAutoPageTracking } from "@/hooks/usePageTracking";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
-import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import { DomainRouter } from "@/components/DomainRouter";
 import { TenantGate } from "@/components/tenant/TenantGate";
-import { isAdminSubdomain } from "@/hooks/useAdminRoutes";
-import Index from "./pages/Index";
-import PropertyPage from "./pages/PropertyPage";
-import PropertiesPage from "./pages/PropertiesPage";
-import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
-import FavoritesPage from "./pages/FavoritesPage";
-import LocationPage from "./pages/LocationPage";
 import NotFound from "./pages/NotFound";
 
 // Admin Pages
@@ -51,46 +37,7 @@ import TenantMembersPage from "./pages/admin/TenantMembersPage";
 
 const queryClient = new QueryClient();
 
-// Component to apply favicon, brand colors, tracking scripts, and page tracking
-const BrandManager = () => {
-  useFavicon();
-  useBrandColors();
-  useTrackingScripts();
-  useAutoPageTracking();
-  return null;
-};
-
-// Helper para gerar rotas admin (protegidas pelo TenantGate)
-const getAdminRoutes = (prefix: string = '') => [
-  { path: `${prefix}/`, element: <TenantGate><DashboardPage /></TenantGate> },
-  { path: `${prefix}/login`, element: <AuthPage /> },
-  { path: `${prefix}/convite/:token`, element: <InviteSignupPage /> },
-  { path: `${prefix}/designer`, element: <TenantGate><DesignerPage /></TenantGate> },
-  { path: `${prefix}/imoveis`, element: <TenantGate><PropertiesListPage /></TenantGate> },
-  { path: `${prefix}/imoveis/novo`, element: <TenantGate><PropertyFormPage /></TenantGate> },
-  { path: `${prefix}/imoveis/:id`, element: <TenantGate><PropertyFormPage /></TenantGate> },
-  { path: `${prefix}/categorias`, element: <TenantGate><CategoriesPage /></TenantGate> },
-  { path: `${prefix}/perfil`, element: <TenantGate><ProfilePage /></TenantGate> },
-  { path: `${prefix}/configuracoes`, element: <TenantGate><SettingsPage /></TenantGate> },
-  { path: `${prefix}/favoritos`, element: <TenantGate><FavoritesListPage /></TenantGate> },
-  { path: `${prefix}/mensagens`, element: <TenantGate><MessagesPage /></TenantGate> },
-  { path: `${prefix}/dados`, element: <TenantGate><ExportPage /></TenantGate> },
-  { path: `${prefix}/dados/importar`, element: <TenantGate><ImportDataPage /></TenantGate> },
-  { path: `${prefix}/portais`, element: <TenantGate><PortaisPage /></TenantGate> },
-  { path: `${prefix}/portais/:portalId`, element: <TenantGate><PortalConfigPage /></TenantGate> },
-  { path: `${prefix}/usuarios`, element: <TenantGate><UsersPage /></TenantGate> },
-  { path: `${prefix}/assinaturas`, element: <TenantGate><PaymentsPage /></TenantGate> },
-  { path: `${prefix}/assinaturas/planos`, element: <TenantGate><PlansPage /></TenantGate> },
-  { path: `${prefix}/assinaturas/faturas`, element: <TenantGate><InvoicesPage /></TenantGate> },
-  { path: `${prefix}/integracoes`, element: <TenantGate><IntegrationsPage /></TenantGate> },
-  { path: `${prefix}/compartilhamento`, element: <TenantGate><ShareTestPage /></TenantGate> },
-  { path: `${prefix}/dominios`, element: <TenantGate><TenantDomainsPage /></TenantGate> },
-  { path: `${prefix}/membros`, element: <TenantGate><TenantMembersPage /></TenantGate> },
-];
-
 const App = () => {
-  const isCleanUrlMode = isAdminSubdomain();
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -98,43 +45,43 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <BrandManager />
           <AuthProvider>
             <TenantProvider>
-              <DomainRouter>
-                <AppErrorBoundary>
-                  <Routes>
-                    {isCleanUrlMode ? (
-                      <>
-                        {/* URLs limpas no subdomínio admin */}
-                        {getAdminRoutes('').map((route) => (
-                          <Route key={route.path} path={route.path} element={route.element} />
-                        ))}
-                        <Route path="*" element={<NotFound />} />
-                      </>
-                    ) : (
-                      <>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Index />} />
-                        <Route path="/imoveis" element={<PropertiesPage />} />
-                        <Route path="/imoveis/localizacao" element={<LocationPage />} />
-                        <Route path="/imovel/:slug" element={<PropertyPage />} />
-                        <Route path="/sobre" element={<AboutPage />} />
-                        <Route path="/contato" element={<ContactPage />} />
-                        <Route path="/favoritos" element={<FavoritesPage />} />
+              <AppErrorBoundary>
+                <Routes>
+                  {/* Redirect root to admin dashboard */}
+                  <Route path="/" element={<Navigate to="/admin" replace />} />
+                  
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={<TenantGate><DashboardPage /></TenantGate>} />
+                  <Route path="/admin/login" element={<AuthPage />} />
+                  <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
+                  <Route path="/admin/designer" element={<TenantGate><DesignerPage /></TenantGate>} />
+                  <Route path="/admin/imoveis" element={<TenantGate><PropertiesListPage /></TenantGate>} />
+                  <Route path="/admin/imoveis/novo" element={<TenantGate><PropertyFormPage /></TenantGate>} />
+                  <Route path="/admin/imoveis/:id" element={<TenantGate><PropertyFormPage /></TenantGate>} />
+                  <Route path="/admin/categorias" element={<TenantGate><CategoriesPage /></TenantGate>} />
+                  <Route path="/admin/perfil" element={<TenantGate><ProfilePage /></TenantGate>} />
+                  <Route path="/admin/configuracoes" element={<TenantGate><SettingsPage /></TenantGate>} />
+                  <Route path="/admin/favoritos" element={<TenantGate><FavoritesListPage /></TenantGate>} />
+                  <Route path="/admin/mensagens" element={<TenantGate><MessagesPage /></TenantGate>} />
+                  <Route path="/admin/dados" element={<TenantGate><ExportPage /></TenantGate>} />
+                  <Route path="/admin/dados/importar" element={<TenantGate><ImportDataPage /></TenantGate>} />
+                  <Route path="/admin/portais" element={<TenantGate><PortaisPage /></TenantGate>} />
+                  <Route path="/admin/portais/:portalId" element={<TenantGate><PortalConfigPage /></TenantGate>} />
+                  <Route path="/admin/usuarios" element={<TenantGate><UsersPage /></TenantGate>} />
+                  <Route path="/admin/assinaturas" element={<TenantGate><PaymentsPage /></TenantGate>} />
+                  <Route path="/admin/assinaturas/planos" element={<TenantGate><PlansPage /></TenantGate>} />
+                  <Route path="/admin/assinaturas/faturas" element={<TenantGate><InvoicesPage /></TenantGate>} />
+                  <Route path="/admin/integracoes" element={<TenantGate><IntegrationsPage /></TenantGate>} />
+                  <Route path="/admin/compartilhamento" element={<TenantGate><ShareTestPage /></TenantGate>} />
+                  <Route path="/admin/dominios" element={<TenantGate><TenantDomainsPage /></TenantGate>} />
+                  <Route path="/admin/membros" element={<TenantGate><TenantMembersPage /></TenantGate>} />
 
-                        {/* Admin Routes with /admin prefix */}
-                        {getAdminRoutes('/admin').map((route) => (
-                          <Route key={route.path} path={route.path} element={route.element} />
-                        ))}
-
-                        <Route path="*" element={<NotFound />} />
-                      </>
-                    )}
-                  </Routes>
-                  <FloatingWhatsApp />
-                </AppErrorBoundary>
-              </DomainRouter>
+                  {/* Catch all - redirect to admin */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppErrorBoundary>
             </TenantProvider>
           </AuthProvider>
         </BrowserRouter>
