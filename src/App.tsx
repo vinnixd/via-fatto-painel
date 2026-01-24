@@ -11,6 +11,7 @@ import { useAutoPageTracking } from "@/hooks/usePageTracking";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import { DomainRouter } from "@/components/DomainRouter";
 import Index from "./pages/Index";
 import PropertyPage from "./pages/PropertyPage";
 import PropertiesPage from "./pages/PropertiesPage";
@@ -63,45 +64,47 @@ const App = () => (
         <ScrollToTop />
         <BrandManager />
         <AuthProvider>
-          <AppErrorBoundary>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/imoveis" element={<PropertiesPage />} />
-              <Route path="/imoveis/localizacao" element={<LocationPage />} />
-              <Route path="/imovel/:slug" element={<PropertyPage />} />
-              <Route path="/sobre" element={<AboutPage />} />
-              <Route path="/contato" element={<ContactPage />} />
-              <Route path="/favoritos" element={<FavoritesPage />} />
+          <DomainRouter>
+            <AppErrorBoundary>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/imoveis" element={<PropertiesPage />} />
+                <Route path="/imoveis/localizacao" element={<LocationPage />} />
+                <Route path="/imovel/:slug" element={<PropertyPage />} />
+                <Route path="/sobre" element={<AboutPage />} />
+                <Route path="/contato" element={<ContactPage />} />
+                <Route path="/favoritos" element={<FavoritesPage />} />
 
-              {/* Admin Routes */}
-              <Route path="/admin/login" element={<AuthPage />} />
-              <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
-              <Route path="/admin" element={<DashboardPage />} />
-              <Route path="/admin/designer" element={<DesignerPage />} />
-              <Route path="/admin/imoveis" element={<PropertiesListPage />} />
-              <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
-              <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
-              <Route path="/admin/categorias" element={<CategoriesPage />} />
-              <Route path="/admin/perfil" element={<ProfilePage />} />
-              <Route path="/admin/configuracoes" element={<SettingsPage />} />
-              <Route path="/admin/favoritos" element={<FavoritesListPage />} />
-              <Route path="/admin/mensagens" element={<MessagesPage />} />
-              <Route path="/admin/dados" element={<ExportPage />} />
-              <Route path="/admin/dados/importar" element={<ImportDataPage />} />
-              <Route path="/admin/portais" element={<PortaisPage />} />
-              <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
-              <Route path="/admin/usuarios" element={<UsersPage />} />
-              <Route path="/admin/assinaturas" element={<PaymentsPage />} />
-              <Route path="/admin/assinaturas/planos" element={<PlansPage />} />
-              <Route path="/admin/assinaturas/faturas" element={<InvoicesPage />} />
-              <Route path="/admin/integracoes" element={<IntegrationsPage />} />
-              <Route path="/admin/compartilhamento" element={<ShareTestPage />} />
+                {/* Admin Routes */}
+                <Route path="/admin/login" element={<AuthPage />} />
+                <Route path="/admin/convite/:token" element={<InviteSignupPage />} />
+                <Route path="/admin" element={<DashboardPage />} />
+                <Route path="/admin/designer" element={<DesignerPage />} />
+                <Route path="/admin/imoveis" element={<PropertiesListPage />} />
+                <Route path="/admin/imoveis/novo" element={<PropertyFormPage />} />
+                <Route path="/admin/imoveis/:id" element={<PropertyFormPage />} />
+                <Route path="/admin/categorias" element={<CategoriesPage />} />
+                <Route path="/admin/perfil" element={<ProfilePage />} />
+                <Route path="/admin/configuracoes" element={<SettingsPage />} />
+                <Route path="/admin/favoritos" element={<FavoritesListPage />} />
+                <Route path="/admin/mensagens" element={<MessagesPage />} />
+                <Route path="/admin/dados" element={<ExportPage />} />
+                <Route path="/admin/dados/importar" element={<ImportDataPage />} />
+                <Route path="/admin/portais" element={<PortaisPage />} />
+                <Route path="/admin/portais/:portalId" element={<PortalConfigPage />} />
+                <Route path="/admin/usuarios" element={<UsersPage />} />
+                <Route path="/admin/assinaturas" element={<PaymentsPage />} />
+                <Route path="/admin/assinaturas/planos" element={<PlansPage />} />
+                <Route path="/admin/assinaturas/faturas" element={<InvoicesPage />} />
+                <Route path="/admin/integracoes" element={<IntegrationsPage />} />
+                <Route path="/admin/compartilhamento" element={<ShareTestPage />} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <FloatingWhatsApp />
-          </AppErrorBoundary>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <FloatingWhatsApp />
+            </AppErrorBoundary>
+          </DomainRouter>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
