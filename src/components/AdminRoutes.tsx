@@ -1,0 +1,101 @@
+import { Routes, Route } from "react-router-dom";
+import { TenantGate } from "@/components/tenant/TenantGate";
+import NotFound from "@/pages/NotFound";
+
+// Admin Pages
+import AuthPage from "@/pages/admin/AuthPage";
+import InviteSignupPage from "@/pages/admin/InviteSignupPage";
+import DashboardPage from "@/pages/admin/DashboardPage";
+import PropertiesListPage from "@/pages/admin/PropertiesListPage";
+import PropertyFormPage from "@/pages/admin/PropertyFormPage";
+import CategoriesPage from "@/pages/admin/CategoriesPage";
+import DesignerPage from "@/pages/admin/DesignerPage";
+import ProfilePage from "@/pages/admin/ProfilePage";
+import SettingsPage from "@/pages/admin/SettingsPage";
+import FavoritesListPage from "@/pages/admin/FavoritesListPage";
+import MessagesPage from "@/pages/admin/MessagesPage";
+import ExportPage from "@/pages/admin/data/ExportPage";
+import ImportDataPage from "@/pages/admin/data/ImportPage";
+import PortaisPage from "@/pages/admin/PortaisPage";
+import PortalConfigPage from "@/pages/admin/PortalConfigPage";
+import UsersPage from "@/pages/admin/UsersPage";
+import PaymentsPage from "@/pages/admin/subscriptions/PaymentsPage";
+import PlansPage from "@/pages/admin/subscriptions/PlansPage";
+import InvoicesPage from "@/pages/admin/subscriptions/InvoicesPage";
+import IntegrationsPage from "@/pages/admin/IntegrationsPage";
+import ShareTestPage from "@/pages/admin/ShareTestPage";
+import TenantDomainsPage from "@/pages/admin/TenantDomainsPage";
+import TenantMembersPage from "@/pages/admin/TenantMembersPage";
+
+interface AdminRoutesProps {
+  useCleanUrls: boolean;
+}
+
+/**
+ * Componente que renderiza as rotas do admin
+ * @param useCleanUrls - Se true, usa URLs limpas (sem prefixo /admin)
+ */
+export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
+  const prefix = useCleanUrls ? "" : "/admin";
+
+  return (
+    <Routes>
+      {/* Dashboard */}
+      <Route path={useCleanUrls ? "/" : "/admin"} element={<TenantGate><DashboardPage /></TenantGate>} />
+      
+      {/* Auth */}
+      <Route path={`${prefix}/login`} element={<AuthPage />} />
+      <Route path={`${prefix}/convite/:token`} element={<InviteSignupPage />} />
+      
+      {/* Designer */}
+      <Route path={`${prefix}/designer`} element={<TenantGate><DesignerPage /></TenantGate>} />
+      
+      {/* Imóveis */}
+      <Route path={`${prefix}/imoveis`} element={<TenantGate><PropertiesListPage /></TenantGate>} />
+      <Route path={`${prefix}/imoveis/novo`} element={<TenantGate><PropertyFormPage /></TenantGate>} />
+      <Route path={`${prefix}/imoveis/:id`} element={<TenantGate><PropertyFormPage /></TenantGate>} />
+      
+      {/* Categorias */}
+      <Route path={`${prefix}/categorias`} element={<TenantGate><CategoriesPage /></TenantGate>} />
+      
+      {/* Perfil e Configurações */}
+      <Route path={`${prefix}/perfil`} element={<TenantGate><ProfilePage /></TenantGate>} />
+      <Route path={`${prefix}/configuracoes`} element={<TenantGate><SettingsPage /></TenantGate>} />
+      
+      {/* Favoritos e Mensagens */}
+      <Route path={`${prefix}/favoritos`} element={<TenantGate><FavoritesListPage /></TenantGate>} />
+      <Route path={`${prefix}/mensagens`} element={<TenantGate><MessagesPage /></TenantGate>} />
+      
+      {/* Dados */}
+      <Route path={`${prefix}/dados`} element={<TenantGate><ExportPage /></TenantGate>} />
+      <Route path={`${prefix}/dados/importar`} element={<TenantGate><ImportDataPage /></TenantGate>} />
+      
+      {/* Portais */}
+      <Route path={`${prefix}/portais`} element={<TenantGate><PortaisPage /></TenantGate>} />
+      <Route path={`${prefix}/portais/:portalId`} element={<TenantGate><PortalConfigPage /></TenantGate>} />
+      
+      {/* Usuários */}
+      <Route path={`${prefix}/usuarios`} element={<TenantGate><UsersPage /></TenantGate>} />
+      
+      {/* Assinaturas */}
+      <Route path={`${prefix}/assinaturas`} element={<TenantGate><PaymentsPage /></TenantGate>} />
+      <Route path={`${prefix}/assinaturas/planos`} element={<TenantGate><PlansPage /></TenantGate>} />
+      <Route path={`${prefix}/assinaturas/faturas`} element={<TenantGate><InvoicesPage /></TenantGate>} />
+      
+      {/* Integrações */}
+      <Route path={`${prefix}/integracoes`} element={<TenantGate><IntegrationsPage /></TenantGate>} />
+      
+      {/* Compartilhamento */}
+      <Route path={`${prefix}/compartilhamento`} element={<TenantGate><ShareTestPage /></TenantGate>} />
+      
+      {/* Domínios e Membros */}
+      <Route path={`${prefix}/dominios`} element={<TenantGate><TenantDomainsPage /></TenantGate>} />
+      <Route path={`${prefix}/membros`} element={<TenantGate><TenantMembersPage /></TenantGate>} />
+
+      {/* Fallback */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+export default AdminRoutes;
