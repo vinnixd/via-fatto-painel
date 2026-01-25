@@ -202,28 +202,10 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       hostname.includes('lovableproject.com');
     
     if (isDevEnvironment) {
-      // In dev, try to get stored tenant or use default
-      const storedTenantId = localStorage.getItem(TENANT_STORAGE_KEY);
+      // In dev, ALWAYS use Via Fatto tenant to ensure consistency with public site
+      // Ignore stored tenant to prevent mismatch issues
+      console.log('[TenantContext] Dev environment - using Via Fatto tenant:', DEV_TENANT_ID);
       
-      if (storedTenantId) {
-        try {
-          const { data: tenantData } = await (supabase as any)
-            .from('tenants')
-            .select('*')
-            .eq('id', storedTenantId)
-            .maybeSingle();
-
-          if (tenantData) {
-            setTenant(tenantData as Tenant);
-            setIsResolved(true);
-            setLoading(false);
-            return;
-          }
-        } catch (e) {
-          console.log('Could not fetch stored tenant, trying first available');
-        }
-      }
-
       // Get Via Fatto tenant for dev - ensure same tenant as public site
       try {
         const { data: viaFattoTenant, error: tenantError } = await (supabase as any)
