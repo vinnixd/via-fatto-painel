@@ -38,7 +38,7 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 const TENANT_STORAGE_KEY = 'active_tenant_id';
 
 // Em ambiente dev, usar tenant Via Fatto (mesmo do site público)
-const DEV_TENANT_ID = 'a0000000-0000-0000-0000-000000000001';
+const DEV_TENANT_ID = 'f136543f-bace-4e46-9908-d7c8e7e0982f';
 
 /**
  * Resolve tenant by hostname from domains table
