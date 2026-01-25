@@ -131,7 +131,11 @@ async function resolveWithLogging(hostname: string): Promise<ResolutionResult> {
   const isProd = isProductionDomain(hostname);
   
   if (isDev) {
+    // Log do projeto Supabase para verificação de sincronização entre projetos
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const supabaseProjectId = supabaseUrl.replace('https://', '').split('.')[0];
     console.log('[TenantContext] ═══════════════════════════════════════');
+    console.log('[TenantContext] 🔗 SUPABASE_PROJECT_ID:', supabaseProjectId);
     console.log('[TenantContext] Iniciando resolução de tenant');
     console.log('[TenantContext] hostname:', hostname);
     console.log('[TenantContext] isDevEnvironment:', isDevEnv);
