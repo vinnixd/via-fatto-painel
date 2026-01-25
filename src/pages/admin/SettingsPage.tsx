@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Globe, Phone, Mail, MapPin, Search, Upload } from 'lucide-react';
 import { compressImage } from '@/lib/imageCompression';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface SiteConfig {
   id: string;
@@ -28,20 +29,28 @@ interface SiteConfig {
 }
 
 const SettingsPage = () => {
+  const { tenantId } = useTenant();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<SiteConfig | null>(null);
 
   useEffect(() => {
-    fetchConfig();
-  }, []);
+    if (tenantId) {
+      fetchConfig();
+    }
+  }, [tenantId]);
 
   const fetchConfig = async () => {
+    if (!tenantId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('site_config')
         .select('*')
-        .limit(1)
+        .eq('tenant_id', tenantId)
         .maybeSingle();
 
       if (error) throw error;
@@ -86,27 +95,29 @@ const SettingsPage = () => {
   };
 
   const handleSave = async () => {
-    if (!config) return;
+    if (!config || !tenantId) return;
     setSaving(true);
 
     try {
+      const updateData = {
+        tenant_id: tenantId,
+        phone: config.phone,
+        whatsapp: config.whatsapp,
+        email: config.email,
+        address: config.address,
+        social_facebook: config.social_facebook,
+        social_instagram: config.social_instagram,
+        social_youtube: config.social_youtube,
+        social_linkedin: config.social_linkedin,
+        seo_title: config.seo_title,
+        seo_description: config.seo_description,
+        seo_keywords: config.seo_keywords,
+        og_image_url: config.og_image_url,
+      };
+
       const { error } = await supabase
         .from('site_config')
-        .update({
-          phone: config.phone,
-          whatsapp: config.whatsapp,
-          email: config.email,
-          address: config.address,
-          social_facebook: config.social_facebook,
-          social_instagram: config.social_instagram,
-          social_youtube: config.social_youtube,
-          social_linkedin: config.social_linkedin,
-          seo_title: config.seo_title,
-          seo_description: config.seo_description,
-          seo_keywords: config.seo_keywords,
-          og_image_url: config.og_image_url,
-        })
-        .eq('id', config.id);
+        .upsert(updateData, { onConflict: 'tenant_id' });
 
       if (error) throw error;
 

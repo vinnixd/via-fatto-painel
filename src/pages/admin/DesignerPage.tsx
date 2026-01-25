@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ImagePositionPicker } from '@/components/ui/ImagePositionPicker';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface SiteConfig {
   id: string;
@@ -92,31 +93,46 @@ interface SiteConfig {
 }
 
 const DesignerPage = () => {
+  const { tenantId } = useTenant();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [activeTab, setActiveTab] = useState('brand');
 
   useEffect(() => {
-    fetchConfig();
-  }, []);
+    if (tenantId) {
+      fetchConfig();
+    }
+  }, [tenantId]);
 
   const fetchConfig = async () => {
+    if (!tenantId) {
+      console.warn('[DesignerPage] No tenant_id available');
+      setLoading(false);
+      return;
+    }
+    
     try {
+      // Debug log
+      console.log('[DesignerPage] Fetching site_config for tenant_id:', tenantId);
+      
       const { data, error } = await supabase
         .from('site_config')
         .select('*')
-        .limit(1)
+        .eq('tenant_id', tenantId)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
+        console.log('[DesignerPage] Loaded config:', { id: data.id, tenant_id: data.tenant_id, hero_title: data.hero_title });
         setConfig(data as SiteConfig);
       } else {
+        // Create new config for this tenant using upsert
+        console.log('[DesignerPage] Creating new site_config for tenant_id:', tenantId);
         const { data: newConfig, error: insertError } = await supabase
           .from('site_config')
-          .insert({})
+          .upsert({ tenant_id: tenantId }, { onConflict: 'tenant_id' })
           .select()
           .single();
 
@@ -191,52 +207,68 @@ const DesignerPage = () => {
   };
 
   const handleSave = async () => {
-    if (!config) return;
+    if (!config || !tenantId) {
+      toast.error('Erro: configuração ou tenant não disponível');
+      return;
+    }
     setSaving(true);
 
     try {
-      const { error } = await supabase
+      // Use upsert with tenant_id as conflict target for safety
+      const updateData = {
+        tenant_id: tenantId,
+        logo_url: config.logo_url,
+        logo_horizontal_url: config.logo_horizontal_url,
+        logo_vertical_url: config.logo_vertical_url,
+        logo_symbol_url: config.logo_symbol_url,
+        favicon_url: config.favicon_url,
+        primary_color: config.primary_color,
+        secondary_color: config.secondary_color,
+        accent_color: config.accent_color,
+        hero_title: config.hero_title,
+        hero_subtitle: config.hero_subtitle,
+        hero_background_url: config.hero_background_url,
+        about_title: config.about_title,
+        about_text: config.about_text,
+        about_image_url: config.about_image_url,
+        about_image_position: config.about_image_position,
+        home_image_url: config.home_image_url,
+        home_image_position: config.home_image_position,
+        footer_text: config.footer_text,
+        phone: config.phone,
+        email: config.email,
+        whatsapp: config.whatsapp,
+        address: config.address,
+        social_facebook: config.social_facebook,
+        social_instagram: config.social_instagram,
+        social_linkedin: config.social_linkedin,
+        social_youtube: config.social_youtube,
+        seo_title: config.seo_title,
+        seo_description: config.seo_description,
+        seo_keywords: config.seo_keywords,
+        watermark_url: config.watermark_url,
+        watermark_enabled: config.watermark_enabled,
+        watermark_opacity: config.watermark_opacity,
+        watermark_size: config.watermark_size,
+      };
+
+      const { data: savedData, error } = await supabase
         .from('site_config')
-        .update({
-          logo_url: config.logo_url,
-          logo_horizontal_url: config.logo_horizontal_url,
-          logo_vertical_url: config.logo_vertical_url,
-          logo_symbol_url: config.logo_symbol_url,
-          favicon_url: config.favicon_url,
-          primary_color: config.primary_color,
-          secondary_color: config.secondary_color,
-          accent_color: config.accent_color,
-          hero_title: config.hero_title,
-          hero_subtitle: config.hero_subtitle,
-          hero_background_url: config.hero_background_url,
-          about_title: config.about_title,
-          about_text: config.about_text,
-          about_image_url: config.about_image_url,
-          about_image_position: config.about_image_position,
-          home_image_url: config.home_image_url,
-          home_image_position: config.home_image_position,
-          footer_text: config.footer_text,
-          phone: config.phone,
-          email: config.email,
-          whatsapp: config.whatsapp,
-          address: config.address,
-          social_facebook: config.social_facebook,
-          social_instagram: config.social_instagram,
-          social_linkedin: config.social_linkedin,
-          social_youtube: config.social_youtube,
-          seo_title: config.seo_title,
-          seo_description: config.seo_description,
-          seo_keywords: config.seo_keywords,
-          watermark_url: config.watermark_url,
-          watermark_enabled: config.watermark_enabled,
-          watermark_opacity: config.watermark_opacity,
-          watermark_size: config.watermark_size,
-        })
-        .eq('id', config.id);
+        .upsert(updateData, { onConflict: 'tenant_id' })
+        .select('id, tenant_id, hero_title, updated_at')
+        .single();
 
       if (error) throw error;
 
-      toast.success('Configurações salvas com sucesso!');
+      // Debug confirmation log
+      console.log('[DesignerPage] Saved successfully:', {
+        tenant_id: savedData.tenant_id,
+        site_config_id: savedData.id,
+        hero_title: savedData.hero_title,
+        updated_at: savedData.updated_at
+      });
+
+      toast.success(`Configurações salvas! (tenant: ${tenantId.slice(0, 8)}...)`);
     } catch (error) {
       console.error('Error saving config:', error);
       toast.error('Erro ao salvar configurações');
