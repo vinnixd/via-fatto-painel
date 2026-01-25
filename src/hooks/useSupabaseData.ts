@@ -93,14 +93,21 @@ export interface SiteConfig {
 }
 
 export const useProperties = (options?: { featured?: boolean; limit?: number; status?: string }) => {
+  const tenantId = getResolvedTenantId();
+  
   return useQuery({
-    queryKey: ['properties', options],
+    queryKey: ['properties', options, tenantId],
     queryFn: async () => {
       let query = supabase
         .from('properties')
         .select('*')
         .eq('active', true)
         .order('order_index', { ascending: true });
+
+      // Filter by tenant_id for multi-tenant support
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
 
       if (options?.featured) {
         query = query.eq('featured', true);
@@ -136,14 +143,22 @@ export const useProperties = (options?: { featured?: boolean; limit?: number; st
 };
 
 export const useProperty = (slug: string) => {
+  const tenantId = getResolvedTenantId();
+  
   return useQuery({
-    queryKey: ['property', slug],
+    queryKey: ['property', slug, tenantId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('properties')
         .select('*')
-        .eq('slug', slug)
-        .maybeSingle();
+        .eq('slug', slug);
+      
+      // Filter by tenant_id if available
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+      
+      const { data, error } = await query.maybeSingle();
 
       if (error) throw error;
       if (!data) return null;
@@ -252,16 +267,26 @@ export const useAvailableCities = () => {
 };
 
 export const useSimilarProperties = (property: PropertyFromDB | null, limit: number = 4) => {
+  const tenantId = getResolvedTenantId();
+  
   return useQuery({
-    queryKey: ['similar-properties', property?.id, property?.address_city, property?.status, property?.type],
+    queryKey: ['similar-properties', property?.id, property?.address_city, property?.status, property?.type, tenantId],
     queryFn: async () => {
       if (!property) return [];
 
       const existingIds = [property.id];
       let results: any[] = [];
 
+      // Helper to add tenant filter
+      const addTenantFilter = (query: any) => {
+        if (tenantId) {
+          return query.eq('tenant_id', tenantId);
+        }
+        return query;
+      };
+
       // 1. Same city + same status
-      const { data: sameCityStatus } = await supabase
+      let query1 = supabase
         .from('properties')
         .select('*')
         .eq('active', true)
@@ -270,6 +295,8 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
         .neq('id', property.id)
         .order('order_index', { ascending: true })
         .limit(limit);
+      
+      const { data: sameCityStatus } = await addTenantFilter(query1);
 
       if (sameCityStatus) {
         results = [...sameCityStatus];
@@ -278,7 +305,7 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
 
       // 2. Same city, different status
       if (results.length < limit) {
-        const { data: sameCityOther } = await supabase
+        let query2 = supabase
           .from('properties')
           .select('*')
           .eq('active', true)
@@ -286,6 +313,8 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
           .not('id', 'in', `(${existingIds.join(',')})`)
           .order('order_index', { ascending: true })
           .limit(limit - results.length);
+        
+        const { data: sameCityOther } = await addTenantFilter(query2);
 
         if (sameCityOther) {
           results = [...results, ...sameCityOther];
@@ -295,7 +324,7 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
 
       // 3. Same type + status from any city
       if (results.length < limit) {
-        const { data: sameTypeStatus } = await supabase
+        let query3 = supabase
           .from('properties')
           .select('*')
           .eq('active', true)
@@ -304,6 +333,8 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
           .not('id', 'in', `(${existingIds.join(',')})`)
           .order('order_index', { ascending: true })
           .limit(limit - results.length);
+        
+        const { data: sameTypeStatus } = await addTenantFilter(query3);
 
         if (sameTypeStatus) {
           results = [...results, ...sameTypeStatus];
@@ -313,13 +344,15 @@ export const useSimilarProperties = (property: PropertyFromDB | null, limit: num
 
       // 4. Any other active properties
       if (results.length < limit) {
-        const { data: anyOther } = await supabase
+        let query4 = supabase
           .from('properties')
           .select('*')
           .eq('active', true)
           .not('id', 'in', `(${existingIds.join(',')})`)
           .order('order_index', { ascending: true })
           .limit(limit - results.length);
+        
+        const { data: anyOther } = await addTenantFilter(query4);
 
         if (anyOther) {
           results = [...results, ...anyOther];
