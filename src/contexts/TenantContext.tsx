@@ -275,8 +275,18 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       return;
     }
 
-    // Production: resolve by hostname
-    const result = await resolveTenantByHostname(hostname, 'admin');
+    // Production: resolve by hostname - try admin first, then public
+    // Detect if this is a painel subdomain
+    const isAdminSubdomain = hostname.startsWith('painel.');
+    const domainType = isAdminSubdomain ? 'admin' : 'public';
+    
+    let result = await resolveTenantByHostname(hostname, domainType);
+    
+    // If not found with primary type, try the other type as fallback
+    if (result.error === 'DOMAIN_NOT_FOUND' || result.error === 'WRONG_DOMAIN_TYPE') {
+      const fallbackType = domainType === 'admin' ? 'public' : 'admin';
+      result = await resolveTenantByHostname(hostname, fallbackType);
+    }
     
     setTenant(result.tenant);
     setDomain(result.domain);
