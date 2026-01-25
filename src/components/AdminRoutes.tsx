@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { TenantGate } from "@/components/tenant/TenantGate";
 import NotFound from "@/pages/NotFound";
 
@@ -40,6 +40,9 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
 
   return (
     <Routes>
+      {/* Redirect root to /admin when not using clean URLs */}
+      {!useCleanUrls && <Route path="/" element={<Navigate to="/admin" replace />} />}
+      
       {/* Dashboard */}
       <Route path={useCleanUrls ? "/" : "/admin"} element={<TenantGate><DashboardPage /></TenantGate>} />
       
