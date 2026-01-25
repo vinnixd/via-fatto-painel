@@ -37,7 +37,9 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 const TENANT_STORAGE_KEY = 'active_tenant_id';
 
-const DEV_FALLBACK_TENANT_ID = 'f136543f-bace-4e46-9908-d7c8e7e0982f';
+// Fallback para ambientes de desenvolvimento/preview quando nenhum domínio é encontrado
+// IMPORTANTE: Este ID deve existir na tabela tenants com status='active'
+const DEV_FALLBACK_TENANT_ID = 'a0000000-0000-0000-0000-000000000001';
 
 type ResolutionReason = 'domains' | 'localStorage' | 'devFallback' | 'error';
 
