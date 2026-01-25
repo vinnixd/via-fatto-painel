@@ -37,6 +37,9 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 const TENANT_STORAGE_KEY = 'active_tenant_id';
 
+// Em ambiente dev, usar tenant Via Fatto (mesmo do site público)
+const DEV_TENANT_ID = 'f136543f-bace-4e46-9908-d7c8e7e0982f';
+
 /**
  * Resolve tenant by hostname from domains table
  */
@@ -221,23 +224,21 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
         }
       }
 
-      // Get first available tenant for dev - using service role context
-      // Since RLS blocks non-members, we'll set a default tenant for dev mode
+      // Get Via Fatto tenant for dev - ensure same tenant as public site
       try {
-        const { data: firstTenant, error: tenantError } = await (supabase as any)
+        const { data: viaFattoTenant, error: tenantError } = await (supabase as any)
           .from('tenants')
           .select('*')
-          .eq('status', 'active')
-          .limit(1)
+          .eq('id', DEV_TENANT_ID)
           .maybeSingle();
 
-        if (tenantError) {
-          console.log('RLS blocking tenant fetch, setting dev mode tenant');
-          // Create a default dev tenant object for development
+        if (tenantError || !viaFattoTenant) {
+          console.log('Could not fetch Via Fatto tenant, using fallback');
+          // Fallback: use the tenant ID even if we can't fetch full details
           const devTenant: Tenant = {
-            id: 'a0000000-0000-0000-0000-000000000001',
-            name: 'Minha Imobiliária',
-            slug: 'minha-imobiliaria',
+            id: DEV_TENANT_ID,
+            name: 'Via Fatto Imóveis',
+            slug: 'via-fatto',
             status: 'active'
           };
           setTenant(devTenant);
@@ -247,28 +248,15 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
           return;
         }
 
-        if (firstTenant) {
-          setTenant(firstTenant as Tenant);
-          localStorage.setItem(TENANT_STORAGE_KEY, firstTenant.id);
-          setIsResolved(true);
-        } else {
-          // No tenants exist, create default for dev
-          const devTenant: Tenant = {
-            id: 'a0000000-0000-0000-0000-000000000001',
-            name: 'Minha Imobiliária',
-            slug: 'minha-imobiliaria',
-            status: 'active'
-          };
-          setTenant(devTenant);
-          localStorage.setItem(TENANT_STORAGE_KEY, devTenant.id);
-          setIsResolved(true);
-        }
+        setTenant(viaFattoTenant as Tenant);
+        localStorage.setItem(TENANT_STORAGE_KEY, viaFattoTenant.id);
+        setIsResolved(true);
       } catch (e) {
-        console.log('Error fetching tenant, using default dev tenant');
+        console.log('Error fetching tenant, using Via Fatto fallback');
         const devTenant: Tenant = {
-          id: 'a0000000-0000-0000-0000-000000000001',
-          name: 'Minha Imobiliária',
-          slug: 'minha-imobiliaria',
+          id: DEV_TENANT_ID,
+          name: 'Via Fatto Imóveis',
+          slug: 'via-fatto',
           status: 'active'
         };
         setTenant(devTenant);
