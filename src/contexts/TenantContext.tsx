@@ -39,7 +39,7 @@ const TENANT_STORAGE_KEY = 'active_tenant_id';
 
 // Fallback para ambientes de desenvolvimento/preview quando nenhum domínio é encontrado
 // IMPORTANTE: Este valor DEVE ser idêntico no Site Público e no Painel Admin
-const DEV_FALLBACK_TENANT_ID = 'a0000000-0000-0000-0000-000000000001';
+const DEV_FALLBACK_TENANT_ID = 'f136543f-bace-4e46-9908-d7c8e7e0982f';
 
 type ResolutionReason = 'domains' | 'localStorage' | 'devFallback';
 
