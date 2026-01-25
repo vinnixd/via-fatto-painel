@@ -188,6 +188,11 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
     const hostname = window.location.hostname.toLowerCase();
     
+    // Debug log for tenant resolution
+    if (import.meta.env.DEV) {
+      console.log('[TenantContext] Resolving tenant for hostname:', hostname);
+    }
+    
     // Skip resolution for localhost and lovable dev environments (use stored tenant or default)
     const isDevEnvironment = hostname.includes('localhost') || 
       hostname.includes('lovable.app') || 
@@ -295,6 +300,15 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
 
     if (result.tenant) {
       localStorage.setItem(TENANT_STORAGE_KEY, result.tenant.id);
+      // Debug log for successful resolution
+      if (import.meta.env.DEV) {
+        console.log('[TenantContext] Tenant resolved:', {
+          hostname,
+          tenant_id: result.tenant.id,
+          tenant_name: result.tenant.name,
+          domain_type: result.domain?.type
+        });
+      }
     }
 
     setLoading(false);

@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+// Get resolved tenant ID from localStorage (set by TenantContext)
+const TENANT_STORAGE_KEY = 'active_tenant_id';
+
+const getResolvedTenantId = (): string | null => {
+  return localStorage.getItem(TENANT_STORAGE_KEY);
+};
+
 export interface PropertyFromDB {
   id: string;
   title: string;
@@ -166,19 +173,44 @@ export const useProperty = (slug: string) => {
   });
 };
 
-export const useSiteConfig = () => {
+export const useSiteConfig = (tenantIdOverride?: string | null) => {
+  // Get tenant ID from override or localStorage
+  const tenantId = tenantIdOverride || getResolvedTenantId();
+  
   return useQuery({
-    queryKey: ['site-config'],
+    queryKey: ['site-config', tenantId],
     queryFn: async () => {
+      // Debug log (dev mode only)
+      if (import.meta.env.DEV) {
+        console.log('[useSiteConfig] Fetching config for tenant_id:', tenantId);
+      }
+
+      if (!tenantId) {
+        console.warn('[useSiteConfig] No tenant_id available, cannot fetch site_config');
+        return null;
+      }
+
       const { data, error } = await supabase
         .from('site_config')
         .select('*')
-        .limit(1)
+        .eq('tenant_id', tenantId)
         .maybeSingle();
 
       if (error) throw error;
+      
+      // Debug log (dev mode only)
+      if (import.meta.env.DEV && data) {
+        console.log('[useSiteConfig] Loaded config:', {
+          id: data.id,
+          tenant_id: data.tenant_id,
+          hero_title: data.hero_title,
+          updated_at: data.updated_at
+        });
+      }
+      
       return data as SiteConfig | null;
     },
+    enabled: !!tenantId,
   });
 };
 
