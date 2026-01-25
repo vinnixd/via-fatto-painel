@@ -37,11 +37,9 @@ const TenantContext = createContext<TenantContextType | undefined>(undefined);
 
 const TENANT_STORAGE_KEY = 'active_tenant_id';
 
-// Fallback para ambientes de desenvolvimento/preview quando nenhum domínio é encontrado
-// IMPORTANTE: Este valor DEVE ser idêntico no Site Público e no Painel Admin
 const DEV_FALLBACK_TENANT_ID = 'f136543f-bace-4e46-9908-d7c8e7e0982f';
 
-type ResolutionReason = 'domains' | 'localStorage' | 'devFallback';
+type ResolutionReason = 'domains' | 'localStorage' | 'devFallback' | 'error';
 
 interface ResolutionResult {
   tenantId: string | null;
@@ -51,25 +49,21 @@ interface ResolutionResult {
   reason: ResolutionReason;
 }
 
-/**
- * Verifica se o hostname é um ambiente de desenvolvimento/preview
- */
 function isDevEnvironment(hostname: string): boolean {
-  return hostname.includes('localhost') || 
-    hostname.includes('lovable.app') || 
-    hostname.includes('lovableproject.com');
+  // Considera dev se tiver localhost, lovable, ou não tiver TLD real
+  const devIndicators = ['localhost', 'lovable.app', 'lovableproject.com', '127.0.0.1'];
+  return devIndicators.some(indicator => hostname.includes(indicator));
 }
 
-/**
- * Detecta o tipo de domínio esperado baseado no hostname
- */
+function isProductionDomain(hostname: string): boolean {
+  // Produção se NÃO for dev E tiver um TLD válido
+  return !isDevEnvironment(hostname) && hostname.includes('.');
+}
+
 function detectDomainType(hostname: string): 'admin' | 'public' {
   return hostname.startsWith('painel.') ? 'admin' : 'public';
 }
 
-/**
- * Busca tenant pelo ID
- */
 async function fetchTenantById(tenantId: string): Promise<Tenant | null> {
   try {
     const { data, error } = await supabase
@@ -91,70 +85,34 @@ async function fetchTenantById(tenantId: string): Promise<Tenant | null> {
   }
 }
 
-/**
- * PRIORIDADE 1: Resolve tenant por hostname via tabela domains
- */
 async function resolveTenantByHostname(hostname: string): Promise<{
   tenant: Tenant | null;
   domain: Domain | null;
   error: string | null;
 }> {
-  const domainType = detectDomainType(hostname);
-  
   try {
-    // Buscar domínio verificado pelo hostname
     const { data: domainData, error: domainError } = await supabase
       .from('domains')
       .select('*')
       .eq('hostname', hostname.toLowerCase())
+      .eq('type', detectDomainType(hostname))
       .eq('verified', true)
       .maybeSingle();
 
     if (domainError) {
-      // Se tabela não existe ou outro erro
-      if (domainError.code === 'PGRST204' || domainError.message?.includes('relation')) {
-        return { tenant: null, domain: null, error: 'DOMAIN_TABLE_ERROR' };
-      }
       console.error('[TenantContext] Erro ao buscar domínio:', domainError);
       return { tenant: null, domain: null, error: 'DOMAIN_QUERY_ERROR' };
     }
 
     if (!domainData) {
-      // Tentar buscar sem filtro de verificação para dar feedback adequado
-      const { data: unverifiedDomain } = await supabase
-        .from('domains')
-        .select('*')
-        .eq('hostname', hostname.toLowerCase())
-        .maybeSingle();
-
-      if (unverifiedDomain && !unverifiedDomain.verified) {
-        return {
-          tenant: null,
-          domain: unverifiedDomain as Domain,
-          error: 'DOMAIN_NOT_VERIFIED'
-        };
-      }
-
       return { tenant: null, domain: null, error: 'DOMAIN_NOT_FOUND' };
     }
 
     const domain = domainData as Domain;
-
-    // Validar tipo de domínio (admin vs public)
-    if (domain.type !== domainType) {
-      console.warn(`[TenantContext] Tipo de domínio incorreto: esperado ${domainType}, encontrado ${domain.type}`);
-      // Ainda assim permitir acesso, apenas logando o warning
-    }
-
-    // Buscar dados do tenant
     const tenant = await fetchTenantById(domain.tenant_id);
     
     if (!tenant) {
-      return {
-        tenant: null,
-        domain,
-        error: 'TENANT_NOT_FOUND'
-      };
+      return { tenant: null, domain, error: 'TENANT_NOT_FOUND' };
     }
 
     return { tenant, domain, error: null };
@@ -164,62 +122,33 @@ async function resolveTenantByHostname(hostname: string): Promise<{
   }
 }
 
-/**
- * PRIORIDADE 2: Fallback para localStorage
- */
-async function resolveTenantFromStorage(): Promise<{
-  tenant: Tenant | null;
-  tenantId: string | null;
-}> {
-  const storedTenantId = localStorage.getItem(TENANT_STORAGE_KEY);
-  
-  if (!storedTenantId) {
-    return { tenant: null, tenantId: null };
-  }
-
-  const tenant = await fetchTenantById(storedTenantId);
-  return { tenant, tenantId: storedTenantId };
-}
-
-/**
- * PRIORIDADE 3: Fallback para DEV_FALLBACK_TENANT_ID
- */
-async function resolveTenantFromDevFallback(): Promise<{
-  tenant: Tenant | null;
-  tenantId: string;
-}> {
-  const tenant = await fetchTenantById(DEV_FALLBACK_TENANT_ID);
-  return { tenant, tenantId: DEV_FALLBACK_TENANT_ID };
-}
-
-/**
- * Resolver tenant com logging detalhado
- */
 async function resolveWithLogging(hostname: string): Promise<ResolutionResult> {
   const isDev = import.meta.env.DEV;
   const isDevEnv = isDevEnvironment(hostname);
+  const isProd = isProductionDomain(hostname);
   
-  // Log inicial
   if (isDev) {
     console.log('[TenantContext] ═══════════════════════════════════════');
     console.log('[TenantContext] Iniciando resolução de tenant');
     console.log('[TenantContext] hostname:', hostname);
     console.log('[TenantContext] isDevEnvironment:', isDevEnv);
+    console.log('[TenantContext] isProductionDomain:', isProd);
   }
 
-  // PRIORIDADE 1: Tentar resolver por hostname (sempre, mesmo em dev)
+  // ========== PRIORIDADE 1: DOMAINS (SEMPRE) ==========
   const hostnameResult = await resolveTenantByHostname(hostname);
   
   if (isDev) {
     console.log('[TenantContext] tenant_id_from_domains:', hostnameResult.tenant?.id ?? 'null');
   }
 
-  // Se encontrou domínio verificado, usar esse tenant
   if (hostnameResult.tenant && !hostnameResult.error) {
-    // Salvar no localStorage para fallback futuro
+    // CRITICAL: Se encontrou por domains, SEMPRE sobrescrever localStorage
     localStorage.setItem(TENANT_STORAGE_KEY, hostnameResult.tenant.id);
     
     if (isDev) {
+      console.log('[TenantContext] ✓ Tenant resolvido por DOMAINS');
+      console.log('[TenantContext] ✓ localStorage SOBRESCRITO com:', hostnameResult.tenant.id);
       console.log('[TenantContext] tenant_id_final:', hostnameResult.tenant.id);
       console.log('[TenantContext] reason: domains');
       console.log('[TenantContext] ═══════════════════════════════════════');
@@ -234,11 +163,12 @@ async function resolveWithLogging(hostname: string): Promise<ResolutionResult> {
     };
   }
 
-  // Se domínio não encontrado mas é ambiente de produção, retornar erro
-  if (!isDevEnv && hostnameResult.error) {
+  // Se é PRODUÇÃO e domains falhou, NÃO tentar fallbacks - retornar erro
+  if (isProd) {
     if (isDev) {
-      console.log('[TenantContext] tenant_id_final: null (produção sem domínio)');
-      console.log('[TenantContext] reason: error');
+      console.log('[TenantContext] ✗ PRODUÇÃO: domains falhou, bloqueando fallbacks');
+      console.log('[TenantContext] tenant_id_final: null');
+      console.log('[TenantContext] reason: error (production domain not configured)');
       console.log('[TenantContext] ═══════════════════════════════════════');
     }
 
@@ -247,58 +177,79 @@ async function resolveWithLogging(hostname: string): Promise<ResolutionResult> {
       tenant: null,
       domain: hostnameResult.domain,
       error: hostnameResult.error,
-      reason: 'domains'
+      reason: 'error'
     };
   }
 
-  // PRIORIDADE 2: Ambiente dev/preview - tentar localStorage
-  const storageResult = await resolveTenantFromStorage();
+  // ========== PRIORIDADE 2: LOCALSTORAGE (APENAS DEV) ==========
+  const storedTenantId = localStorage.getItem(TENANT_STORAGE_KEY);
   
   if (isDev) {
-    console.log('[TenantContext] tenant_id_from_localStorage:', storageResult.tenantId ?? 'null');
+    console.log('[TenantContext] tenant_id_from_localStorage:', storedTenantId ?? 'null');
   }
 
-  if (storageResult.tenant) {
+  if (storedTenantId) {
+    const tenant = await fetchTenantById(storedTenantId);
+    
+    if (tenant) {
+      if (isDev) {
+        console.log('[TenantContext] ✓ Tenant resolvido por LOCALSTORAGE (dev fallback)');
+        console.log('[TenantContext] tenant_id_final:', tenant.id);
+        console.log('[TenantContext] reason: localStorage');
+        console.log('[TenantContext] ═══════════════════════════════════════');
+      }
+
+      return {
+        tenantId: tenant.id,
+        tenant,
+        domain: null,
+        error: null,
+        reason: 'localStorage'
+      };
+    }
+  }
+
+  // ========== PRIORIDADE 3: DEV_FALLBACK (APENAS DEV) ==========
+  const fallbackTenant = await fetchTenantById(DEV_FALLBACK_TENANT_ID);
+  
+  if (fallbackTenant) {
+    // Salvar no localStorage para próximas sessões
+    localStorage.setItem(TENANT_STORAGE_KEY, DEV_FALLBACK_TENANT_ID);
+    
     if (isDev) {
-      console.log('[TenantContext] tenant_id_final:', storageResult.tenant.id);
-      console.log('[TenantContext] reason: localStorage');
+      console.log('[TenantContext] ✓ Tenant resolvido por DEV_FALLBACK (dev fallback)');
+      console.log('[TenantContext] ✓ localStorage DEFINIDO com:', DEV_FALLBACK_TENANT_ID);
+      console.log('[TenantContext] tenant_id_final:', DEV_FALLBACK_TENANT_ID);
+      console.log('[TenantContext] reason: devFallback');
       console.log('[TenantContext] ═══════════════════════════════════════');
     }
 
     return {
-      tenantId: storageResult.tenant.id,
-      tenant: storageResult.tenant,
+      tenantId: DEV_FALLBACK_TENANT_ID,
+      tenant: fallbackTenant,
       domain: null,
       error: null,
-      reason: 'localStorage'
+      reason: 'devFallback'
     };
   }
 
-  // PRIORIDADE 3: Usar DEV_FALLBACK_TENANT_ID como último recurso
-  const fallbackResult = await resolveTenantFromDevFallback();
-  
-  if (fallbackResult.tenant) {
-    localStorage.setItem(TENANT_STORAGE_KEY, fallbackResult.tenantId);
-  }
-
+  // Todos os fallbacks falharam
   if (isDev) {
-    console.log('[TenantContext] tenant_id_final:', fallbackResult.tenantId);
-    console.log('[TenantContext] reason: devFallback');
+    console.log('[TenantContext] ✗ ERRO: todos os métodos de resolução falharam');
+    console.log('[TenantContext] tenant_id_final: null');
+    console.log('[TenantContext] reason: error');
     console.log('[TenantContext] ═══════════════════════════════════════');
   }
 
   return {
-    tenantId: fallbackResult.tenantId,
-    tenant: fallbackResult.tenant,
+    tenantId: null,
+    tenant: null,
     domain: null,
-    error: fallbackResult.tenant ? null : 'FALLBACK_TENANT_NOT_FOUND',
-    reason: 'devFallback'
+    error: 'ALL_RESOLUTION_METHODS_FAILED',
+    reason: 'error'
   };
 }
 
-/**
- * Get user's role in the current tenant
- */
 async function getUserTenantRole(tenantId: string, userId: string): Promise<'owner' | 'admin' | 'agent' | null> {
   try {
     const { data, error } = await supabase
