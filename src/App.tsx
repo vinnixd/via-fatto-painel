@@ -9,6 +9,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { AdminRoutes } from "@/components/AdminRoutes";
 import { isAdminSubdomain } from "@/hooks/useAdminRoutes";
+import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,11 @@ const App = () => {
           <ScrollToTop />
           <AuthProvider>
             <TenantProvider>
-              <AppErrorBoundary>
-                <AdminRoutes useCleanUrls={useCleanUrls} />
-              </AppErrorBoundary>
+              <RealtimeSyncProvider>
+                <AppErrorBoundary>
+                  <AdminRoutes useCleanUrls={useCleanUrls} />
+                </AppErrorBoundary>
+              </RealtimeSyncProvider>
             </TenantProvider>
           </AuthProvider>
         </BrowserRouter>
