@@ -4,15 +4,16 @@ import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AdminLink from '@/components/admin/AdminLink';
 import { useAdminRoutes } from '@/hooks/useAdminRoutes';
-import { Upload, Download, ChevronLeft } from 'lucide-react';
+import { Upload, Download, ChevronLeft, Database } from 'lucide-react';
 
 interface DataLayoutProps {
   children: ReactNode;
 }
 
 const menuItems = [
-  { icon: Download, label: 'Exportar', adminPath: '/admin/dados' },
+  { icon: Download, label: 'Exportar Imóveis', adminPath: '/admin/dados' },
   { icon: Upload, label: 'Importar', adminPath: '/admin/dados/importar' },
+  { icon: Database, label: 'Banco Completo', adminPath: '/admin/dados/banco' },
 ];
 
 const DataLayout = ({ children }: DataLayoutProps) => {

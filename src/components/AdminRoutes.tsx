@@ -16,6 +16,7 @@ import FavoritesListPage from "@/pages/admin/FavoritesListPage";
 import MessagesPage from "@/pages/admin/MessagesPage";
 import ExportPage from "@/pages/admin/data/ExportPage";
 import ImportDataPage from "@/pages/admin/data/ImportPage";
+import DatabaseExportPage from "@/pages/admin/data/DatabaseExportPage";
 import PortaisPage from "@/pages/admin/PortaisPage";
 import PortalConfigPage from "@/pages/admin/PortalConfigPage";
 import UsersPage from "@/pages/admin/UsersPage";
@@ -72,6 +73,7 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       {/* Dados */}
       <Route path={`${prefix}/dados`} element={<TenantGate><ExportPage /></TenantGate>} />
       <Route path={`${prefix}/dados/importar`} element={<TenantGate><ImportDataPage /></TenantGate>} />
+      <Route path={`${prefix}/dados/banco`} element={<TenantGate><DatabaseExportPage /></TenantGate>} />
       
       {/* Portais */}
       <Route path={`${prefix}/portais`} element={<TenantGate><PortaisPage /></TenantGate>} />
