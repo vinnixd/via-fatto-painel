@@ -34,7 +34,22 @@ const InvoicesPage = () => {
   }, 0) || 0;
 
   const paidCount = invoices?.filter(inv => inv.status === 'paid').length || 0;
+  const overdueCount = invoices?.filter(inv => inv.status === 'overdue').length || 0;
+  const pendingCount = invoices?.filter(inv => inv.status === 'pending').length || 0;
   const lastInvoice = invoices?.[0];
+
+  // Determine overall payment status
+  const getOverallStatus = () => {
+    if (overdueCount > 0) {
+      return { label: 'Atrasado', color: 'red', icon: AlertCircle };
+    }
+    if (pendingCount > 0) {
+      return { label: 'Pendente', color: 'yellow', icon: Calendar };
+    }
+    return { label: 'Em dia', color: 'green', icon: CheckCircle2 };
+  };
+
+  const overallStatus = getOverallStatus();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -80,14 +95,30 @@ const InvoicesPage = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+          <Card className={`bg-gradient-to-br ${
+            overallStatus.color === 'red' ? 'from-red-500/10 to-red-500/5 border-red-500/20' :
+            overallStatus.color === 'yellow' ? 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' :
+            'from-green-500/10 to-green-500/5 border-green-500/20'
+          }`}>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-green-500/20 rounded-xl">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <div className={`p-2.5 rounded-xl ${
+                overallStatus.color === 'red' ? 'bg-red-500/20' :
+                overallStatus.color === 'yellow' ? 'bg-yellow-500/20' :
+                'bg-green-500/20'
+              }`}>
+                <overallStatus.icon className={`h-5 w-5 ${
+                  overallStatus.color === 'red' ? 'text-red-600' :
+                  overallStatus.color === 'yellow' ? 'text-yellow-600' :
+                  'text-green-600'
+                }`} />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Status</p>
-                <p className="font-semibold text-green-600">Em dia</p>
+                <p className={`font-semibold ${
+                  overallStatus.color === 'red' ? 'text-red-600' :
+                  overallStatus.color === 'yellow' ? 'text-yellow-600' :
+                  'text-green-600'
+                }`}>{overallStatus.label}</p>
               </div>
             </CardContent>
           </Card>
