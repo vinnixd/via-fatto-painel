@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Download, Database, Loader2, CheckCircle2, Info, FileJson, Table2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Download, Database, Loader2, CheckCircle2, Info, FileJson, Table2, FileSpreadsheet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,10 +45,40 @@ interface ExportResult {
   error?: string;
 }
 
+// Convert array of objects to CSV string
+const arrayToCsv = (data: any[]): string => {
+  if (!data || data.length === 0) return '';
+  
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(','),
+    ...data.map(row => 
+      headers.map(header => {
+        const value = row[header];
+        // Handle different value types
+        if (value === null || value === undefined) return '';
+        if (typeof value === 'object') {
+          // Stringify objects/arrays and escape quotes
+          const stringified = JSON.stringify(value).replace(/"/g, '""');
+          return `"${stringified}"`;
+        }
+        const stringValue = String(value);
+        // Escape quotes and wrap in quotes if contains comma, newline, or quotes
+        if (stringValue.includes(',') || stringValue.includes('\n') || stringValue.includes('"')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      }).join(',')
+    )
+  ];
+  return csvRows.join('\n');
+};
+
 const DatabaseExportPage = () => {
   const [exporting, setExporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTable, setCurrentTable] = useState('');
+  const [format, setFormat] = useState<'json' | 'csv'>('csv');
   const [selectedTables, setSelectedTables] = useState<string[]>(
     EXPORTABLE_TABLES.map(t => t.name)
   );
@@ -87,6 +118,17 @@ const DatabaseExportPage = () => {
     }
   };
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob(['\ufeff' + content], { type: mimeType });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  };
+
   const handleExport = async () => {
     if (selectedTables.length === 0) {
       toast.error("Selecione pelo menos uma tabela para exportar");
@@ -109,44 +151,63 @@ const DatabaseExportPage = () => {
         results.push(result);
       }
 
-      // Prepare export data
-      const exportData = {
-        exportedAt: new Date().toISOString(),
-        sourceProject: 'via-fatto-painel',
-        supabaseProjectId: 'mpsusvpdjuqvjgdsvwpp',
-        tables: results.reduce((acc, result) => {
-          acc[result.table] = {
-            count: result.count,
-            data: result.data,
-            error: result.error || null
-          };
-          return acc;
-        }, {} as Record<string, any>),
-        summary: {
-          totalTables: results.length,
-          successfulTables: results.filter(r => !r.error).length,
-          totalRecords: results.reduce((sum, r) => sum + r.count, 0),
-          errors: results.filter(r => r.error).map(r => ({ table: r.table, error: r.error }))
+      const dateStr = new Date().toISOString().split('T')[0];
+
+      if (format === 'csv') {
+        // Download each table as a separate CSV file
+        let downloadedCount = 0;
+        for (const result of results) {
+          if (result.data.length > 0 && !result.error) {
+            const csvContent = arrayToCsv(result.data);
+            downloadFile(
+              csvContent,
+              `${result.table}_${dateStr}.csv`,
+              'text/csv;charset=utf-8;'
+            );
+            downloadedCount++;
+            // Small delay between downloads to prevent browser blocking
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
         }
-      };
+        
+        toast.success(
+          `${downloadedCount} arquivos CSV baixados! Importe cada um na tabela correspondente no Supabase.`
+        );
+      } else {
+        // JSON format - single file with all data
+        const exportData = {
+          exportedAt: new Date().toISOString(),
+          sourceProject: 'via-fatto-painel',
+          supabaseProjectId: 'mpsusvpdjuqvjgdsvwpp',
+          tables: results.reduce((acc, result) => {
+            acc[result.table] = {
+              count: result.count,
+              data: result.data,
+              error: result.error || null
+            };
+            return acc;
+          }, {} as Record<string, any>),
+          summary: {
+            totalTables: results.length,
+            successfulTables: results.filter(r => !r.error).length,
+            totalRecords: results.reduce((sum, r) => sum + r.count, 0),
+            errors: results.filter(r => r.error).map(r => ({ table: r.table, error: r.error }))
+          }
+        };
 
-      // Generate and download JSON file
-      const fileContent = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([fileContent], { type: 'application/json;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `database_export_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+        downloadFile(
+          JSON.stringify(exportData, null, 2),
+          `database_export_${dateStr}.json`,
+          'application/json;charset=utf-8;'
+        );
 
-      const successCount = results.filter(r => !r.error).length;
-      const totalRecords = results.reduce((sum, r) => sum + r.count, 0);
-      
-      toast.success(
-        `Exportação concluída! ${successCount}/${results.length} tabelas, ${totalRecords} registros`
-      );
+        const successCount = results.filter(r => !r.error).length;
+        const totalRecords = results.reduce((sum, r) => sum + r.count, 0);
+        
+        toast.success(
+          `Exportação concluída! ${successCount}/${results.length} tabelas, ${totalRecords} registros`
+        );
+      }
 
       if (results.some(r => r.error)) {
         toast.warning("Algumas tabelas não puderam ser exportadas (verifique permissões RLS)");
@@ -181,17 +242,16 @@ const DatabaseExportPage = () => {
               <AlertTitle>Como usar este export</AlertTitle>
               <AlertDescription className="space-y-2">
                 <p>
-                  1. Selecione as tabelas que deseja exportar
+                  <strong>Formato CSV (Recomendado):</strong>
                 </p>
-                <p>
-                  2. Clique em "Exportar Banco de Dados" para baixar o JSON
-                </p>
-                <p>
-                  3. No Supabase externo, use o SQL Editor para importar os dados
-                </p>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>Selecione as tabelas e exporte em CSV</li>
+                  <li>No Supabase, vá em Table Editor → Selecione a tabela</li>
+                  <li>Clique em "Insert" → "Import data from CSV"</li>
+                  <li>Faça upload do arquivo CSV correspondente</li>
+                </ol>
                 <p className="text-muted-foreground text-xs mt-2">
-                  Nota: A estrutura das tabelas (schema) já existe no Supabase externo mpsusvpdjuqvjgdsvwpp.
-                  Este export contém apenas os DADOS.
+                  Nota: A estrutura das tabelas já existe. Este export contém apenas os DADOS.
                 </p>
               </AlertDescription>
             </Alert>
@@ -270,6 +330,46 @@ const DatabaseExportPage = () => {
           </Card>
         )}
 
+        {/* Format Selection Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Formato de Exportação</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup 
+              value={format} 
+              onValueChange={(value) => setFormat(value as 'csv' | 'json')}
+              className="flex flex-col sm:flex-row gap-4"
+              disabled={exporting}
+            >
+              <div className="flex items-center space-x-3 p-4 border rounded-lg flex-1 hover:bg-muted/50 transition-colors">
+                <RadioGroupItem value="csv" id="csv" />
+                <div className="flex-1">
+                  <Label htmlFor="csv" className="cursor-pointer font-medium flex items-center gap-2">
+                    <FileSpreadsheet className="h-4 w-4" />
+                    CSV (Recomendado)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Um arquivo por tabela. Importação direta no Supabase Table Editor.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border rounded-lg flex-1 hover:bg-muted/50 transition-colors">
+                <RadioGroupItem value="json" id="json" />
+                <div className="flex-1">
+                  <Label htmlFor="json" className="cursor-pointer font-medium flex items-center gap-2">
+                    <FileJson className="h-4 w-4" />
+                    JSON
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Arquivo único com todas as tabelas. Requer script para importação.
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
         {/* Export Button Card */}
         <Card>
           <CardContent className="pt-6">
@@ -287,11 +387,20 @@ const DatabaseExportPage = () => {
                 </>
               ) : (
                 <>
-                  <FileJson className="mr-2 h-5 w-5" />
-                  Exportar Banco de Dados ({selectedTables.length} tabelas)
+                  {format === 'csv' ? (
+                    <FileSpreadsheet className="mr-2 h-5 w-5" />
+                  ) : (
+                    <FileJson className="mr-2 h-5 w-5" />
+                  )}
+                  Exportar {format.toUpperCase()} ({selectedTables.length} tabelas)
                 </>
               )}
             </Button>
+            {format === 'csv' && (
+              <p className="text-xs text-muted-foreground text-center mt-3">
+                Serão baixados {selectedTables.length} arquivos CSV separados
+              </p>
+            )}
           </CardContent>
         </Card>
 
