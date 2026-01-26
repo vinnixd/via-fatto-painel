@@ -1020,6 +1020,7 @@ export type Database = {
       subscriptions: {
         Row: {
           billing_cycle: string
+          billing_day: number | null
           created_at: string
           expires_at: string | null
           fiscal_cep: string | null
@@ -1039,6 +1040,7 @@ export type Database = {
         }
         Insert: {
           billing_cycle?: string
+          billing_day?: number | null
           created_at?: string
           expires_at?: string | null
           fiscal_cep?: string | null
@@ -1058,6 +1060,7 @@ export type Database = {
         }
         Update: {
           billing_cycle?: string
+          billing_day?: number | null
           created_at?: string
           expires_at?: string | null
           fiscal_cep?: string | null
