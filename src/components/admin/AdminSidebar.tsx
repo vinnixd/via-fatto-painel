@@ -40,7 +40,7 @@ const menuItems: MenuItem[] = [
   { icon: Globe, label: 'Portais', adminPath: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
   { icon: Plug, label: 'Integrações', adminPath: '/admin/integracoes', roles: ['admin', 'marketing'] },
   { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },
-  { icon: MessageSquare, label: 'Mensagens', adminPath: '/admin/mensagens' },
+  { icon: MessageSquare, label: 'Leads', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
   { icon: GlobeLock, label: 'Domínios', adminPath: '/admin/dominios', tenantRoles: ['owner', 'admin'] },
 ];
