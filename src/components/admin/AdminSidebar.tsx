@@ -44,7 +44,6 @@ const menuItems: MenuItem[] = [
   { icon: MessageSquare, label: 'Mensagens', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
   { icon: GlobeLock, label: 'Domínios', adminPath: '/admin/dominios', tenantRoles: ['owner', 'admin'] },
-  { icon: UsersRound, label: 'Membros', adminPath: '/admin/membros', tenantRoles: ['owner', 'admin'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };
