@@ -66,6 +66,8 @@ export type Database = {
           phone: string | null
           property_id: string | null
           read: boolean
+          status: string
+          status_updated_at: string | null
           tenant_id: string | null
         }
         Insert: {
@@ -78,6 +80,8 @@ export type Database = {
           phone?: string | null
           property_id?: string | null
           read?: boolean
+          status?: string
+          status_updated_at?: string | null
           tenant_id?: string | null
         }
         Update: {
@@ -90,6 +94,8 @@ export type Database = {
           phone?: string | null
           property_id?: string | null
           read?: boolean
+          status?: string
+          status_updated_at?: string | null
           tenant_id?: string | null
         }
         Relationships: [
