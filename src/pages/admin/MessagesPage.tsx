@@ -63,6 +63,7 @@ interface Contact {
   property_id: string | null;
   read: boolean;
   created_at: string;
+  origem: string;
   property?: {
     id: string;
     title: string;
@@ -94,6 +95,7 @@ const MessagesPage = () => {
     phone: '',
     message: '',
     property_id: '',
+    origem: 'manual',
   });
 
   const fetchContacts = async () => {
@@ -222,13 +224,14 @@ const MessagesPage = () => {
           property_id: newLead.property_id || null,
           tenant_id: tenant?.id || null,
           read: false,
+          origem: newLead.origem,
         });
 
       if (error) throw error;
 
       toast.success('Lead adicionado com sucesso!');
       setIsNewLeadOpen(false);
-      setNewLead({ name: '', email: '', phone: '', message: '', property_id: '' });
+      setNewLead({ name: '', email: '', phone: '', message: '', property_id: '', origem: 'manual' });
       fetchContacts();
     } catch (error) {
       console.error('Error creating lead:', error);
@@ -282,6 +285,23 @@ const MessagesPage = () => {
     );
   };
 
+  const getOriginBadge = (origem: string) => {
+    const originConfig: Record<string, { label: string; className: string }> = {
+      site: { label: 'Site', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+      whatsapp: { label: 'WhatsApp', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
+      manual: { label: 'Manual', className: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
+      portal: { label: 'Portal', className: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
+    };
+    
+    const config = originConfig[origem] || { label: origem, className: 'bg-muted text-muted-foreground border-muted' };
+    
+    return (
+      <Badge variant="outline" className={config.className}>
+        {config.label}
+      </Badge>
+    );
+  };
+
   // Filter contacts
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = searchTerm === '' || 
@@ -293,7 +313,9 @@ const MessagesPage = () => {
       (statusFilter === 'new' && !contact.read) ||
       (statusFilter === 'contacted' && contact.read);
     
-    return matchesSearch && matchesStatus;
+    const matchesOrigin = originFilter === 'all' || contact.origem === originFilter;
+    
+    return matchesSearch && matchesStatus && matchesOrigin;
   });
 
   // Stats
@@ -387,6 +409,8 @@ const MessagesPage = () => {
                     <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="site">Site</SelectItem>
                     <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="portal">Portal</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -449,9 +473,7 @@ const MessagesPage = () => {
                           </p>
                         </td>
                         <td className="p-4">
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-                            Site
-                          </Badge>
+                          {getOriginBadge(contact.origem)}
                         </td>
                         <td className="p-4">
                           {getStatusBadge(contact.read)}
