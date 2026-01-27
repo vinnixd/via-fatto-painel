@@ -23,6 +23,7 @@ interface TenantContextType {
   tenant: Tenant | null;
   tenantId: string | null;
   loading: boolean;
+  userRoleLoading: boolean;
   error: string | null;
   domain: Domain | null;
   isResolved: boolean;
@@ -287,6 +288,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   const [error, setError] = useState<string | null>(null);
   const [isResolved, setIsResolved] = useState(false);
   const [userRole, setUserRole] = useState<'owner' | 'admin' | 'agent' | null>(null);
+  const [userRoleLoading, setUserRoleLoading] = useState(true);
 
   const resolveTenant = useCallback(async () => {
     setLoading(true);
@@ -305,8 +307,11 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
   // Check user's role in tenant when tenant or auth changes
   useEffect(() => {
     const checkUserRole = async () => {
+      setUserRoleLoading(true);
+      
       if (!tenant?.id) {
         setUserRole(null);
+        setUserRoleLoading(false);
         return;
       }
 
@@ -314,11 +319,13 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
       
       if (!user) {
         setUserRole(null);
+        setUserRoleLoading(false);
         return;
       }
 
       const role = await getUserTenantRole(tenant.id, user.id);
       setUserRole(role);
+      setUserRoleLoading(false);
     };
 
     checkUserRole();
@@ -350,6 +357,7 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
         tenant,
         tenantId: tenant?.id ?? null,
         loading,
+        userRoleLoading,
         error,
         domain,
         isResolved,

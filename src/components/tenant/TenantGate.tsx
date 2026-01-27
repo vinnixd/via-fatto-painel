@@ -15,7 +15,7 @@ interface TenantGateProps {
  * Gate component that blocks access based on tenant resolution and user membership
  */
 export const TenantGate = ({ children }: TenantGateProps) => {
-  const { tenant, loading: tenantLoading, error, domain, isTenantMember, isResolved } = useTenant();
+  const { tenant, loading: tenantLoading, error, domain, isTenantMember, isResolved, userRoleLoading } = useTenant();
   const { user, loading: authLoading, signOut } = useAuth();
   const [copied, setCopied] = useState(false);
 
@@ -33,8 +33,8 @@ export const TenantGate = ({ children }: TenantGateProps) => {
     window.location.reload();
   };
 
-  // Show loading while resolving tenant or auth
-  if (tenantLoading || authLoading) {
+  // Show loading while resolving tenant, auth, or user role
+  if (tenantLoading || authLoading || (user && userRoleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
