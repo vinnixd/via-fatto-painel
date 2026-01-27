@@ -10,18 +10,16 @@ const corsHeaders = {
 const OLX_AUTH_BASE = 'https://auth.olx.com.br';
 const OLX_API_BASE = 'https://apps.olx.com.br';
 
+// Get credentials from secrets (server-side only - never exposed to frontend)
+const OLX_CLIENT_ID = Deno.env.get('OLX_CLIENT_ID')!;
+const OLX_CLIENT_SECRET = Deno.env.get('OLX_CLIENT_SECRET')!;
+
 interface OLXTokenResponse {
   access_token: string;
   refresh_token: string;
   token_type: string;
   expires_in: number;
-}
-
-interface OLXAccountInfo {
-  phone: string;
-  email: string;
-  name: string;
-  id: string;
+  scope?: string;
 }
 
 serve(async (req) => {
@@ -41,38 +39,74 @@ serve(async (req) => {
 
     console.log(`[OLX OAuth] Action: ${action}`);
 
+    // Validate that secrets are configured
+    if (!OLX_CLIENT_ID || !OLX_CLIENT_SECRET) {
+      console.error('[OLX OAuth] Missing OLX_CLIENT_ID or OLX_CLIENT_SECRET secrets');
+      return new Response(
+        JSON.stringify({ error: 'OLX OAuth não configurado. Configure OLX_CLIENT_ID e OLX_CLIENT_SECRET nos secrets.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     switch (action) {
       // ============================================================
-      // Generate Authorization URL
+      // Generate Authorization URL with secure state
       // ============================================================
       case 'authorize': {
-        const { portalId, clientId, redirectUri } = body;
+        const { portalId, tenantId, redirectUri } = body;
 
-        if (!portalId || !clientId) {
+        if (!portalId) {
           return new Response(
-            JSON.stringify({ error: 'Portal ID and Client ID are required' }),
+            JSON.stringify({ error: 'Portal ID is required' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Generate state parameter for security (includes portalId for callback)
-        const state = btoa(JSON.stringify({ portalId, timestamp: Date.now() }));
+        // Generate secure random state
+        const stateToken = crypto.randomUUID() + '-' + crypto.randomUUID();
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
 
-        // OLX OAuth authorization URL
-        // Scopes: autoupload (for publishing ads), basic_user_info (for account info)
+        // Store state in database for validation (CSRF protection)
+        const { error: stateError } = await supabase
+          .from('oauth_states')
+          .insert({
+            state: stateToken,
+            portal_id: portalId,
+            tenant_id: tenantId || null,
+            expires_at: expiresAt,
+          });
+
+        if (stateError) {
+          console.error('[OLX OAuth] Failed to store state:', stateError);
+          return new Response(
+            JSON.stringify({ error: 'Falha ao iniciar autorização' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Cleanup expired states
+        try {
+          await supabase.rpc('cleanup_expired_oauth_states');
+        } catch {
+          // Ignore cleanup errors
+        }
+
+        // Build OLX OAuth authorization URL
+        const callbackUrl = `${supabaseUrl}/functions/v1/olx-oauth?action=callback`;
+        
         const authUrl = new URL(`${OLX_AUTH_BASE}/authorize`);
-        authUrl.searchParams.set('client_id', clientId);
-        authUrl.searchParams.set('redirect_uri', redirectUri || `${supabaseUrl}/functions/v1/olx-oauth?action=callback`);
+        authUrl.searchParams.set('client_id', OLX_CLIENT_ID);
+        authUrl.searchParams.set('redirect_uri', callbackUrl);
         authUrl.searchParams.set('response_type', 'code');
         authUrl.searchParams.set('scope', 'autoupload basic_user_info');
-        authUrl.searchParams.set('state', state);
+        authUrl.searchParams.set('state', stateToken);
 
-        console.log('[OLX OAuth] Generated auth URL:', authUrl.toString().substring(0, 100) + '...');
+        console.log('[OLX OAuth] Generated auth URL for portal:', portalId);
 
         return new Response(
           JSON.stringify({ 
             authUrl: authUrl.toString(),
-            state,
+            state: stateToken,
             message: 'Redirecione o usuário para a URL de autorização'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -80,66 +114,65 @@ serve(async (req) => {
       }
 
       // ============================================================
-      // Handle OAuth Callback (exchange code for tokens)
+      // Handle OAuth Callback (browser redirect from OLX)
       // ============================================================
       case 'callback': {
-        const code = url.searchParams.get('code') || body.code;
-        const state = url.searchParams.get('state') || body.state;
+        const code = url.searchParams.get('code');
+        const state = url.searchParams.get('state');
         const error = url.searchParams.get('error');
+        const errorDescription = url.searchParams.get('error_description');
 
+        // Handle authorization errors
         if (error) {
-          console.error('[OLX OAuth] Authorization error:', error);
-          const errorDesc = url.searchParams.get('error_description') || 'Autorização negada pelo usuário';
-          
+          console.error('[OLX OAuth] Authorization error:', error, errorDescription);
           // Redirect to frontend with error
-          const frontendUrl = `${supabaseUrl.replace('.supabase.co', '.lovable.app')}/admin/portais?error=${encodeURIComponent(errorDesc)}`;
-          return Response.redirect(frontendUrl, 302);
+          return new Response(null, {
+            status: 302,
+            headers: {
+              ...corsHeaders,
+              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent(errorDescription || error)}`,
+            },
+          });
         }
 
         if (!code || !state) {
-          return new Response(
-            JSON.stringify({ error: 'Missing code or state parameter' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          console.error('[OLX OAuth] Missing code or state');
+          return new Response(null, {
+            status: 302,
+            headers: {
+              ...corsHeaders,
+              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent('Parâmetros inválidos')}`,
+            },
+          });
         }
 
-        // Parse state to get portalId
-        let stateData: { portalId: string };
-        try {
-          stateData = JSON.parse(atob(state));
-        } catch (e) {
-          return new Response(
-            JSON.stringify({ error: 'Invalid state parameter' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Get portal config to retrieve client_id and client_secret
-        const { data: portal, error: portalError } = await supabase
-          .from('portais')
+        // Validate state against database (CSRF protection)
+        const { data: stateRecord, error: stateError } = await supabase
+          .from('oauth_states')
           .select('*')
-          .eq('id', stateData.portalId)
+          .eq('state', state)
+          .gt('expires_at', new Date().toISOString())
           .single();
 
-        if (portalError || !portal) {
-          console.error('[OLX OAuth] Portal not found:', portalError);
-          return new Response(
-            JSON.stringify({ error: 'Portal not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+        if (stateError || !stateRecord) {
+          console.error('[OLX OAuth] Invalid or expired state:', state);
+          return new Response(null, {
+            status: 302,
+            headers: {
+              ...corsHeaders,
+              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent('State inválido ou expirado. Tente novamente.')}`,
+            },
+          });
         }
 
-        const clientId = portal.config?.api_credentials?.client_id;
-        const clientSecret = portal.config?.api_credentials?.client_secret;
+        const portalId = stateRecord.portal_id;
 
-        if (!clientId || !clientSecret) {
-          return new Response(
-            JSON.stringify({ error: 'Client credentials not configured' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        // Delete used state
+        await supabase.from('oauth_states').delete().eq('id', stateRecord.id);
 
-        // Exchange code for tokens
+        // Exchange authorization code for tokens
+        const callbackUrl = `${supabaseUrl}/functions/v1/olx-oauth?action=callback`;
+        
         console.log('[OLX OAuth] Exchanging code for tokens...');
         
         const tokenResponse = await fetch(`${OLX_AUTH_BASE}/token`, {
@@ -150,153 +183,90 @@ serve(async (req) => {
           body: new URLSearchParams({
             grant_type: 'authorization_code',
             code,
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: body.redirectUri || `${supabaseUrl}/functions/v1/olx-oauth?action=callback`,
+            client_id: OLX_CLIENT_ID,
+            client_secret: OLX_CLIENT_SECRET,
+            redirect_uri: callbackUrl,
           }).toString(),
         });
 
         if (!tokenResponse.ok) {
           const errorText = await tokenResponse.text();
           console.error('[OLX OAuth] Token exchange failed:', tokenResponse.status, errorText);
-          return new Response(
-            JSON.stringify({ error: 'Token exchange failed', details: errorText }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return new Response(null, {
+            status: 302,
+            headers: {
+              ...corsHeaders,
+              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha na troca do código por tokens')}`,
+            },
+          });
         }
 
         const tokens: OLXTokenResponse = await tokenResponse.json();
         console.log('[OLX OAuth] Tokens received successfully');
 
-        // Update portal config with new tokens
+        // Get current portal config
+        const { data: portal } = await supabase
+          .from('portais')
+          .select('config')
+          .eq('id', portalId)
+          .single();
+
+        // Update portal config with OAuth tokens
+        const expiresAt = Date.now() + (tokens.expires_in * 1000);
         const updatedConfig = {
-          ...portal.config,
+          ...(portal?.config || {}),
           api_credentials: {
-            ...portal.config?.api_credentials,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            token_expires_at: Date.now() + (tokens.expires_in * 1000),
+            ...(portal?.config?.api_credentials || {}),
+            oauth: {
+              access_token: tokens.access_token,
+              refresh_token: tokens.refresh_token,
+              expires_at: new Date(expiresAt).toISOString(),
+              expires_in: tokens.expires_in,
+              scope: tokens.scope || 'autoupload basic_user_info',
+              token_type: tokens.token_type || 'Bearer',
+              connected: true,
+              connected_at: new Date().toISOString(),
+            },
           },
         };
 
         const { error: updateError } = await supabase
           .from('portais')
-          .update({ config: updatedConfig, updated_at: new Date().toISOString() })
-          .eq('id', stateData.portalId);
+          .update({ 
+            config: updatedConfig, 
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', portalId);
 
         if (updateError) {
           console.error('[OLX OAuth] Failed to save tokens:', updateError);
-          return new Response(
-            JSON.stringify({ error: 'Failed to save tokens' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          return new Response(null, {
+            status: 302,
+            headers: {
+              ...corsHeaders,
+              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha ao salvar tokens')}`,
+            },
+          });
         }
 
-        console.log('[OLX OAuth] Tokens saved to portal config');
-
-        // For browser redirect flow, redirect to frontend with success
-        if (req.headers.get('accept')?.includes('text/html')) {
-          const frontendUrl = `${supabaseUrl.replace('supabase.co', 'lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${stateData.portalId}?oauth=success`;
-          return Response.redirect(frontendUrl, 302);
-        }
-
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            message: 'Autorização OLX concluída com sucesso',
-            expiresIn: tokens.expires_in
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      // ============================================================
-      // Exchange Code for Tokens (manual flow)
-      // ============================================================
-      case 'exchange': {
-        const { portalId, code, redirectUri } = body;
-
-        if (!portalId || !code) {
-          return new Response(
-            JSON.stringify({ error: 'Portal ID and code are required' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Get portal config
-        const { data: portal, error: portalError } = await supabase
-          .from('portais')
-          .select('*')
-          .eq('id', portalId)
-          .single();
-
-        if (portalError || !portal) {
-          return new Response(
-            JSON.stringify({ error: 'Portal not found' }),
-            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        const clientId = portal.config?.api_credentials?.client_id;
-        const clientSecret = portal.config?.api_credentials?.client_secret;
-
-        if (!clientId || !clientSecret) {
-          return new Response(
-            JSON.stringify({ error: 'Client credentials not configured' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        // Exchange code for tokens
-        const tokenResponse = await fetch(`${OLX_AUTH_BASE}/token`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            code,
-            client_id: clientId,
-            client_secret: clientSecret,
-            redirect_uri: redirectUri || `${supabaseUrl}/functions/v1/olx-oauth?action=callback`,
-          }).toString(),
+        // Log successful connection
+        await supabase.from('portal_logs').insert({
+          portal_id: portalId,
+          status: 'success',
+          total_itens: 0,
+          detalhes: { action: 'oauth_connected', message: 'Conta OLX conectada com sucesso' },
         });
 
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text();
-          console.error('[OLX OAuth] Token exchange failed:', tokenResponse.status, errorText);
-          return new Response(
-            JSON.stringify({ error: 'Token exchange failed', details: errorText }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        console.log('[OLX OAuth] Tokens saved to portal config, redirecting to frontend');
 
-        const tokens: OLXTokenResponse = await tokenResponse.json();
-
-        // Update portal config
-        const updatedConfig = {
-          ...portal.config,
-          api_credentials: {
-            ...portal.config?.api_credentials,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token,
-            token_expires_at: Date.now() + (tokens.expires_in * 1000),
+        // Redirect back to portal config page with success
+        return new Response(null, {
+          status: 302,
+          headers: {
+            ...corsHeaders,
+            'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth=success`,
           },
-        };
-
-        await supabase
-          .from('portais')
-          .update({ config: updatedConfig, updated_at: new Date().toISOString() })
-          .eq('id', portalId);
-
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            message: 'Tokens obtidos com sucesso',
-            expiresIn: tokens.expires_in
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        });
       }
 
       // ============================================================
@@ -326,20 +296,11 @@ serve(async (req) => {
           );
         }
 
-        const clientId = portal.config?.api_credentials?.client_id;
-        const clientSecret = portal.config?.api_credentials?.client_secret;
-        const refreshToken = portal.config?.api_credentials?.refresh_token;
-
-        if (!clientId || !clientSecret) {
-          return new Response(
-            JSON.stringify({ error: 'Client credentials not configured' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
+        const refreshToken = portal.config?.api_credentials?.oauth?.refresh_token;
 
         if (!refreshToken) {
           return new Response(
-            JSON.stringify({ error: 'No refresh token available. Please re-authorize.' }),
+            JSON.stringify({ error: 'Sem refresh token. Reconecte sua conta OLX.', needsReauth: true }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -354,8 +315,8 @@ serve(async (req) => {
           body: new URLSearchParams({
             grant_type: 'refresh_token',
             refresh_token: refreshToken,
-            client_id: clientId,
-            client_secret: clientSecret,
+            client_id: OLX_CLIENT_ID,
+            client_secret: OLX_CLIENT_SECRET,
           }).toString(),
         });
 
@@ -368,9 +329,13 @@ serve(async (req) => {
             ...portal.config,
             api_credentials: {
               ...portal.config?.api_credentials,
-              access_token: null,
-              refresh_token: null,
-              token_expires_at: null,
+              oauth: {
+                connected: false,
+                connected_at: null,
+                access_token: null,
+                refresh_token: null,
+                expires_at: null,
+              },
             },
           };
           
@@ -381,7 +346,7 @@ serve(async (req) => {
 
           return new Response(
             JSON.stringify({ 
-              error: 'Token refresh failed. Please re-authorize.', 
+              error: 'Token refresh falhou. Reconecte sua conta OLX.', 
               needsReauth: true 
             }),
             { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -392,13 +357,18 @@ serve(async (req) => {
         console.log('[OLX OAuth] Token refreshed successfully');
 
         // Update portal config
+        const expiresAt = Date.now() + (tokens.expires_in * 1000);
         const updatedConfig = {
           ...portal.config,
           api_credentials: {
             ...portal.config?.api_credentials,
-            access_token: tokens.access_token,
-            refresh_token: tokens.refresh_token || refreshToken, // Some OAuth servers don't return new refresh token
-            token_expires_at: Date.now() + (tokens.expires_in * 1000),
+            oauth: {
+              ...portal.config?.api_credentials?.oauth,
+              access_token: tokens.access_token,
+              refresh_token: tokens.refresh_token || refreshToken,
+              expires_at: new Date(expiresAt).toISOString(),
+              expires_in: tokens.expires_in,
+            },
           },
         };
 
@@ -418,9 +388,9 @@ serve(async (req) => {
       }
 
       // ============================================================
-      // Get Account Info
+      // Disconnect OLX (remove tokens)
       // ============================================================
-      case 'account': {
+      case 'disconnect': {
         const { portalId } = body;
 
         if (!portalId) {
@@ -444,16 +414,90 @@ serve(async (req) => {
           );
         }
 
-        const accessToken = portal.config?.api_credentials?.access_token;
+        // Clear OAuth tokens
+        const updatedConfig = {
+          ...portal.config,
+          api_credentials: {
+            ...portal.config?.api_credentials,
+            oauth: {
+              connected: false,
+              connected_at: null,
+              access_token: null,
+              refresh_token: null,
+              expires_at: null,
+            },
+          },
+        };
 
-        if (!accessToken) {
+        await supabase
+          .from('portais')
+          .update({ config: updatedConfig, updated_at: new Date().toISOString() })
+          .eq('id', portalId);
+
+        // Log disconnection
+        await supabase.from('portal_logs').insert({
+          portal_id: portalId,
+          status: 'success',
+          total_itens: 0,
+          detalhes: { action: 'oauth_disconnected', message: 'Conta OLX desconectada' },
+        });
+
+        console.log('[OLX OAuth] Account disconnected for portal:', portalId);
+
+        return new Response(
+          JSON.stringify({ success: true, message: 'Conta OLX desconectada' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // ============================================================
+      // Test Connection (call OLX API to verify tokens work)
+      // ============================================================
+      case 'test': {
+        const { portalId } = body;
+
+        if (!portalId) {
           return new Response(
-            JSON.stringify({ error: 'Not authorized. Please connect your OLX account.' }),
-            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ error: 'Portal ID is required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Get account info from OLX
+        // Get portal config
+        const { data: portal, error: portalError } = await supabase
+          .from('portais')
+          .select('*')
+          .eq('id', portalId)
+          .single();
+
+        if (portalError || !portal) {
+          return new Response(
+            JSON.stringify({ error: 'Portal not found' }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const accessToken = portal.config?.api_credentials?.oauth?.access_token;
+
+        if (!accessToken) {
+          return new Response(
+            JSON.stringify({ ok: false, error: 'Conta não conectada. Conecte sua conta OLX primeiro.' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Check if token is expired
+        const expiresAt = portal.config?.api_credentials?.oauth?.expires_at;
+        if (expiresAt && new Date(expiresAt) < new Date()) {
+          return new Response(
+            JSON.stringify({ ok: false, error: 'Token expirado. Renove ou reconecte sua conta.', needsRefresh: true }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log('[OLX OAuth] Testing connection...');
+
+        // Call OLX account endpoint to verify connection
         const accountResponse = await fetch(`${OLX_API_BASE}/autoupload/account`, {
           method: 'POST',
           headers: {
@@ -464,33 +508,62 @@ serve(async (req) => {
           }),
         });
 
+        const logDetails: any = { 
+          action: 'oauth_test', 
+          status_code: accountResponse.status,
+        };
+
         if (!accountResponse.ok) {
           const errorText = await accountResponse.text();
-          console.error('[OLX OAuth] Account info failed:', accountResponse.status, errorText);
+          console.error('[OLX OAuth] Test failed:', accountResponse.status, errorText);
           
+          logDetails.error = errorText;
+          logDetails.success = false;
+          
+          // Log test result (without sensitive data)
+          await supabase.from('portal_logs').insert({
+            portal_id: portalId,
+            status: 'error',
+            total_itens: 0,
+            detalhes: logDetails,
+          });
+
           if (accountResponse.status === 401 || accountResponse.status === 403) {
             return new Response(
-              JSON.stringify({ 
-                error: 'Token expired. Please re-authorize.', 
-                needsReauth: true 
-              }),
-              { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              JSON.stringify({ ok: false, error: 'Token inválido ou expirado. Reconecte sua conta.', needsReauth: true }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
 
           return new Response(
-            JSON.stringify({ error: 'Failed to get account info' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ ok: false, error: `Erro da API OLX: ${accountResponse.status}` }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
         const accountData = await accountResponse.json();
-        console.log('[OLX OAuth] Account info retrieved');
+        console.log('[OLX OAuth] Test successful, account:', accountData.email || 'N/A');
+
+        logDetails.success = true;
+        logDetails.account_email = accountData.email;
+        
+        // Log success (without tokens)
+        await supabase.from('portal_logs').insert({
+          portal_id: portalId,
+          status: 'success',
+          total_itens: 0,
+          detalhes: logDetails,
+        });
 
         return new Response(
           JSON.stringify({ 
-            success: true, 
-            account: accountData
+            ok: true, 
+            message: 'Conexão validada com sucesso',
+            account: {
+              email: accountData.email,
+              name: accountData.name,
+              phone: accountData.phone,
+            }
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -523,20 +596,26 @@ serve(async (req) => {
           );
         }
 
-        const accessToken = portal.config?.api_credentials?.access_token;
-        const refreshToken = portal.config?.api_credentials?.refresh_token;
-        const tokenExpiresAt = portal.config?.api_credentials?.token_expires_at;
+        const oauth = portal.config?.api_credentials?.oauth;
+        const accessToken = oauth?.access_token;
+        const refreshToken = oauth?.refresh_token;
+        const expiresAt = oauth?.expires_at;
+        const connected = oauth?.connected === true;
+        const connectedAt = oauth?.connected_at;
 
-        const isExpired = tokenExpiresAt ? Date.now() > tokenExpiresAt : true;
-        const expiresIn = tokenExpiresAt ? Math.max(0, Math.floor((tokenExpiresAt - Date.now()) / 1000)) : 0;
+        const expiresAtDate = expiresAt ? new Date(expiresAt) : null;
+        const isExpired = expiresAtDate ? expiresAtDate < new Date() : !accessToken;
+        const expiresIn = expiresAtDate ? Math.max(0, Math.floor((expiresAtDate.getTime() - Date.now()) / 1000)) : 0;
 
         return new Response(
           JSON.stringify({ 
+            connected: connected && !!accessToken,
             hasAccessToken: !!accessToken,
             hasRefreshToken: !!refreshToken,
             isExpired,
             expiresIn,
-            expiresAt: tokenExpiresAt ? new Date(tokenExpiresAt).toISOString() : null,
+            expiresAt: expiresAt || null,
+            connectedAt: connectedAt || null,
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
