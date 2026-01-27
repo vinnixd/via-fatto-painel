@@ -18,7 +18,6 @@ import {
   Headphones,
   Settings,
   GlobeLock,
-  UsersRound,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
