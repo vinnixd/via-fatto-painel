@@ -320,6 +320,51 @@ export type Database = {
           },
         ]
       }
+      oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          portal_id: string
+          state: string
+          tenant_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          portal_id: string
+          state: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          portal_id?: string
+          state?: string
+          tenant_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "oauth_states_portal_id_fkey"
+            columns: ["portal_id"]
+            isOneToOne: false
+            referencedRelation: "portais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "oauth_states_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           created_at: string
@@ -1176,6 +1221,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_oauth_states: { Args: never; Returns: undefined }
       get_tenant_role: { Args: { p_tenant_id: string }; Returns: string }
       has_role: {
         Args: {
