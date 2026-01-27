@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -34,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 import { 
   Loader2, 
   Mail, 
@@ -61,18 +64,37 @@ interface Contact {
   read: boolean;
   created_at: string;
   property?: {
+    id: string;
     title: string;
   };
 }
 
+interface Property {
+  id: string;
+  title: string;
+}
+
 const MessagesPage = () => {
+  const { tenant } = useTenant();
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [originFilter, setOriginFilter] = useState<string>('all');
+  
+  // New Lead Form State
+  const [isNewLeadOpen, setIsNewLeadOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [newLead, setNewLead] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+    property_id: '',
+  });
 
   const fetchContacts = async () => {
     try {
@@ -81,6 +103,7 @@ const MessagesPage = () => {
         .select(`
           *,
           property:property_id (
+            id,
             title
           )
         `)
@@ -96,9 +119,34 @@ const MessagesPage = () => {
     }
   };
 
+  const fetchProperties = async () => {
+    if (!tenant?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('id, title')
+        .eq('tenant_id', tenant.id)
+        .eq('active', true)
+        .order('title');
+
+      if (error) throw error;
+
+      setProperties(data || []);
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+    }
+  };
+
   useEffect(() => {
     fetchContacts();
   }, []);
+
+  useEffect(() => {
+    if (tenant?.id) {
+      fetchProperties();
+    }
+  }, [tenant?.id]);
 
   const markAsRead = async (id: string) => {
     try {
@@ -140,6 +188,53 @@ const MessagesPage = () => {
       toast.error('Erro ao excluir lead');
     } finally {
       setDeleteId(null);
+    }
+  };
+
+  const handleNewLeadSubmit = async () => {
+    // Validation
+    if (!newLead.name.trim()) {
+      toast.error('Nome é obrigatório');
+      return;
+    }
+    if (!newLead.email.trim()) {
+      toast.error('Email é obrigatório');
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newLead.email.trim())) {
+      toast.error('Email inválido');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .insert({
+          name: newLead.name.trim(),
+          email: newLead.email.trim(),
+          phone: newLead.phone.trim() || null,
+          message: newLead.message.trim() || 'Lead adicionado manualmente',
+          property_id: newLead.property_id || null,
+          tenant_id: tenant?.id || null,
+          read: false,
+        });
+
+      if (error) throw error;
+
+      toast.success('Lead adicionado com sucesso!');
+      setIsNewLeadOpen(false);
+      setNewLead({ name: '', email: '', phone: '', message: '', property_id: '' });
+      fetchContacts();
+    } catch (error) {
+      console.error('Error creating lead:', error);
+      toast.error('Erro ao adicionar lead');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -295,7 +390,7 @@ const MessagesPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto" onClick={() => setIsNewLeadOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Lead
               </Button>
@@ -425,6 +520,103 @@ const MessagesPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* New Lead Dialog */}
+      <Dialog open={isNewLeadOpen} onOpenChange={setIsNewLeadOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Lead</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="lead-name">Nome *</Label>
+              <Input
+                id="lead-name"
+                placeholder="Nome do lead"
+                value={newLead.name}
+                onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lead-email">Email *</Label>
+              <Input
+                id="lead-email"
+                type="email"
+                placeholder="email@exemplo.com"
+                value={newLead.email}
+                onChange={(e) => setNewLead({ ...newLead, email: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lead-phone">Telefone</Label>
+              <Input
+                id="lead-phone"
+                placeholder="(00) 00000-0000"
+                value={newLead.phone}
+                onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lead-property">Imóvel de Interesse</Label>
+              <Select 
+                value={newLead.property_id} 
+                onValueChange={(value) => setNewLead({ ...newLead, property_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um imóvel (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {properties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      {property.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lead-message">Observações</Label>
+              <Textarea
+                id="lead-message"
+                placeholder="Notas sobre o lead..."
+                value={newLead.message}
+                onChange={(e) => setNewLead({ ...newLead, message: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setIsNewLeadOpen(false)}
+                disabled={isSaving}
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleNewLeadSubmit}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Adicionar Lead'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* View Message Dialog */}
       <Dialog open={!!selectedContact} onOpenChange={() => setSelectedContact(null)}>
