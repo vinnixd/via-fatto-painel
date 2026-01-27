@@ -62,6 +62,7 @@ export type Database = {
           id: string
           message: string
           name: string
+          origem: string
           phone: string | null
           property_id: string | null
           read: boolean
@@ -73,6 +74,7 @@ export type Database = {
           id?: string
           message: string
           name: string
+          origem?: string
           phone?: string | null
           property_id?: string | null
           read?: boolean
@@ -84,6 +86,7 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          origem?: string
           phone?: string | null
           property_id?: string | null
           read?: boolean
