@@ -42,7 +42,7 @@ const AuthBackground = ({ logoUrl, tenantName }: AuthBackgroundProps) => {
       </svg>
 
       {/* Logo do tenant */}
-      <div className="relative z-10 flex flex-col items-center gap-4">
+      <div className="relative z-10 flex flex-col items-center gap-4 animate-fade-in">
         {logoUrl ? (
           <img 
             src={logoUrl} 
@@ -55,7 +55,7 @@ const AuthBackground = ({ logoUrl, tenantName }: AuthBackgroundProps) => {
           </div>
         )}
         {tenantName && (
-          <span className="text-white/60 text-sm font-medium tracking-wide">
+          <span className="text-white/60 text-sm font-medium tracking-wide animate-fade-in [animation-delay:150ms]">
             {tenantName}
           </span>
         )}
