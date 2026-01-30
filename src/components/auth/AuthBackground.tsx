@@ -54,11 +54,6 @@ const AuthBackground = ({ logoUrl, tenantName }: AuthBackgroundProps) => {
             <Building2 className="h-8 w-8 text-white" />
           </div>
         )}
-        {tenantName && (
-          <span className="text-white/60 text-sm font-medium tracking-wide animate-fade-in [animation-delay:150ms]">
-            {tenantName}
-          </span>
-        )}
       </div>
     </div>
   );
