@@ -145,7 +145,7 @@ const UsersPage = () => {
 
   // Separate pending users
   const pendingUsers = users?.filter(u => u.status === 'pending') || [];
-  const activeUsers = users?.filter(u => u.status !== 'pending') || [];
+  const activeUsers = users?.filter(u => u.status === 'active') || [];
 
   // Statistics
   const stats = {
