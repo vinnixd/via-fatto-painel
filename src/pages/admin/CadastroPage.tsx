@@ -75,7 +75,7 @@ const CadastroPage = () => {
       }
     } else {
       toast.success('Conta criada com sucesso! Você já pode fazer login.');
-      navigateAdmin('/auth/login');
+      navigateAdmin('/admin/login');
     }
   };
 
@@ -183,7 +183,7 @@ const CadastroPage = () => {
               <p className="text-center text-sm text-muted-foreground pt-2">
                 Já tem uma conta?{' '}
                 <Link
-                  to={getPath('/admin/auth/login')}
+                  to={getPath('/admin/login')}
                   className="text-foreground hover:underline font-semibold"
                 >
                   Entrar
