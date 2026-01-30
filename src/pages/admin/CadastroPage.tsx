@@ -136,7 +136,6 @@ const CadastroPage = () => {
                 onChange={(value) => setFormData({ ...formData, creci: value })}
                 icon={Users}
                 required={false}
-                helpText="Se você foi indicado por alguém, digite o CRECI aqui para receber benefícios."
               />
 
               <PasswordInput
