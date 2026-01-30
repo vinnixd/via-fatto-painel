@@ -8,9 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { compressImage, resizeFavicon } from '@/lib/imageCompression';
+import { cn } from '@/lib/utils';
 import { 
   Loader2, 
   Palette, 
@@ -19,39 +21,24 @@ import {
   Upload, 
   Eye, 
   Save, 
-  RefreshCw,
   Globe,
-  Globe2,
   Phone,
-  Mail,
-  MapPin,
   Facebook,
   Instagram,
   Linkedin,
   Youtube,
-  CheckCircle2,
   ImagePlus,
-  Type,
   Layout,
   Share2,
-  Settings2,
   Sparkles,
-  Plus,
-  Link as LinkIcon,
-  Calendar,
-  Shield,
-  Trash2,
-  Star,
-  CheckCircle,
-  ExternalLink,
-  Copy,
-  Info,
-  AlertCircle,
   Droplets,
+  CheckCircle2,
+  ChevronRight,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ImagePositionPicker } from '@/components/ui/ImagePositionPicker';
 import { useTenant } from '@/contexts/TenantContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SiteConfig {
   id: string;
@@ -90,12 +77,23 @@ interface SiteConfig {
   watermark_size: number;
 }
 
+const tabItems = [
+  { id: 'brand', label: 'Marca', icon: Sparkles, description: 'Logo, cores e favicon' },
+  { id: 'hero', label: 'Hero', icon: Layout, description: 'Seção principal' },
+  { id: 'about', label: 'Sobre', icon: FileText, description: 'Página institucional' },
+  { id: 'contact', label: 'Contato', icon: Phone, description: 'Informações de contato' },
+  { id: 'social', label: 'Redes', icon: Share2, description: 'Mídias sociais' },
+  { id: 'seo', label: 'SEO', icon: Globe, description: 'Otimização para buscadores' },
+  { id: 'watermark', label: 'Marca d\'água', icon: Droplets, description: 'Proteção de imagens' },
+];
+
 const DesignerContent = () => {
   const { tenantId } = useTenant();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<SiteConfig | null>(null);
   const [activeTab, setActiveTab] = useState('brand');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (tenantId) {
@@ -105,7 +103,6 @@ const DesignerContent = () => {
 
   const fetchConfig = async () => {
     if (!tenantId) {
-      console.warn('[DesignerContent] No tenant_id available');
       setLoading(false);
       return;
     }
@@ -256,12 +253,29 @@ const DesignerContent = () => {
     }
   };
 
+  // Calculate completion stats
+  const getCompletionStats = () => {
+    if (!config) return { colors: 0, images: 0, social: 0, seo: false };
+    
+    const colors = [config.primary_color, config.secondary_color, config.accent_color].filter(Boolean).length;
+    const images = [config.logo_horizontal_url, config.logo_vertical_url, config.logo_symbol_url, config.hero_background_url, config.about_image_url].filter(Boolean).length;
+    const social = [config.social_facebook, config.social_instagram, config.social_linkedin, config.social_youtube].filter(Boolean).length;
+    const seo = Boolean(config.seo_title && config.seo_description);
+    
+    return { colors, images, social, seo };
+  };
+
+  const stats = getCompletionStats();
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-20">
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando configurações...</p>
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-4 border-muted animate-pulse" />
+            <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="text-muted-foreground text-sm">Carregando configurações...</p>
         </div>
       </div>
     );
@@ -269,255 +283,245 @@ const DesignerContent = () => {
 
   if (!config) return null;
 
-  const tabItems = [
-    { id: 'brand', label: 'Marca', icon: Sparkles, description: 'Logo e cores' },
-    { id: 'hero', label: 'Hero', icon: Layout, description: 'Seção principal' },
-    { id: 'about', label: 'Sobre', icon: FileText, description: 'Quem somos' },
-    { id: 'contact', label: 'Contato', icon: Phone, description: 'Informações' },
-    { id: 'social', label: 'Redes', icon: Share2, description: 'Mídias sociais' },
-    { id: 'seo', label: 'SEO', icon: Globe, description: 'Otimização' },
-  ];
-
   return (
-    <div>
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg">
-              <Palette className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Cores</p>
-              <p className="font-semibold">3 definidas</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-500/20 rounded-lg">
-              <Image className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Imagens</p>
-              <p className="font-semibold">{[config.logo_horizontal_url, config.logo_vertical_url, config.logo_symbol_url, config.hero_background_url, config.about_image_url].filter(Boolean).length} enviadas</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Share2 className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Redes Sociais</p>
-              <p className="font-semibold">{[config.social_facebook, config.social_instagram, config.social_linkedin, config.social_youtube].filter(Boolean).length} conectadas</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-orange-500/20 rounded-lg">
-              <Globe className="h-5 w-5 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">SEO</p>
-              <p className="font-semibold">{config.seo_title ? 'Configurado' : 'Pendente'}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex gap-6">
-        {/* Sidebar Tabs */}
-        <div className="hidden lg:block w-64 space-y-2">
-          {tabItems.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
-                activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
-                  : 'bg-card hover:bg-muted border border-border'
-              }`}
-            >
-              <tab.icon className="h-5 w-5" />
-              <div>
-                <p className="font-medium">{tab.label}</p>
-                <p className={`text-xs ${activeTab === tab.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                  {tab.description}
-                </p>
-              </div>
-            </button>
-          ))}
-
-          <Separator className="my-4" />
-
-          <Button variant="admin" onClick={handleSave} disabled={saving} className="w-full" size="lg">
-            {saving ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </>
-            )}
-          </Button>
-
-          <Button variant="outline" className="w-full" asChild>
-            <Link to="/" target="_blank">
-              <Eye className="h-4 w-4 mr-2" />
-              Visualizar Site
-            </Link>
-          </Button>
-        </div>
-
-        {/* Mobile Tabs */}
-        <div className="lg:hidden w-full">
-          <div className="flex flex-wrap gap-1 mb-6">
-            {tabItems.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm ${
-                  activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
+    <div className="relative">
+      {/* Stats Bar - Compact and modern */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20">
+          <div className="p-2 rounded-lg bg-violet-500/20">
+            <Palette className="h-4 w-4 text-violet-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">Cores</p>
+            <p className="font-semibold text-sm">{stats.colors}/3</p>
           </div>
         </div>
+        
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
+          <div className="p-2 rounded-lg bg-emerald-500/20">
+            <Image className="h-4 w-4 text-emerald-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">Imagens</p>
+            <p className="font-semibold text-sm">{stats.images}/5</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
+          <div className="p-2 rounded-lg bg-blue-500/20">
+            <Share2 className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">Redes</p>
+            <p className="font-semibold text-sm">{stats.social}/4</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20">
+          <div className="p-2 rounded-lg bg-amber-500/20">
+            <Globe className="h-4 w-4 text-amber-600" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">SEO</p>
+            <p className="font-semibold text-sm">{stats.seo ? 
+              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> OK</span> : 
+              'Pendente'
+            }</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Sidebar Navigation - Desktop */}
+        <nav className="hidden lg:block w-56 shrink-0">
+          <div className="sticky top-6 space-y-1">
+            {tabItems.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <div className={cn(
+                    "p-1.5 rounded-md transition-colors",
+                    isActive ? "bg-primary-foreground/20" : "bg-muted group-hover:bg-background"
+                  )}>
+                    <tab.icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{tab.label}</p>
+                    <p className={cn(
+                      "text-xs truncate transition-colors",
+                      isActive ? "text-primary-foreground/70" : "text-muted-foreground"
+                    )}>
+                      {tab.description}
+                    </p>
+                  </div>
+                  {isActive && <ChevronRight className="h-4 w-4 shrink-0" />}
+                </button>
+              );
+            })}
+
+            <Separator className="my-4" />
+
+            <div className="space-y-2">
+              <Button 
+                variant="admin" 
+                onClick={handleSave} 
+                disabled={saving} 
+                className="w-full justify-center"
+                size="lg"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Salvar
+                  </>
+                )}
+              </Button>
+
+              <Button variant="outline" className="w-full" asChild>
+                <Link to="/" target="_blank">
+                  <Eye className="h-4 w-4" />
+                  Ver site
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Mobile Tab Navigation */}
+        {isMobile && (
+          <div className="lg:hidden">
+            <ScrollArea className="w-full">
+              <div className="flex gap-1 pb-2">
+                {tabItems.map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-all",
+                        isActive
+                          ? "bg-primary text-primary-foreground font-medium"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      <tab.icon className="h-3.5 w-3.5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
 
         {/* Content Area */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 min-w-0">
           {/* Brand Tab */}
           {activeTab === 'brand' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              {/* Logos Card */}
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
+                    <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
                       <ImagePlus className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle>Logotipos da Empresa</CardTitle>
-                      <CardDescription>Envie diferentes versões do seu logotipo</CardDescription>
+                      <CardTitle className="text-lg">Logotipos</CardTitle>
+                      <CardDescription>Diferentes versões do seu logo</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {/* Logo Horizontal */}
-                    <div className="flex flex-col h-full">
-                      <div className="h-10 flex items-start gap-2 mb-3">
-                        <Badge variant="outline" className="text-xs shrink-0">Horizontal</Badge>
-                        <span className="text-xs text-muted-foreground">Para cabeçalhos</span>
-                      </div>
-                      <div className="relative group flex-1 mb-3">
-                        {config.logo_horizontal_url ? (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
-                            <img src={config.logo_horizontal_url} alt="Logo Horizontal" className="max-w-full max-h-full object-contain p-2" />
-                          </div>
-                        ) : (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <span className="text-xs text-muted-foreground">Horizontal</span>
-                          </div>
-                        )}
-                      </div>
-                      <Label htmlFor="logo-horizontal-upload" className="cursor-pointer block mt-auto">
-                        <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
-                          <Upload className="h-4 w-4" />
-                          {config.logo_horizontal_url ? 'Alterar' : 'Enviar'}
-                        </div>
-                        <Input
-                          id="logo-horizontal-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'logo_horizontal_url');
-                          }}
-                        />
-                      </Label>
-                    </div>
+                    <LogoUploadCard
+                      label="Horizontal"
+                      hint="Cabeçalhos"
+                      imageUrl={config.logo_horizontal_url}
+                      inputId="logo-horizontal-upload"
+                      onUpload={(file) => handleImageUpload(file, 'logo_horizontal_url')}
+                      aspectRatio="wide"
+                    />
                     
                     {/* Logo Vertical */}
-                    <div className="flex flex-col h-full">
-                      <div className="h-10 flex items-start gap-2 mb-3">
-                        <Badge variant="outline" className="text-xs shrink-0">Vertical</Badge>
-                        <span className="text-xs text-muted-foreground">Formato quadrado</span>
-                      </div>
-                      <div className="relative group flex-1 mb-3">
-                        {config.logo_vertical_url ? (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
-                            <img src={config.logo_vertical_url} alt="Logo Vertical" className="max-w-full max-h-full object-contain p-2" />
-                          </div>
-                        ) : (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <span className="text-xs text-muted-foreground">Vertical</span>
-                          </div>
-                        )}
-                      </div>
-                      <Label htmlFor="logo-vertical-upload" className="cursor-pointer block mt-auto">
-                        <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
-                          <Upload className="h-4 w-4" />
-                          {config.logo_vertical_url ? 'Alterar' : 'Enviar'}
-                        </div>
-                        <Input
-                          id="logo-vertical-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'logo_vertical_url');
-                          }}
-                        />
-                      </Label>
-                    </div>
-
+                    <LogoUploadCard
+                      label="Vertical"
+                      hint="Quadrado"
+                      imageUrl={config.logo_vertical_url}
+                      inputId="logo-vertical-upload"
+                      onUpload={(file) => handleImageUpload(file, 'logo_vertical_url')}
+                      aspectRatio="square"
+                    />
+                    
                     {/* Logo Symbol */}
-                    <div className="flex flex-col h-full">
-                      <div className="h-10 flex items-start gap-2 mb-3">
-                        <Badge variant="outline" className="text-xs shrink-0">Símbolo</Badge>
-                        <span className="text-xs text-muted-foreground">Ícone</span>
-                      </div>
-                      <div className="relative group flex-1 mb-3">
-                        {config.logo_symbol_url ? (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center overflow-hidden border-2 border-dashed border-border group-hover:border-primary transition-colors">
-                            <img src={config.logo_symbol_url} alt="Símbolo" className="max-w-full max-h-full object-contain p-2" />
-                          </div>
-                        ) : (
-                          <div className="w-full h-24 rounded-xl bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <span className="text-xs text-muted-foreground">Símbolo</span>
-                          </div>
-                        )}
-                      </div>
-                      <Label htmlFor="logo-symbol-upload" className="cursor-pointer block mt-auto">
-                        <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                    <LogoUploadCard
+                      label="Símbolo"
+                      hint="Ícone"
+                      imageUrl={config.logo_symbol_url}
+                      inputId="logo-symbol-upload"
+                      onUpload={(file) => handleImageUpload(file, 'logo_symbol_url')}
+                      aspectRatio="square"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Favicon Card */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-500/10 rounded-xl">
+                      <Globe className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Favicon</CardTitle>
+                      <CardDescription>Ícone exibido na aba do navegador</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-16 h-16 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors",
+                      config.favicon_url ? "border-border bg-muted" : "border-muted-foreground/30 bg-muted/50"
+                    )}>
+                      {config.favicon_url ? (
+                        <img src={config.favicon_url} alt="Favicon" className="w-8 h-8 object-contain" />
+                      ) : (
+                        <Globe className="h-6 w-6 text-muted-foreground/50" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-2">PNG ou ICO, 64x64 recomendado</p>
+                      <Label htmlFor="favicon-upload" className="cursor-pointer inline-block">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
                           <Upload className="h-4 w-4" />
-                          {config.logo_symbol_url ? 'Alterar' : 'Enviar'}
+                          {config.favicon_url ? 'Alterar' : 'Enviar'}
                         </div>
                         <Input
-                          id="logo-symbol-upload"
+                          id="favicon-upload"
                           type="file"
-                          accept="image/*"
+                          accept="image/png,image/x-icon,image/ico"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'logo_symbol_url');
+                            if (file) handleFaviconUpload(file);
                           }}
                         />
                       </Label>
@@ -528,70 +532,34 @@ const DesignerContent = () => {
 
               {/* Colors Card */}
               <Card>
-                <CardHeader>
+                <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <Palette className="h-5 w-5 text-primary" />
+                    <div className="p-2.5 bg-gradient-to-br from-violet-500/20 to-violet-500/10 rounded-xl">
+                      <Palette className="h-5 w-5 text-violet-600" />
                     </div>
                     <div>
-                      <CardTitle>Cores da Marca</CardTitle>
-                      <CardDescription>Defina as cores principais do seu site</CardDescription>
+                      <CardTitle className="text-lg">Cores da Marca</CardTitle>
+                      <CardDescription>Defina a paleta de cores do site</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label>Cor Primária</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="color"
-                          value={config.primary_color || '#000000'}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, primary_color: e.target.value } : null)}
-                          className="w-12 h-10 p-1 cursor-pointer"
-                        />
-                        <Input
-                          value={config.primary_color || ''}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, primary_color: e.target.value } : null)}
-                          placeholder="#000000"
-                          className="flex-1 font-mono"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Cor Secundária</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="color"
-                          value={config.secondary_color || '#666666'}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, secondary_color: e.target.value } : null)}
-                          className="w-12 h-10 p-1 cursor-pointer"
-                        />
-                        <Input
-                          value={config.secondary_color || ''}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, secondary_color: e.target.value } : null)}
-                          placeholder="#666666"
-                          className="flex-1 font-mono"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Cor de Destaque</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="color"
-                          value={config.accent_color || '#0066FF'}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, accent_color: e.target.value } : null)}
-                          className="w-12 h-10 p-1 cursor-pointer"
-                        />
-                        <Input
-                          value={config.accent_color || ''}
-                          onChange={(e) => setConfig(prev => prev ? { ...prev, accent_color: e.target.value } : null)}
-                          placeholder="#0066FF"
-                          className="flex-1 font-mono"
-                        />
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <ColorPicker
+                      label="Primária"
+                      value={config.primary_color || '#000000'}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, primary_color: value } : null)}
+                    />
+                    <ColorPicker
+                      label="Secundária"
+                      value={config.secondary_color || '#666666'}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, secondary_color: value } : null)}
+                    />
+                    <ColorPicker
+                      label="Destaque"
+                      value={config.accent_color || '#0066FF'}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, accent_color: value } : null)}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -600,11 +568,18 @@ const DesignerContent = () => {
 
           {/* Hero Tab */}
           {activeTab === 'hero' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
-                <CardHeader>
-                  <CardTitle>Seção Principal (Hero)</CardTitle>
-                  <CardDescription>Configure o banner principal do seu site</CardDescription>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-xl">
+                      <Layout className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Seção Principal</CardTitle>
+                      <CardDescription>Banner principal do site</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -613,6 +588,7 @@ const DesignerContent = () => {
                       value={config.hero_title || ''}
                       onChange={(e) => setConfig(prev => prev ? { ...prev, hero_title: e.target.value } : null)}
                       placeholder="Encontre o imóvel dos seus sonhos"
+                      className="text-base"
                     />
                   </div>
                   <div className="space-y-2">
@@ -626,28 +602,50 @@ const DesignerContent = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Imagem de Fundo</Label>
-                    <div className="flex items-center gap-4">
-                      {config.hero_background_url && (
-                        <img src={config.hero_background_url} alt="Hero" className="w-32 h-20 object-cover rounded-lg" />
-                      )}
-                      <Label htmlFor="hero-upload" className="cursor-pointer">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
-                          <Upload className="h-4 w-4" />
-                          {config.hero_background_url ? 'Alterar Imagem' : 'Enviar Imagem'}
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      {config.hero_background_url ? (
+                        <img src={config.hero_background_url} alt="Hero" className="w-full sm:w-48 h-28 object-cover rounded-xl border" />
+                      ) : (
+                        <div className="w-full sm:w-48 h-28 rounded-xl border-2 border-dashed bg-muted/50 flex items-center justify-center">
+                          <Image className="h-8 w-8 text-muted-foreground/30" />
                         </div>
-                        <Input
-                          id="hero-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'hero_background_url');
-                          }}
-                        />
-                      </Label>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm text-muted-foreground mb-3">Recomendado: 1920x1080px, formato 16:9</p>
+                        <Label htmlFor="hero-upload" className="cursor-pointer inline-block">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                            <Upload className="h-4 w-4" />
+                            {config.hero_background_url ? 'Alterar Imagem' : 'Enviar Imagem'}
+                          </div>
+                          <Input
+                            id="hero-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'hero_background_url');
+                            }}
+                          />
+                        </Label>
+                      </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Home Image Position */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Posição da Imagem</CardTitle>
+                  <CardDescription>Ajuste o ponto focal da imagem de fundo</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ImagePositionPicker
+                    position={config.home_image_position || '50% 50%'}
+                    onChange={(position) => setConfig(prev => prev ? { ...prev, home_image_position: position } : null)}
+                    imageUrl={config.hero_background_url || ''}
+                  />
                 </CardContent>
               </Card>
             </div>
@@ -655,11 +653,18 @@ const DesignerContent = () => {
 
           {/* About Tab */}
           {activeTab === 'about' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
-                <CardHeader>
-                  <CardTitle>Página Sobre</CardTitle>
-                  <CardDescription>Informações sobre sua empresa</CardDescription>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 rounded-xl">
+                      <FileText className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Página Sobre</CardTitle>
+                      <CardDescription>Informações sobre sua empresa</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -671,36 +676,57 @@ const DesignerContent = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Texto</Label>
+                    <Label>Texto Institucional</Label>
                     <Textarea
                       value={config.about_text || ''}
                       onChange={(e) => setConfig(prev => prev ? { ...prev, about_text: e.target.value } : null)}
-                      placeholder="Conte a história da sua empresa..."
+                      placeholder="Conte a história da sua empresa, missão, visão e valores..."
                       rows={6}
+                      className="resize-none"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Imagem</Label>
-                    <div className="flex items-center gap-4">
-                      {config.about_image_url && (
-                        <img src={config.about_image_url} alt="Sobre" className="w-32 h-20 object-cover rounded-lg" />
-                      )}
-                      <Label htmlFor="about-upload" className="cursor-pointer">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
-                          <Upload className="h-4 w-4" />
-                          {config.about_image_url ? 'Alterar' : 'Enviar'}
+                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                      {config.about_image_url ? (
+                        <img src={config.about_image_url} alt="Sobre" className="w-full sm:w-40 h-28 object-cover rounded-xl border" />
+                      ) : (
+                        <div className="w-full sm:w-40 h-28 rounded-xl border-2 border-dashed bg-muted/50 flex items-center justify-center">
+                          <Image className="h-8 w-8 text-muted-foreground/30" />
                         </div>
-                        <Input
-                          id="about-upload"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(file, 'about_image_url');
-                          }}
-                        />
-                      </Label>
+                      )}
+                      <div className="space-y-3">
+                        <Label htmlFor="about-upload" className="cursor-pointer inline-block">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                            <Upload className="h-4 w-4" />
+                            {config.about_image_url ? 'Alterar' : 'Enviar'}
+                          </div>
+                          <Input
+                            id="about-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'about_image_url');
+                            }}
+                          />
+                        </Label>
+                        {config.about_image_url && (
+                          <div className="space-y-2">
+                            <Label className="text-xs">Posição da imagem</Label>
+                            <ImagePositionPicker
+                              position={config.about_image_position === 'top' ? '50% 0%' : config.about_image_position === 'bottom' ? '50% 100%' : '50% 50%'}
+                              onChange={(position) => {
+                                const y = parseInt(position.split(' ')[1]) || 50;
+                                const pos = y < 33 ? 'top' : y > 66 ? 'bottom' : 'center';
+                                setConfig(prev => prev ? { ...prev, about_image_position: pos as 'top' | 'center' | 'bottom' } : null);
+                              }}
+                              imageUrl={config.about_image_url}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -710,18 +736,23 @@ const DesignerContent = () => {
 
           {/* Contact Tab */}
           {activeTab === 'contact' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
-                <CardHeader>
-                  <CardTitle>Informações de Contato</CardTitle>
-                  <CardDescription>Como seus clientes podem entrar em contato</CardDescription>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-rose-500/20 to-rose-500/10 rounded-xl">
+                      <Phone className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Informações de Contato</CardTitle>
+                      <CardDescription>Dados exibidos no site e rodapé</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" /> Telefone
-                      </Label>
+                      <Label>Telefone</Label>
                       <Input
                         value={config.phone || ''}
                         onChange={(e) => setConfig(prev => prev ? { ...prev, phone: e.target.value } : null)}
@@ -729,34 +760,39 @@ const DesignerContent = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" /> Email
-                      </Label>
+                      <Label>WhatsApp</Label>
                       <Input
-                        value={config.email || ''}
-                        onChange={(e) => setConfig(prev => prev ? { ...prev, email: e.target.value } : null)}
-                        placeholder="contato@empresa.com"
+                        value={config.whatsapp || ''}
+                        onChange={(e) => setConfig(prev => prev ? { ...prev, whatsapp: e.target.value } : null)}
+                        placeholder="5511999999999"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>WhatsApp</Label>
-                    <Input
-                      value={config.whatsapp || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, whatsapp: e.target.value } : null)}
-                      placeholder="5511999999999"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" /> Endereço
-                    </Label>
-                    <Textarea
-                      value={config.address || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, address: e.target.value } : null)}
-                      placeholder="Rua, número, bairro, cidade - UF"
-                      rows={2}
-                    />
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>E-mail</Label>
+                      <Input
+                        type="email"
+                        value={config.email || ''}
+                        onChange={(e) => setConfig(prev => prev ? { ...prev, email: e.target.value } : null)}
+                        placeholder="contato@empresa.com.br"
+                      />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>Endereço</Label>
+                      <Textarea
+                        value={config.address || ''}
+                        onChange={(e) => setConfig(prev => prev ? { ...prev, address: e.target.value } : null)}
+                        placeholder="Rua Exemplo, 123 - Bairro - Cidade/UF"
+                        rows={2}
+                      />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label>Texto do Rodapé</Label>
+                      <Input
+                        value={config.footer_text || ''}
+                        onChange={(e) => setConfig(prev => prev ? { ...prev, footer_text: e.target.value } : null)}
+                        placeholder="© 2024 Sua Empresa. Todos os direitos reservados."
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -765,51 +801,52 @@ const DesignerContent = () => {
 
           {/* Social Tab */}
           {activeTab === 'social' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
-                <CardHeader>
-                  <CardTitle>Redes Sociais</CardTitle>
-                  <CardDescription>Links para suas redes sociais</CardDescription>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-xl">
+                      <Share2 className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Redes Sociais</CardTitle>
+                      <CardDescription>Links para seus perfis nas redes</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Facebook className="h-4 w-4" /> Facebook
-                    </Label>
-                    <Input
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <SocialInput
+                      icon={Facebook}
+                      label="Facebook"
                       value={config.social_facebook || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, social_facebook: e.target.value } : null)}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, social_facebook: value } : null)}
                       placeholder="https://facebook.com/suaempresa"
+                      color="text-blue-600"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Instagram className="h-4 w-4" /> Instagram
-                    </Label>
-                    <Input
+                    <SocialInput
+                      icon={Instagram}
+                      label="Instagram"
                       value={config.social_instagram || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, social_instagram: e.target.value } : null)}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, social_instagram: value } : null)}
                       placeholder="https://instagram.com/suaempresa"
+                      color="text-pink-600"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Linkedin className="h-4 w-4" /> LinkedIn
-                    </Label>
-                    <Input
+                    <SocialInput
+                      icon={Linkedin}
+                      label="LinkedIn"
                       value={config.social_linkedin || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, social_linkedin: e.target.value } : null)}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, social_linkedin: value } : null)}
                       placeholder="https://linkedin.com/company/suaempresa"
+                      color="text-blue-700"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Youtube className="h-4 w-4" /> YouTube
-                    </Label>
-                    <Input
+                    <SocialInput
+                      icon={Youtube}
+                      label="YouTube"
                       value={config.social_youtube || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, social_youtube: e.target.value } : null)}
+                      onChange={(value) => setConfig(prev => prev ? { ...prev, social_youtube: value } : null)}
                       placeholder="https://youtube.com/@suaempresa"
+                      color="text-red-600"
                     />
                   </div>
                 </CardContent>
@@ -819,11 +856,18 @@ const DesignerContent = () => {
 
           {/* SEO Tab */}
           {activeTab === 'seo' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <Card>
-                <CardHeader>
-                  <CardTitle>Otimização para Buscadores (SEO)</CardTitle>
-                  <CardDescription>Melhore a visibilidade do seu site no Google</CardDescription>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-500/10 rounded-xl">
+                      <Globe className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">SEO e Meta Tags</CardTitle>
+                      <CardDescription>Otimização para mecanismos de busca</CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
@@ -831,60 +875,306 @@ const DesignerContent = () => {
                     <Input
                       value={config.seo_title || ''}
                       onChange={(e) => setConfig(prev => prev ? { ...prev, seo_title: e.target.value } : null)}
-                      placeholder="Nome da Empresa - Imóveis"
+                      placeholder="Sua Imobiliária | Compra e Venda de Imóveis"
                     />
-                    <p className="text-xs text-muted-foreground">Aparece na aba do navegador e resultados de busca</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(config.seo_title || '').length}/60 caracteres
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>Descrição</Label>
                     <Textarea
                       value={config.seo_description || ''}
                       onChange={(e) => setConfig(prev => prev ? { ...prev, seo_description: e.target.value } : null)}
-                      placeholder="Descrição do seu site para os buscadores..."
+                      placeholder="Encontre o imóvel ideal para você. Casas, apartamentos e terrenos..."
                       rows={3}
                     />
-                    <p className="text-xs text-muted-foreground">Até 160 caracteres. Aparece nos resultados de busca</p>
+                    <p className="text-xs text-muted-foreground">
+                      {(config.seo_description || '').length}/160 caracteres
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label>Palavras-chave</Label>
                     <Input
                       value={config.seo_keywords || ''}
                       onChange={(e) => setConfig(prev => prev ? { ...prev, seo_keywords: e.target.value } : null)}
-                      placeholder="imóveis, apartamentos, casas, venda, aluguel"
+                      placeholder="imóveis, casas, apartamentos, venda, aluguel"
                     />
-                    <p className="text-xs text-muted-foreground">Separadas por vírgula</p>
+                    <p className="text-xs text-muted-foreground">Separe as palavras por vírgula</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* SEO Preview */}
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg">Preview no Google</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-4 bg-white rounded-lg border space-y-1">
+                    <p className="text-blue-800 text-lg hover:underline cursor-pointer truncate">
+                      {config.seo_title || 'Título do Site'}
+                    </p>
+                    <p className="text-green-700 text-sm truncate">www.seusite.com.br</p>
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                      {config.seo_description || 'Descrição do site que aparecerá nos resultados de busca...'}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
           )}
 
-          {/* Mobile Save Button */}
-          <div className="lg:hidden pt-4 space-y-2">
-            <Button variant="admin" onClick={handleSave} disabled={saving} className="w-full" size="lg">
+          {/* Watermark Tab */}
+          {activeTab === 'watermark' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+              <Card>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 rounded-xl">
+                      <Droplets className="h-5 w-5 text-cyan-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Marca d'água</CardTitle>
+                      <CardDescription>Proteja suas imagens de imóveis</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl">
+                    <div className="space-y-1">
+                      <Label className="text-base">Ativar marca d'água</Label>
+                      <p className="text-sm text-muted-foreground">Aplicar em todas as fotos de imóveis</p>
+                    </div>
+                    <Switch
+                      checked={config.watermark_enabled || false}
+                      onCheckedChange={(checked) => setConfig(prev => prev ? { ...prev, watermark_enabled: checked } : null)}
+                    />
+                  </div>
+
+                  {config.watermark_enabled && (
+                    <>
+                      <div className="space-y-4">
+                        <Label>Imagem da Marca d'água</Label>
+                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                          <div className={cn(
+                            "w-32 h-20 rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-colors",
+                            config.watermark_url ? "border-border bg-muted" : "border-muted-foreground/30 bg-muted/50"
+                          )}>
+                            {config.watermark_url ? (
+                              <img src={config.watermark_url} alt="Watermark" className="max-w-full max-h-full object-contain p-2" />
+                            ) : (
+                              <Droplets className="h-6 w-6 text-muted-foreground/50" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">PNG com transparência recomendado</p>
+                            <Label htmlFor="watermark-upload" className="cursor-pointer inline-block">
+                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                                <Upload className="h-4 w-4" />
+                                {config.watermark_url ? 'Alterar' : 'Enviar'}
+                              </div>
+                              <Input
+                                id="watermark-upload"
+                                type="file"
+                                accept="image/png,image/svg+xml"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleImageUpload(file, 'watermark_url');
+                                }}
+                              />
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Opacidade</Label>
+                          <span className="text-sm text-muted-foreground">{config.watermark_opacity || 50}%</span>
+                        </div>
+                        <Slider
+                          value={[config.watermark_opacity || 50]}
+                          onValueChange={([value]) => setConfig(prev => prev ? { ...prev, watermark_opacity: value } : null)}
+                          max={100}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label>Tamanho</Label>
+                          <span className="text-sm text-muted-foreground">{config.watermark_size || 20}%</span>
+                        </div>
+                        <Slider
+                          value={[config.watermark_size || 20]}
+                          onValueChange={([value]) => setConfig(prev => prev ? { ...prev, watermark_size: value } : null)}
+                          max={50}
+                          min={10}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Floating Action Bar */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t z-40">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" asChild>
+              <Link to="/" target="_blank">
+                <Eye className="h-4 w-4" />
+                Ver site
+              </Link>
+            </Button>
+            <Button 
+              variant="admin" 
+              onClick={handleSave} 
+              disabled={saving} 
+              className="flex-1"
+            >
               {saving ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Salvando...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Salvar Alterações
+                  <Save className="h-4 w-4" />
+                  Salvar
                 </>
               )}
             </Button>
-            <Button variant="outline" className="w-full" asChild>
-              <Link to="/" target="_blank">
-                <Eye className="h-4 w-4 mr-2" />
-                Visualizar Site
-              </Link>
-            </Button>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Add padding at bottom for mobile FAB */}
+      {isMobile && <div className="h-20" />}
     </div>
   );
 };
+
+// Helper Components
+
+interface LogoUploadCardProps {
+  label: string;
+  hint: string;
+  imageUrl: string;
+  inputId: string;
+  onUpload: (file: File) => void;
+  aspectRatio: 'wide' | 'square';
+}
+
+const LogoUploadCard = ({ label, hint, imageUrl, inputId, onUpload, aspectRatio }: LogoUploadCardProps) => (
+  <div className="flex flex-col">
+    <div className="flex items-center gap-2 mb-2">
+      <Badge variant="outline" className="text-xs">{label}</Badge>
+      <span className="text-xs text-muted-foreground">{hint}</span>
+    </div>
+    <div className="relative group">
+      <div className={cn(
+        "rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-200",
+        aspectRatio === 'wide' ? 'h-20' : 'h-20',
+        imageUrl 
+          ? "border-border bg-muted hover:border-primary" 
+          : "border-muted-foreground/30 bg-muted/50"
+      )}>
+        {imageUrl ? (
+          <img src={imageUrl} alt={label} className="max-w-full max-h-full object-contain p-3" />
+        ) : (
+          <div className="text-center">
+            <div className={cn(
+              "border-2 border-dashed border-muted-foreground/30 rounded mx-auto mb-1",
+              aspectRatio === 'wide' ? 'w-12 h-6' : 'w-8 h-8'
+            )} />
+            <span className="text-[10px] text-muted-foreground">{label}</span>
+          </div>
+        )}
+      </div>
+    </div>
+    <Label htmlFor={inputId} className="cursor-pointer mt-2">
+      <div className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs font-medium">
+        <Upload className="h-3.5 w-3.5" />
+        {imageUrl ? 'Alterar' : 'Enviar'}
+      </div>
+      <Input
+        id={inputId}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+        }}
+      />
+    </Label>
+  </div>
+);
+
+interface ColorPickerProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+const ColorPicker = ({ label, value, onChange }: ColorPickerProps) => (
+  <div className="space-y-2">
+    <Label className="text-sm">{label}</Label>
+    <div className="flex items-center gap-2">
+      <div className="relative">
+        <Input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-12 h-12 p-1 cursor-pointer rounded-xl border-2"
+        />
+        <div 
+          className="absolute inset-1 rounded-lg pointer-events-none"
+          style={{ backgroundColor: value }}
+        />
+      </div>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#000000"
+        className="flex-1 font-mono text-sm uppercase"
+        maxLength={7}
+      />
+    </div>
+  </div>
+);
+
+interface SocialInputProps {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  color: string;
+}
+
+const SocialInput = ({ icon: Icon, label, value, onChange, placeholder, color }: SocialInputProps) => (
+  <div className="space-y-2">
+    <Label className="flex items-center gap-2">
+      <Icon className={cn("h-4 w-4", color)} />
+      {label}
+    </Label>
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+  </div>
+);
 
 export default DesignerContent;
