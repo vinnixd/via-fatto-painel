@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Bell, ExternalLink, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { MessageSquare, ExternalLink, Settings, User, LogOut, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -75,7 +75,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
 
           <Button variant="ghost" size="icon" className="relative" asChild>
             <Link to="/admin/mensagens">
-              <Bell className="h-5 w-5" />
+              <MessageSquare className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-medium rounded-full">
                   {unreadCount > 99 ? '99+' : unreadCount}
