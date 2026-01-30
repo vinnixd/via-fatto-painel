@@ -2,15 +2,24 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { 
   Palette, 
   Globe, 
   Plug, 
   CreditCard, 
-  GlobeLock 
+  GlobeLock,
+  ChevronDown,
+  Check
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Import tab content components
 import DesignerContent from './admin-tabs/DesignerContent';
@@ -67,12 +76,14 @@ const AdminPage = () => {
     setSearchParams({ tab: value }, { replace: true });
   };
 
+  const isMobile = useIsMobile();
+
   return (
     <AdminLayout>
       <div className="p-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* Desktop Tabs */}
-          <div className="hidden md:block">
+          {!isMobile && (
             <TabsList className="h-auto p-1 bg-muted/50 w-full justify-start gap-1 rounded-lg border">
               {visibleTabs.map((tab) => (
                 <TabsTrigger
@@ -88,29 +99,53 @@ const AdminPage = () => {
                 </TabsTrigger>
               ))}
             </TabsList>
-          </div>
+          )}
 
-          {/* Mobile Tabs - Horizontal Scroll */}
-          <div className="md:hidden -mx-6 px-6">
-            <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="inline-flex h-auto p-1 bg-muted/50 gap-1 rounded-lg border w-max">
+          {/* Mobile Dropdown */}
+          {isMobile && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-between h-12 text-base"
+                >
+                  <span className="flex items-center gap-2">
+                    {(() => {
+                      const currentTab = visibleTabs.find(t => t.id === activeTab);
+                      if (currentTab) {
+                        const Icon = currentTab.icon;
+                        return (
+                          <>
+                            <Icon className="h-4 w-4" />
+                            {currentTab.label}
+                          </>
+                        );
+                      }
+                      return 'Selecione';
+                    })()}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[calc(100vw-3rem)]" align="start">
                 {visibleTabs.map((tab) => (
-                  <TabsTrigger
+                  <DropdownMenuItem
                     key={tab.id}
-                    value={tab.id}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md",
-                      "data-[state=active]:border-b-2 data-[state=active]:border-primary"
-                    )}
+                    onClick={() => handleTabChange(tab.id)}
+                    className="flex items-center justify-between py-3"
                   >
-                    <tab.icon className="h-4 w-4" />
-                    <span>{tab.label}</span>
-                  </TabsTrigger>
+                    <span className="flex items-center gap-2">
+                      <tab.icon className="h-4 w-4" />
+                      {tab.label}
+                    </span>
+                    {activeTab === tab.id && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
                 ))}
-              </TabsList>
-              <ScrollBar orientation="horizontal" className="invisible" />
-            </ScrollArea>
-          </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           {/* Tab Contents */}
           <TabsContent value="designer" className="mt-6 focus-visible:outline-none focus-visible:ring-0">
