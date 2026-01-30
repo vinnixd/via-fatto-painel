@@ -16,24 +16,19 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
   
   const routes: Record<string, { title: string; subtitle?: string }> = {
     '/admin': { title: 'Dashboard', subtitle: 'Visão geral do sistema' },
+    '/admin/administracao': { title: 'Administração', subtitle: 'Configurações do sistema' },
     '/admin/imoveis': { title: 'Imóveis', subtitle: 'Gerencie seus imóveis' },
     '/admin/imoveis/novo': { title: 'Novo Imóvel', subtitle: 'Cadastrar novo imóvel' },
     '/admin/mensagens': { title: 'Mensagens', subtitle: 'Central de mensagens' },
     '/admin/categorias': { title: 'Categorias', subtitle: 'Gerencie as categorias' },
-    '/admin/designer': { title: 'Designer', subtitle: 'Personalize seu site' },
     '/admin/configuracoes': { title: 'Configurações', subtitle: 'Configurações do sistema' },
     '/admin/perfil': { title: 'Meu Perfil', subtitle: 'Gerencie seu perfil' },
     '/admin/usuarios': { title: 'Equipe', subtitle: 'Gestão de usuários e permissões' },
     '/admin/portais': { title: 'Portais', subtitle: 'Integração com portais' },
-    '/admin/integracoes': { title: 'Integrações', subtitle: 'Ferramentas de marketing' },
     '/admin/favoritos': { title: 'Favoritos', subtitle: 'Imóveis favoritados' },
     '/admin/dados': { title: 'Exportar', subtitle: 'Exportar dados' },
     '/admin/dados/importar': { title: 'Importar', subtitle: 'Importar dados' },
-    '/admin/assinaturas': { title: 'Pagamentos', subtitle: 'Histórico de pagamentos' },
-    '/admin/assinaturas/planos': { title: 'Planos', subtitle: 'Planos disponíveis' },
-    '/admin/assinaturas/faturas': { title: 'Faturas', subtitle: 'Suas faturas' },
     '/admin/compartilhamento': { title: 'Compartilhamento', subtitle: 'Teste de compartilhamento' },
-    '/admin/dominios': { title: 'Domínios', subtitle: 'Gerencie seus domínios' },
     '/admin/membros': { title: 'Membros', subtitle: 'Gerencie sua equipe' },
   };
 

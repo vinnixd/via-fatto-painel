@@ -22,14 +22,10 @@ const ADMIN_ROUTE_MAP: Record<string, string> = {
   '/admin/esqueci-senha': '/esqueci-senha',
   '/admin/redefinir-senha': '/redefinir-senha',
   '/admin/aguardando-aprovacao': '/aguardando-aprovacao',
-  '/admin/designer': '/designer',
+  '/admin/administracao': '/administracao',
   '/admin/imoveis': '/imoveis',
   '/admin/imoveis/novo': '/imoveis/novo',
   '/admin/portais': '/portais',
-  '/admin/integracoes': '/integracoes',
-  '/admin/assinaturas': '/assinaturas',
-  '/admin/assinaturas/planos': '/assinaturas/planos',
-  '/admin/assinaturas/faturas': '/assinaturas/faturas',
   '/admin/mensagens': '/mensagens',
   '/admin/usuarios': '/usuarios',
   '/admin/perfil': '/perfil',
@@ -39,7 +35,6 @@ const ADMIN_ROUTE_MAP: Record<string, string> = {
   '/admin/dados': '/dados',
   '/admin/dados/importar': '/dados/importar',
   '/admin/compartilhamento': '/compartilhamento',
-  '/admin/dominios': '/dominios',
   '/admin/membros': '/membros',
 };
 

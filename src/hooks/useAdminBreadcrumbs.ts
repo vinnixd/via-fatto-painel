@@ -8,24 +8,19 @@ interface BreadcrumbItem {
 
 const routeLabels: Record<string, string> = {
   '/admin': 'Dashboard',
+  '/admin/administracao': 'Administração',
   '/admin/imoveis': 'Imóveis',
   '/admin/imoveis/novo': 'Novo Imóvel',
   '/admin/mensagens': 'Mensagens',
   '/admin/categorias': 'Categorias',
-  '/admin/designer': 'Designer',
   '/admin/configuracoes': 'Configurações',
   '/admin/perfil': 'Meu Perfil',
   '/admin/usuarios': 'Usuários',
   '/admin/portais': 'Portais',
-  '/admin/integracoes': 'Integrações',
   '/admin/favoritos': 'Favoritos',
   '/admin/dados': 'Exportar',
   '/admin/dados/importar': 'Importar',
-  '/admin/assinaturas': 'Pagamentos',
-  '/admin/assinaturas/planos': 'Planos',
-  '/admin/assinaturas/faturas': 'Faturas',
   '/admin/compartilhamento': 'Compartilhamento',
-  '/admin/dominios': 'Domínios',
   '/admin/membros': 'Membros',
 };
 
