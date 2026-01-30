@@ -18,6 +18,8 @@ export const isAdminSubdomain = (): boolean => {
 const ADMIN_ROUTE_MAP: Record<string, string> = {
   '/admin': '/',
   '/admin/login': '/login',
+  '/admin/auth/login': '/auth/login',
+  '/admin/auth/cadastro': '/auth/cadastro',
   '/admin/designer': '/designer',
   '/admin/imoveis': '/imoveis',
   '/admin/imoveis/novo': '/imoveis/novo',
