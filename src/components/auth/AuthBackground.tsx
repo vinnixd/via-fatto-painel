@@ -1,6 +1,15 @@
-const AuthBackground = () => {
+import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { useTenant } from '@/contexts/TenantContext';
+import { Building2 } from 'lucide-react';
+
+interface AuthBackgroundProps {
+  logoUrl?: string | null;
+  tenantName?: string;
+}
+
+const AuthBackground = ({ logoUrl, tenantName }: AuthBackgroundProps) => {
   return (
-    <div className="absolute inset-0 bg-[#1a1a1a] overflow-hidden">
+    <div className="absolute inset-0 bg-[#1a1a1a] overflow-hidden flex items-center justify-center">
       {/* Geometric diagonal lines */}
       <svg
         className="absolute inset-0 w-full h-full"
@@ -31,6 +40,26 @@ const AuthBackground = () => {
         <line x1="100" y1="0" x2="500" y2="1080" stroke="#222222" strokeWidth="1" />
         <line x1="1300" y1="0" x2="1700" y2="1080" stroke="#222222" strokeWidth="1" />
       </svg>
+
+      {/* Logo do tenant */}
+      <div className="relative z-10 flex flex-col items-center gap-4">
+        {logoUrl ? (
+          <img 
+            src={logoUrl} 
+            alt={tenantName || 'Logo'} 
+            className="h-20 w-auto object-contain brightness-0 invert"
+          />
+        ) : (
+          <div className="h-16 w-16 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+        )}
+        {tenantName && (
+          <span className="text-white/60 text-sm font-medium tracking-wide">
+            {tenantName}
+          </span>
+        )}
+      </div>
     </div>
   );
 };

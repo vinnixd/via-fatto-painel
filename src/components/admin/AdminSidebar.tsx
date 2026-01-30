@@ -86,7 +86,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
-                alt="Via Fatto Imóveis" 
+                alt={siteConfig?.seo_title || 'Logo'} 
                 className="h-10 w-auto object-contain brightness-0 invert"
               />
             ) : (
@@ -94,7 +94,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                   <Building2 className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-bold text-lg">Via Fatto</span>
+                <span className="font-bold text-lg">Painel Admin</span>
               </>
             )}
           </AdminLink>
@@ -104,7 +104,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             {(siteConfig?.logo_symbol_url || siteConfig?.logo_url) ? (
               <img 
                 src={siteConfig.logo_symbol_url || siteConfig.logo_url} 
-                alt="Via Fatto Imóveis" 
+                alt={siteConfig?.seo_title || 'Logo'} 
                 className="h-8 w-8 object-contain brightness-0 invert"
               />
             ) : (

@@ -4,12 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Mail, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Loader2, ArrowRight, Building2 } from 'lucide-react';
 import { z } from 'zod';
 import AuthBackground from '@/components/auth/AuthBackground';
 import AuthInput from '@/components/auth/AuthInput';
 import { useAdminRoutes } from '@/hooks/useAdminRoutes';
 import PasswordInput from '@/components/auth/PasswordInput';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { useTenant } from '@/contexts/TenantContext';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -20,11 +22,17 @@ const LoginPage = () => {
   const { signIn, user, canAccessAdmin } = useAuth();
   const { navigateAdmin } = useAdminNavigation();
   const { getPath } = useAdminRoutes();
+  const { data: siteConfig } = useSiteConfig();
+  const { tenant } = useTenant();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
+  // Get the best logo available
+  const logoUrl = siteConfig?.logo_horizontal_url || siteConfig?.logo_url;
+  const tenantName = tenant?.name;
 
   useEffect(() => {
     if (user && canAccessAdmin) {
@@ -67,6 +75,21 @@ const LoginPage = () => {
       {/* Left side - Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
         <div className="w-full max-w-md">
+          {/* Logo do tenant no topo do formulário (mobile e desktop) */}
+          <div className="flex justify-center mb-8 lg:hidden">
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt={tenantName || 'Logo'} 
+                className="h-12 w-auto object-contain"
+              />
+            ) : (
+              <div className="h-12 w-12 rounded-lg bg-primary flex items-center justify-center">
+                <Building2 className="h-6 w-6 text-primary-foreground" />
+              </div>
+            )}
+          </div>
+
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
             Entre na sua conta
           </h1>
@@ -122,9 +145,9 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right side - Dark background */}
+      {/* Right side - Dark background with tenant logo */}
       <div className="hidden lg:block lg:w-1/2 relative">
-        <AuthBackground />
+        <AuthBackground logoUrl={logoUrl} tenantName={tenantName} />
       </div>
     </div>
   );
