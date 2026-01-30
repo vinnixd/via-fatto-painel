@@ -4,20 +4,15 @@ import { cn } from '@/lib/utils';
 import { SUPPORT_WHATSAPP } from '@/lib/constants';
 import {
   LayoutDashboard,
-  Palette,
   Building2,
-  Globe,
   MessageSquare,
   User,
   Users,
   ChevronLeft,
   ChevronRight,
   LogOut,
-  CreditCard,
-  Plug,
   Headphones,
   Settings,
-  GlobeLock,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -35,14 +30,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', adminPath: '/admin' },
-  { icon: Palette, label: 'Designer', adminPath: '/admin/designer' },
+  { icon: Settings, label: 'Administração', adminPath: '/admin/administracao', roles: ['admin', 'gestor', 'marketing'] },
   { icon: Building2, label: 'Imóveis', adminPath: '/admin/imoveis' },
-  { icon: Globe, label: 'Portais', adminPath: '/admin/portais', roles: ['admin', 'gestor', 'marketing'] },
-  { icon: Plug, label: 'Integrações', adminPath: '/admin/integracoes', roles: ['admin', 'marketing'] },
-  { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },
   { icon: MessageSquare, label: 'Leads', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
-  { icon: GlobeLock, label: 'Domínios', adminPath: '/admin/dominios', tenantRoles: ['owner', 'admin'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };

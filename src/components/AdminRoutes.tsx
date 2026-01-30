@@ -13,7 +13,6 @@ import DashboardPage from "@/pages/admin/DashboardPage";
 import PropertiesListPage from "@/pages/admin/PropertiesListPage";
 import PropertyFormPage from "@/pages/admin/PropertyFormPage";
 import CategoriesPage from "@/pages/admin/CategoriesPage";
-import DesignerPage from "@/pages/admin/DesignerPage";
 import ProfilePage from "@/pages/admin/ProfilePage";
 import SettingsPage from "@/pages/admin/SettingsPage";
 import FavoritesListPage from "@/pages/admin/FavoritesListPage";
@@ -21,16 +20,11 @@ import MessagesPage from "@/pages/admin/MessagesPage";
 import ExportPage from "@/pages/admin/data/ExportPage";
 import ImportDataPage from "@/pages/admin/data/ImportPage";
 import DatabaseExportPage from "@/pages/admin/data/DatabaseExportPage";
-import PortaisPage from "@/pages/admin/PortaisPage";
 import PortalConfigPage from "@/pages/admin/PortalConfigPage";
 import UsersPage from "@/pages/admin/UsersPage";
-import PaymentsPage from "@/pages/admin/subscriptions/PaymentsPage";
-import PlansPage from "@/pages/admin/subscriptions/PlansPage";
-import InvoicesPage from "@/pages/admin/subscriptions/InvoicesPage";
-import IntegrationsPage from "@/pages/admin/IntegrationsPage";
 import ShareTestPage from "@/pages/admin/ShareTestPage";
-import TenantDomainsPage from "@/pages/admin/TenantDomainsPage";
 import TenantMembersPage from "@/pages/admin/TenantMembersPage";
+import AdminPage from "@/pages/admin/AdminPage";
 
 interface AdminRoutesProps {
   useCleanUrls: boolean;
@@ -59,8 +53,8 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       <Route path={`${prefix}/aguardando-aprovacao`} element={<PendingApprovalPage />} />
       <Route path={`${prefix}/convite/:token`} element={<InviteSignupPage />} />
       
-      {/* Designer */}
-      <Route path={`${prefix}/designer`} element={<TenantGate><DesignerPage /></TenantGate>} />
+      {/* Administração - Nova página central com abas */}
+      <Route path={`${prefix}/administracao`} element={<TenantGate><AdminPage /></TenantGate>} />
       
       {/* Imóveis */}
       <Route path={`${prefix}/imoveis`} element={<TenantGate><PropertiesListPage /></TenantGate>} />
@@ -83,26 +77,16 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       <Route path={`${prefix}/dados/importar`} element={<TenantGate><ImportDataPage /></TenantGate>} />
       <Route path={`${prefix}/dados/banco`} element={<TenantGate><DatabaseExportPage /></TenantGate>} />
       
-      {/* Portais */}
-      <Route path={`${prefix}/portais`} element={<TenantGate><PortaisPage /></TenantGate>} />
+      {/* Portais - Config individual ainda precisa de rota própria */}
       <Route path={`${prefix}/portais/:portalId`} element={<TenantGate><PortalConfigPage /></TenantGate>} />
       
       {/* Usuários */}
       <Route path={`${prefix}/usuarios`} element={<TenantGate><UsersPage /></TenantGate>} />
       
-      {/* Assinaturas */}
-      <Route path={`${prefix}/assinaturas`} element={<TenantGate><PaymentsPage /></TenantGate>} />
-      <Route path={`${prefix}/assinaturas/planos`} element={<TenantGate><PlansPage /></TenantGate>} />
-      <Route path={`${prefix}/assinaturas/faturas`} element={<TenantGate><InvoicesPage /></TenantGate>} />
-      
-      {/* Integrações */}
-      <Route path={`${prefix}/integracoes`} element={<TenantGate><IntegrationsPage /></TenantGate>} />
-      
       {/* Compartilhamento */}
       <Route path={`${prefix}/compartilhamento`} element={<TenantGate><ShareTestPage /></TenantGate>} />
       
-      {/* Domínios e Membros */}
-      <Route path={`${prefix}/dominios`} element={<TenantGate><TenantDomainsPage /></TenantGate>} />
+      {/* Membros */}
       <Route path={`${prefix}/membros`} element={<TenantGate><TenantMembersPage /></TenantGate>} />
 
       {/* Fallback */}
