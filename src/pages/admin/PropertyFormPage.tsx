@@ -914,7 +914,7 @@ const PropertyFormPage = () => {
                         <Home className="h-4 w-4" />
                         Classificação
                       </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="space-y-2">
                           <Label>Status *</Label>
                           <Select value={formData.status} onValueChange={(v: PropertyStatus) => setFormData({ ...formData, status: v })}>
@@ -949,25 +949,30 @@ const PropertyFormPage = () => {
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Categoria</Label>
-                          <Select value={formData.category_id || undefined} onValueChange={(v) => setFormData({ ...formData, category_id: v })}>
+                          <Label>Perfil</Label>
+                          <Select value={formData.profile} onValueChange={(v: PropertyProfile) => setFormData({ ...formData, profile: v })}>
                             <SelectTrigger className="h-11">
-                              <SelectValue placeholder="Selecione" />
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {categories.map(cat => (
-                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                              ))}
+                              <SelectItem value="residencial">Residencial</SelectItem>
+                              <SelectItem value="comercial">Comercial</SelectItem>
+                              <SelectItem value="industrial">Industrial</SelectItem>
+                              <SelectItem value="misto">Misto</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="space-y-2">
-                          <Label>Condição (opcional)</Label>
-                          <Select value={formData.condition || ''} onValueChange={(v) => setFormData({ ...formData, condition: v ? v as PropertyCondition : null })}>
+                          <Label>Condição</Label>
+                          <Select 
+                            value={formData.condition || 'none'} 
+                            onValueChange={(v) => setFormData({ ...formData, condition: v === 'none' ? null : v as PropertyCondition })}
+                          >
                             <SelectTrigger className="h-11">
-                              <SelectValue placeholder="Selecione a condição" />
+                              <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                             <SelectContent>
+                              <SelectItem value="none">Sem condição</SelectItem>
                               <SelectItem value="lancamento">Lançamento</SelectItem>
                               <SelectItem value="pronto_para_morar">Pronto para Morar</SelectItem>
                               <SelectItem value="novo">Novo</SelectItem>
