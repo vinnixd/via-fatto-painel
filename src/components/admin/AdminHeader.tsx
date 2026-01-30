@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
+import NotificationBell from './NotificationBell';
 
 interface AdminHeaderProps {
   title: string;
@@ -69,6 +70,8 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
               Ver Site
             </Link>
           </Button>
+
+          <NotificationBell />
 
           <Button variant="ghost" size="icon" className="relative" asChild>
             <Link to="/admin/mensagens">

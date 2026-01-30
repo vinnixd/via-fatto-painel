@@ -65,7 +65,13 @@ const CadastroPage = () => {
     }
 
     setLoading(true);
-    const { error } = await signUp(formData.email, formData.password, formData.name);
+    const { error } = await signUp(
+      formData.email, 
+      formData.password, 
+      formData.name, 
+      formData.phone, 
+      formData.creci
+    );
     setLoading(false);
 
     if (error) {
@@ -75,8 +81,8 @@ const CadastroPage = () => {
         toast.error(error.message || 'Erro ao criar conta');
       }
     } else {
-      toast.success('Conta criada com sucesso! Você já pode fazer login.');
-      navigateAdmin('/admin/login');
+      toast.success('Conta criada! Aguarde a aprovação de um administrador.');
+      navigateAdmin('/admin/aguardando-aprovacao');
     }
   };
 

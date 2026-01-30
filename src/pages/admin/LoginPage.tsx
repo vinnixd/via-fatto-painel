@@ -45,7 +45,7 @@ const LoginPage = () => {
     }
 
     setLoading(true);
-    const { error } = await signIn(formData.email, formData.password);
+    const { error, isPending } = await signIn(formData.email, formData.password);
     setLoading(false);
 
     if (error) {
@@ -54,6 +54,9 @@ const LoginPage = () => {
       } else {
         toast.error(error.message);
       }
+    } else if (isPending) {
+      toast.info('Sua conta está aguardando aprovação');
+      navigateAdmin('/admin/aguardando-aprovacao');
     } else {
       toast.success('Login realizado com sucesso!');
     }

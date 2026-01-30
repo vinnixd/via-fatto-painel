@@ -7,6 +7,7 @@ import LoginPage from "@/pages/admin/LoginPage";
 import CadastroPage from "@/pages/admin/CadastroPage";
 import ForgotPasswordPage from "@/pages/admin/ForgotPasswordPage";
 import ResetPasswordPage from "@/pages/admin/ResetPasswordPage";
+import PendingApprovalPage from "@/pages/admin/PendingApprovalPage";
 import InviteSignupPage from "@/pages/admin/InviteSignupPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import PropertiesListPage from "@/pages/admin/PropertiesListPage";
@@ -55,6 +56,7 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       <Route path={`${prefix}/cadastro`} element={<CadastroPage />} />
       <Route path={`${prefix}/esqueci-senha`} element={<ForgotPasswordPage />} />
       <Route path={`${prefix}/redefinir-senha`} element={<ResetPasswordPage />} />
+      <Route path={`${prefix}/aguardando-aprovacao`} element={<PendingApprovalPage />} />
       <Route path={`${prefix}/convite/:token`} element={<InviteSignupPage />} />
       
       {/* Designer */}
