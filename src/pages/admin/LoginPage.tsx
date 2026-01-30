@@ -108,7 +108,7 @@ const LoginPage = () => {
               <p className="text-sm text-muted-foreground">
                 Não tem uma conta?{' '}
                 <Link
-                  to={getPath('/admin/auth/cadastro')}
+                  to={getPath('/admin/cadastro')}
                   className="text-foreground hover:underline font-semibold"
                 >
                   Registre-se

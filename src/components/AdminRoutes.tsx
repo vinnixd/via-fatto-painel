@@ -3,7 +3,6 @@ import { TenantGate } from "@/components/tenant/TenantGate";
 import NotFound from "@/pages/NotFound";
 
 // Admin Pages
-import AuthPage from "@/pages/admin/AuthPage";
 import LoginPage from "@/pages/admin/LoginPage";
 import CadastroPage from "@/pages/admin/CadastroPage";
 import InviteSignupPage from "@/pages/admin/InviteSignupPage";
@@ -50,9 +49,8 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       <Route path={useCleanUrls ? "/" : "/admin"} element={<TenantGate><DashboardPage /></TenantGate>} />
       
       {/* Auth */}
-      <Route path={`${prefix}/login`} element={<AuthPage />} />
-      <Route path={`${prefix}/auth/login`} element={<LoginPage />} />
-      <Route path={`${prefix}/auth/cadastro`} element={<CadastroPage />} />
+      <Route path={`${prefix}/login`} element={<LoginPage />} />
+      <Route path={`${prefix}/cadastro`} element={<CadastroPage />} />
       <Route path={`${prefix}/convite/:token`} element={<InviteSignupPage />} />
       
       {/* Designer */}
