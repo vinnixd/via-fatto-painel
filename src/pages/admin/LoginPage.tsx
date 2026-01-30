@@ -76,7 +76,7 @@ const LoginPage = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 bg-background">
         <div className="w-full max-w-md">
           {/* Logo do tenant no topo do formulário (mobile e desktop) */}
-          <div className="flex justify-center mb-8 lg:hidden">
+          <div className="flex justify-center mb-8 lg:hidden animate-fade-in">
             {logoUrl ? (
               <img 
                 src={logoUrl} 
