@@ -83,7 +83,6 @@ const tabItems = [
   { id: 'about', label: 'Sobre', icon: FileText, description: 'Página institucional' },
   { id: 'contact', label: 'Contato', icon: Phone, description: 'Informações de contato' },
   { id: 'social', label: 'Redes', icon: Share2, description: 'Mídias sociais' },
-  { id: 'seo', label: 'SEO', icon: Globe, description: 'Otimização para buscadores' },
   { id: 'watermark', label: 'Marca d\'água', icon: Droplets, description: 'Proteção de imagens' },
 ];
 
@@ -255,14 +254,13 @@ const DesignerContent = () => {
 
   // Calculate completion stats
   const getCompletionStats = () => {
-    if (!config) return { colors: 0, images: 0, social: 0, seo: false };
+    if (!config) return { colors: 0, images: 0, social: 0 };
     
     const colors = [config.primary_color, config.secondary_color, config.accent_color].filter(Boolean).length;
     const images = [config.logo_horizontal_url, config.logo_vertical_url, config.logo_symbol_url, config.hero_background_url, config.about_image_url].filter(Boolean).length;
     const social = [config.social_facebook, config.social_instagram, config.social_linkedin, config.social_youtube].filter(Boolean).length;
-    const seo = Boolean(config.seo_title && config.seo_description);
     
-    return { colors, images, social, seo };
+    return { colors, images, social };
   };
 
   const stats = getCompletionStats();
@@ -286,7 +284,7 @@ const DesignerContent = () => {
   return (
     <div className="relative">
       {/* Stats Bar - Compact and modern */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20">
           <div className="p-2 rounded-lg bg-violet-500/20">
             <Palette className="h-4 w-4 text-violet-600" />
@@ -314,19 +312,6 @@ const DesignerContent = () => {
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground truncate">Redes</p>
             <p className="font-semibold text-sm">{stats.social}/4</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-500/5 border border-amber-500/20">
-          <div className="p-2 rounded-lg bg-amber-500/20">
-            <Globe className="h-4 w-4 text-amber-600" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-xs text-muted-foreground truncate">SEO</p>
-            <p className="font-semibold text-sm">{stats.seo ? 
-              <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> OK</span> : 
-              'Pendente'
-            }</p>
           </div>
         </div>
       </div>
@@ -854,76 +839,6 @@ const DesignerContent = () => {
             </div>
           )}
 
-          {/* SEO Tab */}
-          {activeTab === 'seo' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              <Card>
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-500/10 rounded-xl">
-                      <Globe className="h-5 w-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">SEO e Meta Tags</CardTitle>
-                      <CardDescription>Otimização para mecanismos de busca</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Título do Site</Label>
-                    <Input
-                      value={config.seo_title || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, seo_title: e.target.value } : null)}
-                      placeholder="Sua Imobiliária | Compra e Venda de Imóveis"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {(config.seo_title || '').length}/60 caracteres
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Descrição</Label>
-                    <Textarea
-                      value={config.seo_description || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, seo_description: e.target.value } : null)}
-                      placeholder="Encontre o imóvel ideal para você. Casas, apartamentos e terrenos..."
-                      rows={3}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {(config.seo_description || '').length}/160 caracteres
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Palavras-chave</Label>
-                    <Input
-                      value={config.seo_keywords || ''}
-                      onChange={(e) => setConfig(prev => prev ? { ...prev, seo_keywords: e.target.value } : null)}
-                      placeholder="imóveis, casas, apartamentos, venda, aluguel"
-                    />
-                    <p className="text-xs text-muted-foreground">Separe as palavras por vírgula</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* SEO Preview */}
-              <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Preview no Google</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 bg-white rounded-lg border space-y-1">
-                    <p className="text-blue-800 text-lg hover:underline cursor-pointer truncate">
-                      {config.seo_title || 'Título do Site'}
-                    </p>
-                    <p className="text-green-700 text-sm truncate">www.seusite.com.br</p>
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {config.seo_description || 'Descrição do site que aparecerá nos resultados de busca...'}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
 
           {/* Watermark Tab */}
           {activeTab === 'watermark' && (
