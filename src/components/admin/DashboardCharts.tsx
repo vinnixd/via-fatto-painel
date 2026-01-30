@@ -139,12 +139,12 @@ const DashboardCharts = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Views Chart */}
-        <Card className="border shadow-sm">
+        <Card className="border bg-card">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <Eye className="h-4 w-4 text-white" />
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                  <Eye className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
                   <CardTitle className="text-base font-semibold">Visualizações</CardTitle>
@@ -152,7 +152,7 @@ const DashboardCharts = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{totalViews.toLocaleString('pt-BR')}</p>
+                <p className="text-2xl font-bold text-foreground">{totalViews.toLocaleString('pt-BR')}</p>
                 <p className="text-xs text-muted-foreground">~{avgViews}/dia</p>
               </div>
             </div>
@@ -163,8 +163,8 @@ const DashboardCharts = () => {
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -195,7 +195,7 @@ const DashboardCharts = () => {
                   <Area 
                     type="monotone" 
                     dataKey="views" 
-                    stroke="hsl(var(--primary))" 
+                    stroke="hsl(var(--foreground))" 
                     strokeWidth={2}
                     fill="url(#viewsGradient)" 
                   />
@@ -206,12 +206,12 @@ const DashboardCharts = () => {
         </Card>
 
         {/* Leads Chart */}
-        <Card className="border shadow-sm">
+        <Card className="border bg-card">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-white" />
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                  <Users className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
                   <CardTitle className="text-base font-semibold">Leads (Mensagens)</CardTitle>
@@ -219,7 +219,7 @@ const DashboardCharts = () => {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">{totalLeads.toLocaleString('pt-BR')}</p>
+                <p className="text-2xl font-bold text-foreground">{totalLeads.toLocaleString('pt-BR')}</p>
                 <p className="text-xs text-muted-foreground">total de leads</p>
               </div>
             </div>
@@ -255,7 +255,7 @@ const DashboardCharts = () => {
                   />
                   <Bar 
                     dataKey="leads" 
-                    fill="hsl(var(--primary))" 
+                    fill="hsl(var(--foreground))" 
                     radius={[4, 4, 0, 0]}
                     maxBarSize={40}
                   />

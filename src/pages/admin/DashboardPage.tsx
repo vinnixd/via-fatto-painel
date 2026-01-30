@@ -158,45 +158,30 @@ const DashboardPage = () => {
       icon: Building2, 
       label: 'Total de Imóveis', 
       value: stats.totalProperties, 
-      gradient: 'from-blue-500 to-blue-600',
-      bgLight: 'bg-blue-50 dark:bg-blue-950/30',
-      textColor: 'text-blue-600 dark:text-blue-400',
       link: '/admin/imoveis' 
     },
     { 
       icon: Home, 
       label: 'À Venda', 
       value: stats.forSale, 
-      gradient: 'from-emerald-500 to-emerald-600',
-      bgLight: 'bg-emerald-50 dark:bg-emerald-950/30',
-      textColor: 'text-emerald-600 dark:text-emerald-400',
       link: '/admin/imoveis' 
     },
     { 
       icon: Key, 
       label: 'Para Aluguel', 
       value: stats.forRent, 
-      gradient: 'from-amber-500 to-orange-500',
-      bgLight: 'bg-amber-50 dark:bg-amber-950/30',
-      textColor: 'text-amber-600 dark:text-amber-400',
       link: '/admin/imoveis' 
     },
     { 
       icon: Eye, 
       label: 'Visualizações', 
       value: stats.totalViews, 
-      gradient: 'from-violet-500 to-purple-600',
-      bgLight: 'bg-violet-50 dark:bg-violet-950/30',
-      textColor: 'text-violet-600 dark:text-violet-400',
       link: null 
     },
     { 
       icon: MessageSquare, 
       label: 'Mensagens', 
       value: stats.totalMessages, 
-      gradient: 'from-rose-500 to-pink-600',
-      bgLight: 'bg-rose-50 dark:bg-rose-950/30',
-      textColor: 'text-rose-600 dark:text-rose-400',
       link: '/admin/mensagens', 
       badge: stats.unreadMessages 
     },
@@ -204,9 +189,6 @@ const DashboardPage = () => {
       icon: Heart, 
       label: 'Favoritos', 
       value: stats.totalFavorites, 
-      gradient: 'from-pink-500 to-rose-500',
-      bgLight: 'bg-pink-50 dark:bg-pink-950/30',
-      textColor: 'text-pink-600 dark:text-pink-400',
       link: '/admin/favoritos' 
     },
   ];
@@ -234,24 +216,24 @@ const DashboardPage = () => {
             <p className="text-muted-foreground mt-1">Visão geral do seu sistema imobiliário</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25">
+            <Button asChild variant="admin">
               <AdminLink to="/admin/imoveis/novo">
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Imóvel
               </AdminLink>
             </Button>
-            <Button variant="outline" asChild className="border-2">
+            <Button variant="outline" asChild>
               <AdminLink to="/admin/mensagens">
                 <Mail className="h-4 w-4 mr-2" />
                 Mensagens
                 {stats.unreadMessages > 0 && (
-                  <span className="ml-2 bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
+                  <span className="ml-2 bg-foreground text-background text-xs px-2 py-0.5 rounded-full">
                     {stats.unreadMessages}
                   </span>
                 )}
               </AdminLink>
             </Button>
-            <Button variant="outline" asChild className="border-2">
+            <Button variant="outline" asChild>
               <AdminLink to="/admin/designer">
                 <Palette className="h-4 w-4 mr-2" />
                 Designer
@@ -270,24 +252,24 @@ const DashboardPage = () => {
                 to={stat.link || '#'}
                 className={`group block ${stat.link ? 'cursor-pointer' : ''}`}
               >
-                <Card className={`relative overflow-hidden border-0 shadow-sm hover:shadow-lg transition-all duration-300 ${stat.link ? 'hover:-translate-y-1' : ''} ${stat.bgLight}`}>
+                <Card className={`relative overflow-hidden border bg-card hover:bg-muted/50 transition-all duration-200 ${stat.link ? 'hover:border-foreground/20' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex flex-col gap-3">
-                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg relative`}>
-                        <stat.icon className="h-5 w-5 text-white" />
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center relative">
+                        <stat.icon className="h-5 w-5 text-foreground" />
                         {stat.badge && stat.badge > 0 && (
-                          <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white animate-pulse">
+                          <span className="absolute -top-1.5 -right-1.5 bg-foreground text-background text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                             {stat.badge}
                           </span>
                         )}
                       </div>
                       <div>
-                        <p className={`text-2xl md:text-3xl font-bold ${stat.textColor}`}>{stat.value.toLocaleString('pt-BR')}</p>
+                        <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value.toLocaleString('pt-BR')}</p>
                         <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
                       </div>
                     </div>
                     {stat.link && (
-                      <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
+                      <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors" />
                     )}
                   </CardContent>
                 </Card>
@@ -302,15 +284,15 @@ const DashboardPage = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Recent Properties */}
-          <Card className="border shadow-sm">
+          <Card className="border bg-card">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                  <Building2 className="h-4 w-4 text-white" />
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-foreground" />
                 </div>
                 <CardTitle className="text-base font-semibold">Últimos Imóveis</CardTitle>
               </div>
-              <Button variant="ghost" size="sm" asChild className="text-primary hover:text-primary">
+              <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground">
                 <AdminLink to="/admin/imoveis">
                   Ver todos <ArrowRight className="h-4 w-4 ml-1" />
                 </AdminLink>
@@ -368,11 +350,11 @@ const DashboardPage = () => {
           </Card>
 
           {/* Top Viewed Properties */}
-          <Card className="border shadow-sm">
+          <Card className="border bg-card">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                  <TrendingUp className="h-4 w-4 text-white" />
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-foreground" />
                 </div>
                 <CardTitle className="text-base font-semibold">Mais Visualizados</CardTitle>
               </div>
@@ -395,11 +377,11 @@ const DashboardPage = () => {
                     >
                       <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm ${
                         index === 0 
-                          ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' 
+                          ? 'bg-foreground text-background' 
                           : index === 1 
-                            ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-white' 
+                            ? 'bg-muted-foreground text-background' 
                             : index === 2 
-                              ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' 
+                              ? 'bg-muted-foreground/70 text-background' 
                               : 'bg-muted text-muted-foreground'
                       }`}>
                         {index + 1}
@@ -420,11 +402,11 @@ const DashboardPage = () => {
           </Card>
 
           {/* Recent Messages */}
-          <Card className="border shadow-sm">
+          <Card className="border bg-card">
             <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center relative">
-                  <MessageSquare className="h-4 w-4 text-white" />
+                <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center relative">
+                  <MessageSquare className="h-4 w-4 text-foreground" />
                   {stats.unreadMessages > 0 && (
                     <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">
                       {stats.unreadMessages}
@@ -456,15 +438,15 @@ const DashboardPage = () => {
                       className={`block p-3 rounded-xl transition-all ${
                         msg.read 
                           ? 'bg-muted/50 hover:bg-muted' 
-                          : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 ring-1 ring-blue-200 dark:ring-blue-800'
+                          : 'bg-muted hover:bg-muted/80 ring-1 ring-border'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <p className="font-medium text-sm flex items-center gap-2">
                           {msg.read ? (
-                            <CheckCircle className="h-4 w-4 text-emerald-500" />
+                            <CheckCircle className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="h-2 w-2 rounded-full bg-foreground" />
                           )}
                           {msg.name}
                         </p>
@@ -480,31 +462,31 @@ const DashboardPage = () => {
         </div>
 
         {/* Quick Stats Footer */}
-        <Card className="border-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 shadow-sm">
+        <Card className="border bg-muted/30">
           <CardContent className="p-4 md:p-6">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-4 md:gap-8">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-primary" />
+                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-primary">{stats.featuredCount}</p>
+                    <p className="text-xl font-bold text-foreground">{stats.featuredCount}</p>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Em Destaque</p>
                   </div>
                 </div>
                 <div className="h-8 w-px bg-border hidden md:block" />
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Eye className="h-4 w-4 text-primary" />
+                  <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+                    <Eye className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-primary">{stats.totalViews.toLocaleString('pt-BR')}</p>
+                    <p className="text-xl font-bold text-foreground">{stats.totalViews.toLocaleString('pt-BR')}</p>
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Views Totais</p>
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" asChild className="bg-white dark:bg-transparent border-2 shadow-sm">
+              <Button variant="outline" size="sm" asChild>
                 <a href="/" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Visualizar Site
