@@ -14,6 +14,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
 
 interface AdminHeaderProps {
   title: string;
@@ -63,13 +64,15 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link to="/" target="_blank">
               <ExternalLink className="h-4 w-4 mr-2" />
               Ver Site
             </Link>
           </Button>
+
+          <ThemeToggle />
 
           <NotificationBell />
 
