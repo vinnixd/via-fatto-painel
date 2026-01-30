@@ -9,16 +9,57 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Loader2, User, Mail, Phone, Shield, Camera, Lock, Check } from 'lucide-react';
-import bannerProfile from '@/assets/banner-profile.png';
+import { Loader2, User, Mail, Phone, Shield, Camera, Lock, Check, Building2 } from 'lucide-react';
 import { compressImage } from '@/lib/imageCompression';
+import { useSiteConfig } from '@/hooks/useSupabaseData';
+import { useTenant } from '@/contexts/TenantContext';
 
-// Preload banner image
-const preloadBanner = () => {
-  const img = new Image();
-  img.src = bannerProfile;
+// Profile Banner Component with geometric background and tenant logo
+const ProfileBanner = ({ logoUrl, tenantName }: { logoUrl?: string | null; tenantName?: string }) => {
+  return (
+    <div className="h-32 bg-[#1a1a1a] overflow-hidden relative flex items-center justify-center">
+      {/* Geometric diagonal lines - same as AuthBackground */}
+      <svg
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 1920 400"
+        preserveAspectRatio="xMidYMid slice"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Main diagonal lines */}
+        <line x1="0" y1="0" x2="150" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        <line x1="80" y1="0" x2="230" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        <line x1="140" y1="0" x2="290" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        
+        <line x1="1600" y1="0" x2="1750" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        <line x1="1700" y1="0" x2="1850" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        <line x1="1780" y1="0" x2="1920" y2="400" stroke="#2a2a2a" strokeWidth="2" />
+        
+        {/* Chevron/V shapes in center */}
+        <path d="M 850 50 L 1000 200 L 850 350" fill="none" stroke="#2a2a2a" strokeWidth="2" />
+        <path d="M 880 70 L 1030 220 L 880 370" fill="none" stroke="#252525" strokeWidth="1" />
+        
+        {/* Additional subtle lines */}
+        <line x1="40" y1="0" x2="190" y2="400" stroke="#222222" strokeWidth="1" />
+        <line x1="1650" y1="0" x2="1800" y2="400" stroke="#222222" strokeWidth="1" />
+      </svg>
+
+      {/* Tenant Logo centered */}
+      <div className="relative z-10 flex items-center justify-center">
+        {logoUrl ? (
+          <img 
+            src={logoUrl} 
+            alt={tenantName || 'Logo'} 
+            className="h-12 w-auto object-contain brightness-0 invert"
+          />
+        ) : (
+          <div className="h-12 w-12 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center">
+            <Building2 className="h-6 w-6 text-white" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
-preloadBanner();
 
 interface Profile {
   id: string;
@@ -31,23 +72,20 @@ interface Profile {
 
 const ProfilePage = () => {
   const { user } = useAuth();
+  const { data: siteConfig } = useSiteConfig();
+  const { tenant } = useTenant();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [bannerLoaded, setBannerLoaded] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [passwords, setPasswords] = useState({
     new: '',
     confirm: '',
   });
 
-  // Preload banner on mount
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => setBannerLoaded(true);
-    img.src = bannerProfile;
-    if (img.complete) setBannerLoaded(true);
-  }, []);
+  // Get the best logo available (same logic as login page)
+  const logoUrl = siteConfig?.logo_horizontal_url || siteConfig?.logo_url;
+  const tenantName = tenant?.name;
 
   useEffect(() => {
     if (user) {
@@ -217,16 +255,7 @@ const ProfilePage = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Profile Header Card */}
           <Card className="border-0 shadow-sm overflow-hidden">
-            <div 
-              className={`h-24 bg-cover bg-center transition-opacity duration-300 ${bannerLoaded ? 'opacity-100' : 'opacity-0'}`}
-              style={{ 
-                backgroundImage: `url(${bannerProfile})`,
-                backgroundColor: 'hsl(var(--muted))'
-              }} 
-            />
-            {!bannerLoaded && (
-              <div className="h-24 bg-gradient-to-r from-muted to-muted/70 animate-pulse absolute inset-x-0 top-0" />
-            )}
+            <ProfileBanner logoUrl={logoUrl} tenantName={tenantName} />
             <CardContent className="relative pt-0 pb-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12">
                 {/* Avatar with upload */}
