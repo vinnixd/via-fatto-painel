@@ -106,7 +106,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center gap-3 p-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={profile?.avatar_url || ''} alt={displayName} />
+                  <AvatarImage src={profile?.avatar_url || ''} alt={displayName} className="object-cover" />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {getInitials(profile?.name, profile?.email)}
                   </AvatarFallback>
