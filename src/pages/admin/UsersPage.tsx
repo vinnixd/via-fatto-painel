@@ -104,9 +104,11 @@ const UsersPage = () => {
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
+      // Only fetch active and pending users (exclude rejected)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name, email, avatar_url, creci, status, created_at')
+        .in('status', ['active', 'pending'])
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
