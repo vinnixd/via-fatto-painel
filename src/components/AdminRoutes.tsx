@@ -5,6 +5,8 @@ import NotFound from "@/pages/NotFound";
 // Admin Pages
 import LoginPage from "@/pages/admin/LoginPage";
 import CadastroPage from "@/pages/admin/CadastroPage";
+import ForgotPasswordPage from "@/pages/admin/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/admin/ResetPasswordPage";
 import InviteSignupPage from "@/pages/admin/InviteSignupPage";
 import DashboardPage from "@/pages/admin/DashboardPage";
 import PropertiesListPage from "@/pages/admin/PropertiesListPage";
@@ -51,6 +53,8 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       {/* Auth */}
       <Route path={`${prefix}/login`} element={<LoginPage />} />
       <Route path={`${prefix}/cadastro`} element={<CadastroPage />} />
+      <Route path={`${prefix}/esqueci-senha`} element={<ForgotPasswordPage />} />
+      <Route path={`${prefix}/redefinir-senha`} element={<ResetPasswordPage />} />
       <Route path={`${prefix}/convite/:token`} element={<InviteSignupPage />} />
       
       {/* Designer */}
