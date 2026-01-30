@@ -100,7 +100,7 @@ const LoginPage = () => {
 
             <div className="text-center space-y-2 pt-2">
               <Link
-                to="#"
+                to={getPath('/admin/esqueci-senha')}
                 className="block text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 Esqueceu a senha?
