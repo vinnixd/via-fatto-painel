@@ -6,13 +6,14 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Mail, Users, Loader2, ArrowRight } from 'lucide-react';
+import { User, Mail, Loader2, ArrowRight } from 'lucide-react';
 import { useAdminRoutes } from '@/hooks/useAdminRoutes';
 import { z } from 'zod';
 import AuthBackground from '@/components/auth/AuthBackground';
 import AuthInput from '@/components/auth/AuthInput';
 import PhoneInput from '@/components/auth/PhoneInput';
 import PasswordInput from '@/components/auth/PasswordInput';
+import CreciInput from '@/components/auth/CreciInput';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
@@ -128,14 +129,11 @@ const CadastroPage = () => {
                 onChange={(value) => setFormData({ ...formData, phone: value })}
               />
 
-              <AuthInput
+              <CreciInput
                 id="creci"
                 label="CRECI (opcional)"
-                placeholder="Digite seu CRECI"
                 value={formData.creci}
                 onChange={(value) => setFormData({ ...formData, creci: value })}
-                icon={Users}
-                required={false}
               />
 
               <PasswordInput
