@@ -4,15 +4,9 @@ type Theme = 'light' | 'dark';
 
 export const useTheme = () => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first
+    // Check localStorage first, otherwise default to light theme
     const stored = localStorage.getItem('admin-theme') as Theme | null;
-    if (stored) return stored;
-    
-    // Check system preference
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
+    return stored || 'light';
   });
 
   useEffect(() => {
