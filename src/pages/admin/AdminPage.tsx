@@ -84,7 +84,7 @@ const AdminPage = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* Desktop Tabs */}
           {!isMobile && (
-            <TabsList className="h-auto p-1 bg-muted/50 w-full justify-start gap-1 rounded-lg border">
+            <TabsList className="h-auto p-1 bg-muted/50 w-full justify-center gap-1 rounded-lg border">
               {visibleTabs.map((tab) => (
                 <TabsTrigger
                   key={tab.id}
