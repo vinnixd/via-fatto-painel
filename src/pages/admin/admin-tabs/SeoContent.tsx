@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, Globe, Save, Search, FileText, Tag } from 'lucide-react';
+import { Loader2, Globe, Save, Search, FileText, Tag, Image, Upload, X } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
 
 interface SeoConfig {
@@ -14,13 +14,61 @@ interface SeoConfig {
   seo_title: string;
   seo_description: string;
   seo_keywords: string;
+  og_image_url: string;
 }
 
 const SeoContent = () => {
   const { tenantId } = useTenant();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [config, setConfig] = useState<SeoConfig | null>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !tenantId) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 2MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `og-image-${tenantId}.${fileExt}`;
+      const filePath = `${tenantId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('site-assets')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('site-assets')
+        .getPublicUrl(filePath);
+
+      setConfig(prev => prev ? { ...prev, og_image_url: publicUrl } : null);
+      toast.success('Imagem carregada com sucesso!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erro ao carregar imagem');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setConfig(prev => prev ? { ...prev, og_image_url: '' } : null);
+  };
 
   useEffect(() => {
     if (tenantId) {
@@ -37,7 +85,7 @@ const SeoContent = () => {
     try {
       const { data, error } = await supabase
         .from('site_config')
-        .select('id, seo_title, seo_description, seo_keywords')
+        .select('id, seo_title, seo_description, seo_keywords, og_image_url')
         .eq('tenant_id', tenantId)
         .maybeSingle();
 
@@ -49,7 +97,7 @@ const SeoContent = () => {
         const { data: newConfig, error: insertError } = await supabase
           .from('site_config')
           .upsert({ tenant_id: tenantId }, { onConflict: 'tenant_id' })
-          .select('id, seo_title, seo_description, seo_keywords')
+          .select('id, seo_title, seo_description, seo_keywords, og_image_url')
           .single();
 
         if (insertError) throw insertError;
@@ -77,6 +125,7 @@ const SeoContent = () => {
           seo_title: config.seo_title,
           seo_description: config.seo_description,
           seo_keywords: config.seo_keywords,
+          og_image_url: config.og_image_url,
         })
         .eq('tenant_id', tenantId);
 
@@ -189,6 +238,65 @@ const SeoContent = () => {
               placeholder="imóveis, casas, apartamentos, venda, aluguel"
             />
             <p className="text-xs text-muted-foreground">Separe as palavras por vírgula</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Image className="h-4 w-4 text-muted-foreground" />
+              <Label>Imagem de Compartilhamento (OG Image)</Label>
+            </div>
+            <p className="text-xs text-muted-foreground mb-2">
+              Essa imagem aparece quando seu site é compartilhado em redes sociais. Tamanho recomendado: 1200x630 pixels.
+            </p>
+            
+            {config.og_image_url ? (
+              <div className="relative group">
+                <img 
+                  src={config.og_image_url} 
+                  alt="OG Image preview" 
+                  className="w-full max-w-md h-auto rounded-lg border object-cover aspect-[1200/630]"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={handleRemoveImage}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full max-w-md h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploading ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground">Clique para enviar uma imagem</p>
+                      <p className="text-xs text-muted-foreground">PNG, JPG até 2MB</p>
+                    </>
+                  )}
+                </div>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                />
+              </label>
+            )}
+
+            <div className="mt-2">
+              <Label className="text-xs text-muted-foreground">Ou cole uma URL:</Label>
+              <Input
+                value={config.og_image_url || ''}
+                onChange={(e) => setConfig(prev => prev ? { ...prev, og_image_url: e.target.value } : null)}
+                placeholder="https://exemplo.com/imagem.jpg"
+                className="mt-1"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
