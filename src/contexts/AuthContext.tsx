@@ -11,8 +11,9 @@ interface AuthContextType {
   isMarketing: boolean;
   isCorretor: boolean;
   canAccessAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: Error | null }>;
+  isPendingApproval: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null; isPending?: boolean }>;
+  signUp: (email: string, password: string, name: string, phone?: string, creci?: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isGestor, setIsGestor] = useState(false);
   const [isMarketing, setIsMarketing] = useState(false);
   const [isCorretor, setIsCorretor] = useState(false);
+  const [isPendingApproval, setIsPendingApproval] = useState(false);
 
   const checkUserRole = async (userId: string) => {
     const { data } = await supabase
@@ -40,6 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsCorretor(roles.includes('corretor'));
   };
 
+  const checkUserStatus = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('status')
+      .eq('id', userId)
+      .single();
+    
+    setIsPendingApproval(data?.status === 'pending');
+    return data?.status;
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -50,12 +63,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (session?.user) {
           setTimeout(() => {
             checkUserRole(session.user.id);
+            checkUserStatus(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
           setIsGestor(false);
           setIsMarketing(false);
           setIsCorretor(false);
+          setIsPendingApproval(false);
         }
       }
     );
@@ -67,27 +82,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (session?.user) {
         checkUserRole(session.user.id);
+        checkUserStatus(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const canAccessAdmin = isAdmin || isGestor || isMarketing || isCorretor;
+  const canAccessAdmin = (isAdmin || isGestor || isMarketing || isCorretor) && !isPendingApproval;
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      return { error };
+    }
+
+    // Check if user is pending approval
+    if (data.user) {
+      const status = await checkUserStatus(data.user.id);
+      if (status === 'pending') {
+        return { error: null, isPending: true };
+      }
+    }
+
+    return { error: null };
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, phone?: string, creci?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: { name }
+        data: { name, phone, creci }
       }
     });
     return { error };
@@ -98,7 +127,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, isGestor, isMarketing, isCorretor, canAccessAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      isAdmin, 
+      isGestor, 
+      isMarketing, 
+      isCorretor, 
+      canAccessAdmin, 
+      isPendingApproval,
+      signIn, 
+      signUp, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

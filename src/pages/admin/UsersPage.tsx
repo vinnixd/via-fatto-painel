@@ -47,6 +47,8 @@ import {
   Crown,
   Briefcase,
   X,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -141,9 +143,14 @@ const UsersPage = () => {
     enabled: canAccessUsers,
   });
 
+  // Separate pending users
+  const pendingUsers = users?.filter(u => u.status === 'pending') || [];
+  const activeUsers = users?.filter(u => u.status !== 'pending') || [];
+
   // Statistics
   const stats = {
     total: users?.length || 0,
+    pending: pendingUsers.length,
     admins: users?.filter(u => u.role === 'admin').length || 0,
     gestores: users?.filter(u => u.role === 'gestor').length || 0,
     corretores: users?.filter(u => u.role === 'corretor').length || 0,
@@ -530,25 +537,113 @@ const UsersPage = () => {
           </Card>
         )}
 
+        {/* Pending Approvals Section */}
+        {pendingUsers.length > 0 && (
+          <Card className="bg-orange-50/50 border-orange-200/50">
+            <CardContent className="p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <AlertCircle className="h-5 w-5 text-orange-600" />
+                <h3 className="font-semibold text-foreground">Aguardando Aprovação ({pendingUsers.length})</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {pendingUsers.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between bg-white rounded-lg p-4 border border-orange-200">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={member.avatar_url || undefined} className="object-cover" />
+                        <AvatarFallback className="bg-orange-100 text-orange-600 font-semibold">
+                          {getInitials(member.name, member.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-foreground">{member.name || 'Sem nome'}</p>
+                          <Badge className="bg-orange-500/10 text-orange-600 border border-orange-500/20">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pendente
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.email}
+                        </p>
+                        {member.creci && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            CRECI: {member.creci}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={member.role}
+                        onValueChange={(value: string) => {
+                          // Primeiro atualiza o role, depois aprova
+                          updateRoleMutation.mutate({
+                            userId: member.id,
+                            newRole: value,
+                          });
+                        }}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue placeholder="Função" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="corretor">Corretor</SelectItem>
+                          <SelectItem value="marketing">Marketing</SelectItem>
+                          <SelectItem value="gestor">Gerente</SelectItem>
+                          <SelectItem value="admin">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' })}
+                        disabled={toggleStatusMutation.isPending}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Aprovar
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => toggleStatusMutation.mutate({ userId: member.id, newStatus: 'rejected' })}
+                        disabled={toggleStatusMutation.isPending}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Team Members Section */}
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
               <Users className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-foreground">Membros da Equipe ({users?.length || 0})</h3>
+              <h3 className="font-semibold text-foreground">Membros da Equipe ({activeUsers.length})</h3>
             </div>
 
             {usersLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : users?.length === 0 ? (
+            ) : activeUsers.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 Nenhum membro encontrado
               </div>
             ) : (
               <div className="space-y-3">
-                {users?.map((member) => (
+                {activeUsers.map((member) => (
                   <div key={member.id} className="flex items-center justify-between bg-muted/30 rounded-lg p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">

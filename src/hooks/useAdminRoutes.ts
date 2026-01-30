@@ -21,6 +21,7 @@ const ADMIN_ROUTE_MAP: Record<string, string> = {
   '/admin/cadastro': '/cadastro',
   '/admin/esqueci-senha': '/esqueci-senha',
   '/admin/redefinir-senha': '/redefinir-senha',
+  '/admin/aguardando-aprovacao': '/aguardando-aprovacao',
   '/admin/designer': '/designer',
   '/admin/imoveis': '/imoveis',
   '/admin/imoveis/novo': '/imoveis/novo',
