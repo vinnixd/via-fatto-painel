@@ -30,10 +30,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', adminPath: '/admin' },
-  { icon: Settings, label: 'Administração', adminPath: '/admin/administracao', roles: ['admin', 'gestor', 'marketing'] },
   { icon: Building2, label: 'Imóveis', adminPath: '/admin/imoveis' },
   { icon: MessageSquare, label: 'Leads', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
+  { icon: Settings, label: 'Administração', adminPath: '/admin/administracao', roles: ['admin', 'gestor', 'marketing'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };
