@@ -474,22 +474,53 @@ const PropertyFormPage = () => {
     }
   };
 
+  const MAX_IMAGES = 10;
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const handleImageUpload = useCallback(async (files: FileList) => {
-    const newImages: PropertyImage[] = [];
+    const remainingSlots = MAX_IMAGES - images.length;
     
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    if (remainingSlots <= 0) {
+      toast.error(`Limite de ${MAX_IMAGES} imagens atingido`);
+      return;
+    }
+
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+    
+    if (files.length > remainingSlots) {
+      toast.warning(`Apenas ${remainingSlots} imagem(ns) será(ão) adicionada(s). Limite de ${MAX_IMAGES} imagens.`);
+    }
+
+    const newImages: PropertyImage[] = [];
+    let skippedCount = 0;
+    
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const file = filesToProcess[i];
+      
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        toast.error(`"${file.name}" excede ${MAX_FILE_SIZE_MB}MB e foi ignorada`);
+        skippedCount++;
+        continue;
+      }
+      
       const url = URL.createObjectURL(file);
       newImages.push({
         url,
         alt: file.name,
-        order_index: images.length + i,
+        order_index: images.length + newImages.length,
         file,
         isNew: true,
       });
     }
 
-    setImages([...images, ...newImages]);
+    if (newImages.length > 0) {
+      setImages([...images, ...newImages]);
+      if (skippedCount === 0) {
+        toast.success(`${newImages.length} imagem(ns) adicionada(s)`);
+      }
+    }
   }, [images]);
 
   const removeImage = (index: number) => {
@@ -1637,8 +1668,11 @@ const PropertyFormPage = () => {
                       <p className="text-lg font-medium mb-1">
                         Arraste e solte suas imagens aqui
                       </p>
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground mb-2">
                         ou clique para selecionar arquivos
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        máx. 5MB cada, até 10 imagens ({images.length}/{MAX_IMAGES})
                       </p>
                       <input
                         id="image-upload"
