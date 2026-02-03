@@ -477,6 +477,10 @@ const PropertyFormPage = () => {
   const MAX_IMAGES = 10;
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+  const COMPRESSION_THRESHOLD_MB = 5;
+  const COMPRESSION_THRESHOLD_BYTES = COMPRESSION_THRESHOLD_MB * 1024 * 1024;
+
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const handleImageUpload = useCallback(async (files: FileList) => {
     const remainingSlots = MAX_IMAGES - images.length;
@@ -492,17 +496,45 @@ const PropertyFormPage = () => {
       toast.warning(`Apenas ${remainingSlots} imagem(ns) será(ão) adicionada(s). Limite de ${MAX_IMAGES} imagens.`);
     }
 
+    // Check if any files need compression
+    const needsCompression = filesToProcess.some(f => f.size > COMPRESSION_THRESHOLD_BYTES);
+    if (needsCompression) {
+      setIsCompressing(true);
+      toast.info('Comprimindo imagens grandes...');
+    }
+
     const newImages: PropertyImage[] = [];
-    let skippedCount = 0;
+    let compressedCount = 0;
     
     for (let i = 0; i < filesToProcess.length; i++) {
-      const file = filesToProcess[i];
+      let file = filesToProcess[i];
       
-      // Validate file size
-      if (file.size > MAX_FILE_SIZE_BYTES) {
-        toast.error(`"${file.name}" excede ${MAX_FILE_SIZE_MB}MB e foi ignorada`);
-        skippedCount++;
-        continue;
+      // Auto-compress images larger than 5MB
+      if (file.size > COMPRESSION_THRESHOLD_BYTES) {
+        try {
+          const originalSize = file.size;
+          file = await compressImage(file, {
+            maxWidth: 2048,
+            maxHeight: 2048,
+            quality: 0.85,
+            maxSizeKB: 4500, // Target under 5MB
+          });
+          
+          if (file.size < originalSize) {
+            compressedCount++;
+            console.log(`Compressed ${filesToProcess[i].name}: ${(originalSize / 1024 / 1024).toFixed(2)}MB → ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+          }
+          
+          // If still too large after compression, skip
+          if (file.size > MAX_FILE_SIZE_BYTES) {
+            toast.error(`"${filesToProcess[i].name}" ainda excede ${MAX_FILE_SIZE_MB}MB após compressão`);
+            continue;
+          }
+        } catch (error) {
+          console.error('Compression error:', error);
+          toast.error(`Erro ao comprimir "${file.name}"`);
+          continue;
+        }
       }
       
       const url = URL.createObjectURL(file);
@@ -515,9 +547,13 @@ const PropertyFormPage = () => {
       });
     }
 
+    setIsCompressing(false);
+
     if (newImages.length > 0) {
       setImages([...images, ...newImages]);
-      if (skippedCount === 0) {
+      if (compressedCount > 0) {
+        toast.success(`${newImages.length} imagem(ns) adicionada(s), ${compressedCount} comprimida(s)`);
+      } else {
         toast.success(`${newImages.length} imagem(ns) adicionada(s)`);
       }
     }
@@ -1662,24 +1698,39 @@ const PropertyFormPage = () => {
                         }
                       }}
                     >
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <Upload className="h-8 w-8 text-primary" />
-                      </div>
-                      <p className="text-lg font-medium mb-1">
-                        Arraste e solte suas imagens aqui
-                      </p>
-                      <p className="text-muted-foreground mb-2">
-                        ou clique para selecionar arquivos
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        máx. 5MB cada, até 10 imagens ({images.length}/{MAX_IMAGES})
-                      </p>
+                      {isCompressing ? (
+                        <div className="flex flex-col items-center">
+                          <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+                          <p className="text-lg font-medium mb-1">
+                            Comprimindo imagens...
+                          </p>
+                          <p className="text-muted-foreground">
+                            Aguarde enquanto otimizamos suas fotos
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                            <Upload className="h-8 w-8 text-primary" />
+                          </div>
+                          <p className="text-lg font-medium mb-1">
+                            Arraste e solte suas imagens aqui
+                          </p>
+                          <p className="text-muted-foreground mb-2">
+                            ou clique para selecionar arquivos
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Até 10 imagens ({images.length}/{MAX_IMAGES}) • Compressão automática para arquivos &gt;5MB
+                          </p>
+                        </>
+                      )}
                       <input
                         id="image-upload"
                         type="file"
                         accept="image/*"
                         multiple
                         className="hidden"
+                        disabled={isCompressing}
                         onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
                       />
                     </div>
