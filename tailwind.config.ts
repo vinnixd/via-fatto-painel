@@ -88,15 +88,7 @@ export default {
 					'muted-foreground': 'hsl(var(--admin-muted-foreground))',
 					accent: 'hsl(var(--admin-accent))',
 					'accent-foreground': 'hsl(var(--admin-accent-foreground))'
-				},
-				// Theme 02 - Premium Dark Colors
-				'theme02-deep-black': '#0F0F0F',
-				'theme02-black': '#121212',
-				'theme02-dark-gray': '#1A1A1A',
-				'theme02-medium-gray': '#2A2A2A',
-				'theme02-light-gray': '#E5E5E5',
-				'theme02-green': '#22C55E',
-				'theme02-green-hover': '#16A34A'
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

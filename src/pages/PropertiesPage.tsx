@@ -1,24 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '@/components/layout/Header';
-import HeaderTheme02 from '@/components/layout/HeaderTheme02';
 import Footer from '@/components/layout/Footer';
-import FooterTheme02 from '@/components/layout/FooterTheme02';
 import PropertyCard from '@/components/ui/PropertyCard';
-import PropertyCardTheme02 from '@/components/ui/PropertyCardTheme02';
 import PropertyFilter from '@/components/ui/PropertyFilter';
 import SEOHead from '@/components/SEOHead';
 import { useProperties, useSiteConfig, PropertyFromDB } from '@/hooks/useSupabaseData';
 import { PropertyFilter as PropertyFilterType } from '@/types/property';
 import { Grid, List, Loader2 } from 'lucide-react';
-import { useSiteTheme } from '@/contexts/SiteThemeContext';
 
 const PropertiesPage = () => {
   const [searchParams] = useSearchParams();
   const { data: properties = [], isLoading } = useProperties();
   const { data: siteConfig } = useSiteConfig();
-  const { siteTheme } = useSiteTheme();
-  const isTheme02 = siteTheme === 'theme-02';
   
   const [filteredProperties, setFilteredProperties] = useState<PropertyFromDB[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -210,19 +204,15 @@ const PropertiesPage = () => {
     setCurrentPage(page);
   };
 
-  const CurrentHeader = isTheme02 ? HeaderTheme02 : Header;
-  const CurrentFooter = isTheme02 ? FooterTheme02 : Footer;
-  const CurrentPropertyCard = isTheme02 ? PropertyCardTheme02 : PropertyCard;
-
   return (
-    <div className={`min-h-screen ${isTheme02 ? 'bg-theme02-deep-black' : 'bg-background'}`}>
+    <div className="min-h-screen bg-background">
       <SEOHead 
         title={`Imóveis à Venda e Aluguel - ${siteConfig?.seo_title || 'Via Fatto Imóveis'}`}
         description={`Encontre ${filteredProperties.length} imóveis disponíveis para compra e aluguel em Brasília DF e Goiás. Casas, apartamentos, terrenos e mais.`}
         ogImage={siteConfig?.og_image_url || undefined}
         siteConfig={siteConfig}
       />
-      <CurrentHeader />
+      <Header />
       
       <main className="py-6 sm:py-8">
         <div className="container">
@@ -290,7 +280,7 @@ const PropertiesPage = () => {
               : 'flex flex-col gap-4 sm:gap-6'
             }>
               {currentProperties.map((property) => (
-                <CurrentPropertyCard
+                <PropertyCard
                   key={property.id}
                   property={convertToCardFormat(property)}
                   onFavorite={handleFavorite}
@@ -374,7 +364,7 @@ const PropertiesPage = () => {
         </div>
       </main>
 
-      <CurrentFooter />
+      <Footer />
     </div>
   );
 };

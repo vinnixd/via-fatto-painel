@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
-import { SiteThemeProvider } from "@/contexts/SiteThemeContext";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { AdminRoutes } from "@/components/AdminRoutes";
@@ -27,13 +26,11 @@ const App = () => {
           <ScrollToTop />
           <AuthProvider>
             <TenantProvider>
-              <SiteThemeProvider>
-                <RealtimeSyncProvider>
-                  <AppErrorBoundary>
-                    <AdminRoutes useCleanUrls={useCleanUrls} />
-                  </AppErrorBoundary>
-                </RealtimeSyncProvider>
-              </SiteThemeProvider>
+              <RealtimeSyncProvider>
+                <AppErrorBoundary>
+                  <AdminRoutes useCleanUrls={useCleanUrls} />
+                </AppErrorBoundary>
+              </RealtimeSyncProvider>
             </TenantProvider>
           </AuthProvider>
         </BrowserRouter>

@@ -1,30 +1,23 @@
 import Header from '@/components/layout/Header';
-import HeaderTheme02 from '@/components/layout/HeaderTheme02';
 import Footer from '@/components/layout/Footer';
-import FooterTheme02 from '@/components/layout/FooterTheme02';
 import Home from './Home';
-import HomeTheme02 from './HomeTheme02';
 import SEOHead from '@/components/SEOHead';
 import { useSiteConfig } from '@/hooks/useSupabaseData';
-import { useSiteTheme } from '@/contexts/SiteThemeContext';
 
 const Index = () => {
   const { data: siteConfig } = useSiteConfig();
-  const { siteTheme } = useSiteTheme();
-  
-  const isTheme02 = siteTheme === 'theme-02';
   
   return (
-    <div className={`min-h-screen ${isTheme02 ? 'bg-theme02-deep-black' : 'bg-background'}`}>
+    <div className="min-h-screen bg-background">
       <SEOHead 
         pageKey="home"
         siteConfig={siteConfig}
       />
-      {isTheme02 ? <HeaderTheme02 /> : <Header />}
+      <Header />
       <main>
-        {isTheme02 ? <HomeTheme02 /> : <Home />}
+        <Home />
       </main>
-      {isTheme02 ? <FooterTheme02 /> : <Footer />}
+      <Footer />
     </div>
   );
 };
