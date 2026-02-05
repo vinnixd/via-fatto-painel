@@ -307,7 +307,188 @@ seoData = {
 
 ---
 
-## 4. Configuração da API
+## 4. Tela "SEO - Otimização para Google" (Aba do Formulário de Imóvel)
+
+### Visão Geral
+
+A aba **SEO** dentro do formulário "Editar Imóvel" permite configurar título e descrição otimizados para Google **por imóvel**. Inclui um botão de geração automática com IA.
+
+### Estrutura da Interface
+
+```
+┌─────────────────────────────────────────────────────┐
+│  🔗 SEO - Otimização para Google                    │
+│  Configure o título e descrição que aparecerão      │
+│  nos resultados de busca                            │
+│                                                      │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  ✨ Gerar SEO com IA                          │  │
+│  │  Gere automaticamente título e descrição      │  │
+│  │  otimizados para mecanismos de busca usando   │  │
+│  │  inteligência artificial.                     │  │
+│  │                                                │  │
+│  │  [ ✨ Gerar SEO Automático ]                  │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                      │
+│  Título SEO (máx. 60 caracteres)            0/60    │
+│  ┌───────────────────────────────────────────────┐  │
+│  │ Ex: Casa à Venda em Brasília DF | 3 Quartos   │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                      │
+│  Meta Description (máx. 155 caracteres)    0/155    │
+│  ┌───────────────────────────────────────────────┐  │
+│  │ Ex: Casa à venda no Lago Sul, Brasília DF     │  │
+│  │ com 3 quartos, suíte master...                │  │
+│  └───────────────────────────────────────────────┘  │
+│                                                      │
+│  ┌─ Dicas para SEO ──────────────────────────────┐  │
+│  │ • Inclua o tipo de imóvel e localização       │  │
+│  │ • Use palavras-chave como "à venda", "para    │  │
+│  │   alugar", número de quartos                  │  │
+│  │ • A meta description deve ter um CTA          │  │
+│  │ • Evite textos genéricos ou duplicados        │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Campos no Banco de Dados (tabela `properties`)
+
+| Campo | Tipo | Limite | Descrição |
+|-------|------|--------|-----------|
+| `seo_title` | text | 60 chars | Title tag otimizado para Google |
+| `seo_description` | text | 155 chars | Meta description otimizada |
+
+### Fluxo de Geração com IA
+
+```
+Usuário clica "Gerar SEO Automático"
+        │
+        ▼
+Frontend monta payload com dados do imóvel
+        │
+        ▼
+Chama edge function `generate-seo`
+        │
+        ▼
+Edge function envia prompt ao Lovable AI Gateway
+(modelo: google/gemini-2.5-flash)
+        │
+        ▼
+IA retorna JSON: { seo_title, seo_description }
+        │
+        ▼
+Frontend preenche os campos automaticamente
+        │
+        ▼
+Usuário revisa e salva o imóvel
+```
+
+### Payload Enviado ao Edge Function
+
+O frontend coleta os dados do imóvel e envia:
+
+```json
+{
+  "propertyInfo": {
+    "type": "casa",
+    "status": "venda",
+    "title": "Casa Moderna no Lago Sul",
+    "city": "Brasília",
+    "state": "DF",
+    "neighborhood": "Lago Sul",
+    "bedrooms": 3,
+    "bathrooms": 4,
+    "garages": 2,
+    "area": 200,
+    "price": 2500000,
+    "features": ["suíte master", "churrasqueira", "área gourmet"]
+  }
+}
+```
+
+### Edge Function: `generate-seo`
+
+**Caminho:** `supabase/functions/generate-seo/index.ts`
+
+**Comportamento:**
+1. Recebe `propertyInfo` no body
+2. Mapeia `type` e `status` para labels em português
+3. Monta system prompt (especialista SEO) + user prompt (dados do imóvel)
+4. Chama o Lovable AI Gateway
+5. Faz parsing do JSON da resposta
+6. Se parsing falha → gera fallback básico
+7. Trunca `seo_title` em 60 chars e `seo_description` em 155 chars
+8. Retorna JSON
+
+### Prompts Utilizados
+
+**(Mesmos da Seção 3 acima)**
+
+- **System:** Especialista SEO → regras de limite, palavra-chave no início, CTA, localização
+- **User:** Dados completos do imóvel formatados
+
+### Resposta da IA → Campos Preenchidos
+
+```json
+{
+  "seo_title": "Casa 3 Quartos à Venda no Lago Sul | 200m²",
+  "seo_description": "Casa moderna com 3 quartos, suíte master e área gourmet no Lago Sul, Brasília DF. 200m², 2 vagas. Agende sua visita!"
+}
+```
+
+Esses valores são inseridos diretamente nos inputs da tela e salvos na tabela `properties` junto com o imóvel.
+
+### Chamada Frontend (exemplo)
+
+```typescript
+const generateSeo = async () => {
+  setGenerating(true);
+  try {
+    const { data, error } = await supabase.functions.invoke('generate-seo', {
+      body: {
+        propertyInfo: {
+          type: property.type,
+          status: property.status,
+          title: property.title,
+          city: property.address_city,
+          state: property.address_state,
+          neighborhood: property.address_neighborhood,
+          bedrooms: property.bedrooms,
+          bathrooms: property.bathrooms,
+          garages: property.garages,
+          area: property.area,
+          price: property.price,
+          features: property.features?.slice(0, 3) || [],
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    // Preenche os campos na tela
+    setSeoTitle(data.seo_title);
+    setSeoDescription(data.seo_description);
+    toast.success('SEO gerado com sucesso!');
+  } catch (err) {
+    toast.error('Erro ao gerar SEO');
+  } finally {
+    setGenerating(false);
+  }
+};
+```
+
+### Validações na Interface
+
+| Regra | Implementação |
+|-------|---------------|
+| Contador de caracteres | Exibido como `X/60` e `X/155` ao lado do label |
+| Truncamento | Backend trunca antes de retornar |
+| Placeholder | Exemplos reais como guia visual |
+| Dicas | Card amarelo com boas práticas de SEO |
+
+---
+
+## 5. Configuração da API
 
 ### Endpoint
 ```
