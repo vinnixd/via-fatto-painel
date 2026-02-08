@@ -1,10 +1,18 @@
 import { ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AdminLink from '@/components/admin/AdminLink';
 import { useAdminRoutes } from '@/hooks/useAdminRoutes';
-import { CreditCard, FileText, Package, ChevronLeft } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { CreditCard, FileText, Package, ChevronDown, Check } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface SubscriptionsLayoutProps {
   children: ReactNode;
@@ -18,79 +26,84 @@ const menuItems = [
 
 const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
   const location = useLocation();
-  const { normalizeCurrentPath } = useAdminRoutes();
+  const navigate = useNavigate();
+  const { normalizeCurrentPath, getPath } = useAdminRoutes();
   const normalizedPath = normalizeCurrentPath(location.pathname);
+  const isMobile = useIsMobile();
+
+  const activeTab = menuItems.find(item => normalizedPath === item.adminPath)?.adminPath || menuItems[0].adminPath;
+
+  const handleTabChange = (value: string) => {
+    navigate(getPath(value));
+  };
+
+  const currentTab = menuItems.find(t => t.adminPath === activeTab);
 
   return (
     <AdminLayout>
-      {/* Mobile Menu */}
-      <div className="lg:hidden border-b border-border bg-background p-4">
-        <AdminLink 
-          to="/admin" 
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          <span className="font-medium">Assinaturas</span>
-        </AdminLink>
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {menuItems.map((item) => {
-            const isActive = normalizedPath === item.adminPath;
-            
-            return (
-              <AdminLink
-                key={item.adminPath}
-                to={item.adminPath}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm whitespace-nowrap',
-                  isActive
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </AdminLink>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex min-h-[calc(100vh-4rem)]">
-        {/* Submenu Sidebar */}
-        <div className="w-64 border-r border-border bg-background p-4 hidden lg:block">
-          <AdminLink 
-            to="/admin" 
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-            <span className="font-medium">Assinaturas</span>
-          </AdminLink>
-          
-          <nav className="space-y-1">
-            {menuItems.map((item) => {
-              const isActive = normalizedPath === item.adminPath;
-              
-              return (
-                <AdminLink
+      <div className="p-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
+          {/* Desktop Tabs */}
+          {!isMobile && (
+            <TabsList className="h-auto p-1 bg-muted/50 w-full justify-center gap-1 rounded-lg border">
+              {menuItems.map((item) => (
+                <TabsTrigger
                   key={item.adminPath}
-                  to={item.adminPath}
+                  value={item.adminPath}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm',
-                    isActive
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    "flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all",
+                    "data-[state=active]:border-b-2 data-[state=active]:border-primary"
                   )}
                 >
                   <item.icon className="h-4 w-4" />
                   <span>{item.label}</span>
-                </AdminLink>
-              );
-            })}
-          </nav>
-        </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          )}
+
+          {/* Mobile Dropdown */}
+          {isMobile && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-between h-12 text-base"
+                >
+                  <span className="flex items-center gap-2">
+                    {currentTab && (
+                      <>
+                        <currentTab.icon className="h-4 w-4" />
+                        {currentTab.label}
+                      </>
+                    )}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[calc(100vw-3rem)]" align="start">
+                {menuItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.adminPath}
+                    onClick={() => handleTabChange(item.adminPath)}
+                    className="flex items-center justify-between py-3"
+                  >
+                    <span className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </span>
+                    {activeTab === item.adminPath && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </Tabs>
 
         {/* Content */}
-        <div className="flex-1 p-6">
+        <div className="mt-6">
           {children}
         </div>
       </div>
