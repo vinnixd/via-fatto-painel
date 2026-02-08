@@ -620,19 +620,21 @@ const DesignerContent = () => {
               </Card>
 
               {/* Home Image Position */}
-              <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Posição da Imagem</CardTitle>
-                  <CardDescription>Ajuste o ponto focal da imagem de fundo</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ImagePositionPicker
-                    position={config.home_image_position || '50% 50%'}
-                    onChange={(position) => setConfig(prev => prev ? { ...prev, home_image_position: position } : null)}
-                    imageUrl={config.hero_background_url || ''}
-                  />
-                </CardContent>
-              </Card>
+              {config.hero_background_url && (
+                <Card>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg">Posição da Imagem</CardTitle>
+                    <CardDescription>Ajuste o ponto focal da imagem de fundo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ImagePositionPicker
+                      position={config.home_image_position || '50% 50%'}
+                      onChange={(position) => setConfig(prev => prev ? { ...prev, home_image_position: position } : null)}
+                      imageUrl={config.hero_background_url}
+                    />
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
 
