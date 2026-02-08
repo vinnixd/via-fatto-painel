@@ -14,7 +14,6 @@ import {
   Palette, 
   Globe, 
   Plug, 
-  CreditCard, 
   GlobeLock,
   ChevronDown,
   Check,
@@ -26,7 +25,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import DesignerContent from './admin-tabs/DesignerContent';
 import PortaisContent from './admin-tabs/PortaisContent';
 import IntegracoesContent from './admin-tabs/IntegracoesContent';
-import AssinaturasContent from './admin-tabs/AssinaturasContent';
+
 import DominiosContent from './admin-tabs/DominiosContent';
 import SeoContent from './admin-tabs/SeoContent';
 
@@ -37,7 +36,6 @@ const tabs = [
   { id: 'designer', label: 'Designer', icon: Palette, roles: ['admin', 'gestor', 'marketing'] },
   { id: 'portais', label: 'Portais', icon: Globe, roles: ['admin', 'gestor', 'marketing'] },
   { id: 'integracoes', label: 'Integrações', icon: Plug, roles: ['admin', 'marketing'] },
-  { id: 'assinaturas', label: 'Assinaturas', icon: CreditCard, roles: ['admin'] },
   { id: 'dominios', label: 'Domínios', icon: GlobeLock, tenantRoles: ['owner', 'admin'] },
   { id: 'seo', label: 'SEO', icon: Search, roles: ['admin', 'gestor', 'marketing'] },
 ];
@@ -163,9 +161,6 @@ const AdminPage = () => {
             <IntegracoesContent />
           </TabsContent>
 
-          <TabsContent value="assinaturas" className="mt-6 focus-visible:outline-none focus-visible:ring-0">
-            <AssinaturasContent />
-          </TabsContent>
 
           <TabsContent value="dominios" className="mt-6 focus-visible:outline-none focus-visible:ring-0">
             <DominiosContent />

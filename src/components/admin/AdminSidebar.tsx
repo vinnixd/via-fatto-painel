@@ -13,6 +13,7 @@ import {
   LogOut,
   Headphones,
   Settings,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -34,6 +35,7 @@ const menuItems: MenuItem[] = [
   { icon: MessageSquare, label: 'Leads', adminPath: '/admin/mensagens' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
   { icon: Settings, label: 'Administração', adminPath: '/admin/administracao', roles: ['admin', 'gestor', 'marketing'] },
+  { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },
 ];
 
 const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/admin/perfil' };
