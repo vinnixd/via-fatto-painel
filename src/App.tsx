@@ -10,8 +10,14 @@ import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { AdminRoutes } from "@/components/AdminRoutes";
 import { isAdminSubdomain } from "@/hooks/useAdminRoutes";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
+import { useFavicon } from "@/hooks/useFavicon";
 
 const queryClient = new QueryClient();
+
+const FaviconUpdater = () => {
+  useFavicon();
+  return null;
+};
 
 const App = () => {
   // Determina se deve usar URLs limpas (sem /admin) baseado no subdomínio
@@ -27,6 +33,7 @@ const App = () => {
           <AuthProvider>
             <TenantProvider>
               <RealtimeSyncProvider>
+                <FaviconUpdater />
                 <AppErrorBoundary>
                   <AdminRoutes useCleanUrls={useCleanUrls} />
                 </AppErrorBoundary>
