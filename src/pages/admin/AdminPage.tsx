@@ -17,7 +17,8 @@ import {
   GlobeLock,
   ChevronDown,
   Check,
-  Search
+  Search,
+  ShieldCheck
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -28,6 +29,7 @@ import IntegracoesContent from './admin-tabs/IntegracoesContent';
 
 import DominiosContent from './admin-tabs/DominiosContent';
 import SeoContent from './admin-tabs/SeoContent';
+import CargosPermissoesContent from './admin-tabs/CargosPermissoesContent';
 
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,6 +40,7 @@ const tabs = [
   { id: 'integracoes', label: 'Integrações', icon: Plug, roles: ['admin', 'marketing'] },
   { id: 'dominios', label: 'Domínios', icon: GlobeLock, tenantRoles: ['owner', 'admin'] },
   { id: 'seo', label: 'SEO', icon: Search, roles: ['admin', 'gestor', 'marketing'] },
+  { id: 'permissoes', label: 'Cargos e Permissões', icon: ShieldCheck, roles: ['admin'] },
 ];
 
 const AdminPage = () => {
@@ -168,6 +171,10 @@ const AdminPage = () => {
 
           <TabsContent value="seo" className="mt-6 focus-visible:outline-none focus-visible:ring-0">
             <SeoContent />
+          </TabsContent>
+
+          <TabsContent value="permissoes" className="mt-6 focus-visible:outline-none focus-visible:ring-0">
+            <CargosPermissoesContent />
           </TabsContent>
         </Tabs>
       </div>
