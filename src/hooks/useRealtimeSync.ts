@@ -171,6 +171,8 @@ export const useRealtimeContacts = () => {
           // Invalidate related queries
           queryClient.invalidateQueries({ queryKey: ['unread-contacts-count'] });
           queryClient.invalidateQueries({ queryKey: ['notifications'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-charts'] });
         }
       )
       .subscribe((status) => {

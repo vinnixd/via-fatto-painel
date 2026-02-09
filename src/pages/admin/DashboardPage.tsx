@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardCharts from '@/components/admin/DashboardCharts';
 import { useProfile } from '@/hooks/useProfile';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   Building2,
   Home,
@@ -58,6 +59,7 @@ interface RecentMessage {
 
 const DashboardPage = () => {
   const { profile } = useProfile();
+  const { tenantId } = useTenant();
   const [stats, setStats] = useState<DashboardStats>({
     totalProperties: 0,
     forSale: 0,
@@ -74,6 +76,8 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!tenantId) return;
+    
     const fetchStats = async () => {
       try {
         const [
@@ -89,17 +93,17 @@ const DashboardPage = () => {
           topResult,
           messagesResult,
         ] = await Promise.all([
-          supabase.from('properties').select('*', { count: 'exact', head: true }),
-          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'venda'),
-          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'aluguel'),
-          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('featured', true),
-          supabase.from('contacts').select('*', { count: 'exact', head: true }),
-          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('read', false),
-          supabase.from('favorites').select('*', { count: 'exact', head: true }),
-          supabase.from('properties').select('views'),
-          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').order('created_at', { ascending: false }).limit(5),
-          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').order('views', { ascending: false }).limit(5),
-          supabase.from('contacts').select('id, name, email, message, read, created_at').order('created_at', { ascending: false }).limit(5),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'venda'),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('status', 'aluguel'),
+          supabase.from('properties').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('featured', true),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabase.from('contacts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId).eq('read', false),
+          supabase.from('favorites').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
+          supabase.from('properties').select('views').eq('tenant_id', tenantId),
+          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(5),
+          supabase.from('properties').select('id, title, slug, price, status, views, featured, created_at').eq('tenant_id', tenantId).order('views', { ascending: false }).limit(5),
+          supabase.from('contacts').select('id, name, email, message, read, created_at').eq('tenant_id', tenantId).order('created_at', { ascending: false }).limit(5),
         ]);
 
         const totalViews = viewsDataResult.data?.reduce((sum, p) => sum + (p.views || 0), 0) || 0;
@@ -126,7 +130,7 @@ const DashboardPage = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [tenantId]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-BR', {

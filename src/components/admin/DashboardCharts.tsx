@@ -16,6 +16,7 @@ import {
 import { Eye, Loader2, Users, MessageSquare } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay, eachDayOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ChartData {
   date: string;
@@ -41,11 +42,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const DashboardCharts = () => {
+  const { tenantId } = useTenant();
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
 
   useEffect(() => {
+    if (!tenantId) return;
+    
     const fetchChartData = async () => {
       setLoading(true);
       try {
@@ -65,6 +69,7 @@ const DashboardCharts = () => {
         const { data: contacts, error: contactsError } = await supabase
           .from('contacts')
           .select('created_at')
+          .eq('tenant_id', tenantId)
           .gte('created_at', startDate.toISOString())
           .lte('created_at', endDate.toISOString());
 
@@ -101,7 +106,7 @@ const DashboardCharts = () => {
     };
 
     fetchChartData();
-  }, [period]);
+  }, [period, tenantId]);
 
   const totalViews = chartData.reduce((sum, d) => sum + d.views, 0);
   const totalLeads = chartData.reduce((sum, d) => sum + d.leads, 0);
