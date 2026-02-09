@@ -89,7 +89,7 @@ const PlansPage = () => {
   if (isLoading) {
     return (
       <SubscriptionsLayout>
-        <div className="max-w-6xl animate-fade-in space-y-8">
+        <div className="max-w-6xl mx-auto animate-fade-in space-y-8">
           <div className="text-center">
             <Skeleton className="h-10 w-64 mx-auto mb-4" />
             <Skeleton className="h-6 w-96 mx-auto" />
@@ -106,7 +106,7 @@ const PlansPage = () => {
 
   return (
     <SubscriptionsLayout>
-      <div className="max-w-6xl animate-fade-in">
+      <div className="max-w-6xl mx-auto animate-fade-in">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-3">Escolha o plano ideal para você</h1>
