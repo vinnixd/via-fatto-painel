@@ -2,3 +2,6 @@ project_id = "mpsusvpdjuqvjgdsvwpp"
 
 [functions.import-images]
 verify_jwt = false
+
+[functions.generate-blog-seo]
+verify_jwt = false

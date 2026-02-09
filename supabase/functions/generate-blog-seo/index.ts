@@ -1,0 +1,130 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { title, excerpt, category, content } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    if (!title) {
+      return new Response(JSON.stringify({ error: "Título é obrigatório para gerar SEO." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Strip HTML tags from content for context
+    const plainContent = (content || '').replace(/<[^>]*>/g, '').substring(0, 500);
+
+    const systemPrompt = `Você é um especialista em SEO para blogs imobiliários no Brasil.
+Sua tarefa é gerar title tags e meta descriptions otimizados para Google.
+
+REGRAS:
+1. Title SEO: máximo 60 caracteres, palavra-chave principal no início
+2. Meta Description: máximo 155 caracteres, incluir CTA
+3. Linguagem persuasiva e profissional em português brasileiro
+4. Incluir a categoria/tema quando relevante
+5. Criar urgência e interesse para clicar
+6. Não usar aspas no texto gerado
+
+FORMATO DE SAÍDA (JSON):
+{
+  "seo_title": "título otimizado aqui",
+  "seo_description": "descrição meta otimizada aqui"
+}`;
+
+    const userPrompt = `Gere SEO title e meta description para este artigo de blog:
+
+Título: ${title}
+Resumo: ${excerpt || 'Não informado'}
+Categoria: ${category || 'Não informada'}
+Trecho do conteúdo: ${plainContent || 'Não informado'}
+
+Retorne APENAS o JSON com seo_title e seo_description.`;
+
+    console.log("Generating blog SEO for:", title);
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI Gateway error:", response.status, errorText);
+
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      throw new Error(`AI Gateway error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const raw = data.choices?.[0]?.message?.content;
+
+    if (!raw) throw new Error("No response from AI");
+
+    let seoData;
+    try {
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        seoData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("No JSON found");
+      }
+    } catch {
+      seoData = {
+        seo_title: title.substring(0, 60),
+        seo_description: (excerpt || title).substring(0, 155),
+      };
+    }
+
+    seoData.seo_title = (seoData.seo_title || '').substring(0, 60);
+    seoData.seo_description = (seoData.seo_description || '').substring(0, 155);
+
+    console.log("Blog SEO generated:", seoData);
+
+    return new Response(JSON.stringify(seoData), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (error: unknown) {
+    console.error("Error in generate-blog-seo:", error);
+    const msg = error instanceof Error ? error.message : "Erro ao gerar SEO";
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
