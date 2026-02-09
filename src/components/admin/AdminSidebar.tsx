@@ -183,7 +183,7 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
       {/* Support & Logout */}
       <div className="border-t border-sidebar-border p-4 space-y-1">
         <a
-          href={SUPPORT_WHATSAPP ? `https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, '')}` : '#'}
+          href={SUPPORT_WHATSAPP ? `https://wa.me/${SUPPORT_WHATSAPP.replace(/\D/g, '')}?text=${encodeURIComponent('Olá, preciso de ajuda com o sistema')}` : '#'}
           target="_blank"
           rel="noopener noreferrer"
           title={collapsed ? 'Suporte' : undefined}
