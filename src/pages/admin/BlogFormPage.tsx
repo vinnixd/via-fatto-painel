@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { compressImage } from '@/lib/imageCompression';
 import RichTextEditor from '@/components/admin/blog/RichTextEditor';
+import { useProfile } from '@/hooks/useProfile';
 import {
   useBlogPost,
   useCreateBlogPost,
@@ -63,6 +64,7 @@ const BlogFormPage = () => {
   const { data: existingPost, isLoading: loadingPost } = useBlogPost(id);
   const createMutation = useCreateBlogPost();
   const updateMutation = useUpdateBlogPost();
+  const { profile } = useProfile();
 
   const [form, setForm] = useState({
     title: '',
@@ -83,6 +85,7 @@ const BlogFormPage = () => {
   const [customCategory, setCustomCategory] = useState('');
   const [generatingSeo, setGeneratingSeo] = useState(false);
 
+  // Load existing post data
   useEffect(() => {
     if (existingPost) {
       setForm({
@@ -102,6 +105,17 @@ const BlogFormPage = () => {
       setSlugManuallyEdited(true);
     }
   }, [existingPost]);
+
+  // Auto-fill author from logged-in user profile (only for new posts)
+  useEffect(() => {
+    if (!isEditing && profile) {
+      setForm(prev => ({
+        ...prev,
+        author_name: prev.author_name || profile.name || '',
+        author_avatar_url: prev.author_avatar_url || profile.avatar_url || '',
+      }));
+    }
+  }, [isEditing, profile]);
 
   const updateField = (field: string, value: any) => {
     setForm(prev => {
