@@ -109,8 +109,10 @@ const MessagesPage = () => {
   });
 
   const fetchContacts = async () => {
+    if (!tenant?.id) return;
+    
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('contacts')
         .select(`
           *,
@@ -119,7 +121,10 @@ const MessagesPage = () => {
             title
           )
         `)
+        .eq('tenant_id', tenant.id)
         .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -151,8 +156,10 @@ const MessagesPage = () => {
   };
 
   useEffect(() => {
-    fetchContacts();
-  }, []);
+    if (tenant?.id) {
+      fetchContacts();
+    }
+  }, [tenant?.id]);
 
   useEffect(() => {
     if (tenant?.id) {
