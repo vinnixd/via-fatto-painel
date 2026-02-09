@@ -30,6 +30,8 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
     '/admin/dados/importar': { title: 'Importar', subtitle: 'Importar dados' },
     '/admin/compartilhamento': { title: 'Compartilhamento', subtitle: 'Teste de compartilhamento' },
     '/admin/membros': { title: 'Membros', subtitle: 'Gerencie sua equipe' },
+    '/admin/blog': { title: 'Blog', subtitle: 'Gerencie os artigos do blog' },
+    '/admin/blog/novo': { title: 'Novo Artigo', subtitle: 'Criar novo artigo do blog' },
   };
 
   // Check for exact match first
@@ -45,6 +47,11 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
   // Check for portal config page
   if (normalizedPath.match(/^\/admin\/portais\/[^/]+$/)) {
     return { title: 'Configurar Portal', subtitle: 'Configure a integração' };
+  }
+
+  // Check for blog edit page
+  if (normalizedPath.match(/^\/admin\/blog\/[^/]+$/)) {
+    return { title: 'Editar Artigo', subtitle: 'Editar artigo do blog' };
   }
 
   return { title: 'Admin', subtitle: undefined };
