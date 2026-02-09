@@ -144,7 +144,7 @@ const InvoicesPage = () => {
                 <p className="text-xs text-muted-foreground">Última</p>
                 <p className="font-semibold">
                   {lastInvoice 
-                    ? format(new Date(lastInvoice.due_date), 'MMM/yyyy', { locale: ptBR })
+                    ? format(new Date(lastInvoice.due_date + 'T12:00:00'), 'MMM/yyyy', { locale: ptBR })
                     : 'N/A'
                   }
                 </p>
@@ -221,7 +221,7 @@ const InvoicesPage = () => {
                         </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(invoice.due_date), 'dd/MM/yyyy')}
+                        {format(new Date(invoice.due_date + 'T12:00:00'), 'dd/MM/yyyy')}
                       </TableCell>
                       <TableCell>
                         {subscription?.plan?.name || 'N/A'}
