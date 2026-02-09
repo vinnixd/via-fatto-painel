@@ -19,7 +19,7 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
     '/admin/administracao': { title: 'Administração', subtitle: 'Configurações do sistema' },
     '/admin/imoveis': { title: 'Imóveis', subtitle: 'Gerencie seus imóveis' },
     '/admin/imoveis/novo': { title: 'Novo Imóvel', subtitle: 'Cadastrar novo imóvel' },
-    '/admin/mensagens': { title: 'Mensagens', subtitle: 'Central de mensagens' },
+    '/admin/mensagens': { title: 'Leads', subtitle: 'Gestão de leads' },
     '/admin/categorias': { title: 'Categorias', subtitle: 'Gerencie as categorias' },
     '/admin/configuracoes': { title: 'Configurações', subtitle: 'Configurações do sistema' },
     '/admin/perfil': { title: 'Meu Perfil', subtitle: 'Gerencie seu perfil' },
