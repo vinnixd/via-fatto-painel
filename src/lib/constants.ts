@@ -8,5 +8,5 @@ export const APP_NAME = 'Via Fatto Imóveis';
 export const SYSTEM_NAME = 'Zatch System';
 export const SYSTEM_YEAR = '2026';
 
-// Support WhatsApp - will be configured later
-export const SUPPORT_WHATSAPP: string = '';
+// Support WhatsApp
+export const SUPPORT_WHATSAPP = '5561920023960';
