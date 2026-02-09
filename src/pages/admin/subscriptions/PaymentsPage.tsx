@@ -86,9 +86,20 @@ const PaymentsPage = () => {
     ? plan?.annual_price 
     : plan?.monthly_price;
   
-  const nextPaymentDate = subscription?.started_at 
-    ? addMonths(new Date(subscription.started_at), 1)
-    : new Date();
+  // Calculate next payment date based on billing_day
+  const getNextPaymentDate = () => {
+    const today = startOfDay(new Date());
+    const billingDay = subscription?.billing_day || 1;
+    // Try this month's billing day first
+    let next = setDate(today, billingDay);
+    // If it's already past, move to next month
+    if (isBefore(next, today) || next.getTime() === today.getTime()) {
+      next = addMonths(setDate(today, billingDay), 1);
+    }
+    return next;
+  };
+
+  const nextPaymentDate = getNextPaymentDate();
 
   if (isLoading) {
     return (

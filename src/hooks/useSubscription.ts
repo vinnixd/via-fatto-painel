@@ -19,6 +19,7 @@ export interface Subscription {
   id: string;
   plan_id: string | null;
   billing_cycle: 'monthly' | 'annual';
+  billing_day: number | null;
   status: 'active' | 'canceled' | 'suspended' | 'trial';
   started_at: string;
   expires_at: string | null;
