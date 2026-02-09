@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Check, CheckCheck, UserPlus } from 'lucide-react';
+import { Bell, Check, CheckCheck, UserPlus, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -21,6 +21,8 @@ const NotificationBell = () => {
     switch (type) {
       case 'new_registration':
         return <UserPlus className="h-4 w-4 text-primary" />;
+      case 'new_lead':
+        return <MessageSquare className="h-4 w-4 text-primary" />;
       default:
         return <Bell className="h-4 w-4 text-muted-foreground" />;
     }
