@@ -216,7 +216,7 @@ const DashboardPage = () => {
 
   return (
     <AdminLayout>
-      <div className="p-4 md:p-6 lg:p-8 space-y-8">
+      <div className="p-6 space-y-8">
         {/* Header - Greeting */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
