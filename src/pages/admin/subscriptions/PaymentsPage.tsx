@@ -93,7 +93,7 @@ const PaymentsPage = () => {
   if (isLoading) {
     return (
       <SubscriptionsLayout>
-        <div className="max-w-5xl animate-fade-in space-y-6">
+        <div className="max-w-5xl mx-auto animate-fade-in space-y-6">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
@@ -108,7 +108,7 @@ const PaymentsPage = () => {
 
   return (
     <SubscriptionsLayout>
-      <div className="max-w-5xl animate-fade-in">
+      <div className="max-w-5xl mx-auto animate-fade-in">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Pagamentos</h1>
