@@ -225,7 +225,7 @@ const BlogFormPage = () => {
 
   return (
     <AdminLayout>
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      <form onSubmit={handleSubmit} className="p-6 space-y-6 max-w-4xl mx-auto">
         <Tabs defaultValue="principal" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="principal">Principal</TabsTrigger>
