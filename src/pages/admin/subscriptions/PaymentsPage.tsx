@@ -19,7 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useCurrentSubscription, useUpdateFiscalData } from '@/hooks/useSubscription';
-import { format, addMonths } from 'date-fns';
+import { format, setDate, addMonths, isBefore, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const PaymentsPage = () => {
