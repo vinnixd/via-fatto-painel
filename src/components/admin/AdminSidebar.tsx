@@ -14,6 +14,7 @@ import {
   Headphones,
   Settings,
   CreditCard,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -33,6 +34,7 @@ const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', adminPath: '/admin' },
   { icon: Building2, label: 'Imóveis', adminPath: '/admin/imoveis' },
   { icon: MessageSquare, label: 'Leads', adminPath: '/admin/mensagens' },
+  { icon: FileText, label: 'Blog', adminPath: '/admin/blog' },
   { icon: Users, label: 'Equipe', adminPath: '/admin/usuarios', roles: ['admin'] },
   { icon: Settings, label: 'Administração', adminPath: '/admin/administracao', roles: ['admin', 'gestor', 'marketing'] },
   { icon: CreditCard, label: 'Assinaturas', adminPath: '/admin/assinaturas', roles: ['admin'] },

@@ -28,6 +28,8 @@ import AdminPage from "@/pages/admin/AdminPage";
 import PaymentsPage from "@/pages/admin/subscriptions/PaymentsPage";
 import PlansPage from "@/pages/admin/subscriptions/PlansPage";
 import InvoicesPage from "@/pages/admin/subscriptions/InvoicesPage";
+import BlogListPage from "@/pages/admin/BlogListPage";
+import BlogFormPage from "@/pages/admin/BlogFormPage";
 
 interface AdminRoutesProps {
   useCleanUrls: boolean;
@@ -96,6 +98,12 @@ export const AdminRoutes = ({ useCleanUrls }: AdminRoutesProps) => {
       <Route path={`${prefix}/assinaturas`} element={<TenantGate><PaymentsPage /></TenantGate>} />
       <Route path={`${prefix}/assinaturas/planos`} element={<TenantGate><PlansPage /></TenantGate>} />
       <Route path={`${prefix}/assinaturas/faturas`} element={<TenantGate><InvoicesPage /></TenantGate>} />
+
+      {/* Blog */}
+      <Route path={`${prefix}/blog`} element={<TenantGate><BlogListPage /></TenantGate>} />
+      <Route path={`${prefix}/blog/novo`} element={<TenantGate><BlogFormPage /></TenantGate>} />
+      <Route path={`${prefix}/blog/:id`} element={<TenantGate><BlogFormPage /></TenantGate>} />
+
       {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
