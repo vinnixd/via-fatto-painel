@@ -12,10 +12,25 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import AdminLink from './AdminLink';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 
 const NotificationBell = () => {
   const [open, setOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { navigateAdmin } = useAdminNavigation();
+
+  const getNotificationRoute = (type: string): string | null => {
+    switch (type) {
+      case 'overdue_invoice':
+        return '/admin/assinaturas/faturas';
+      case 'new_registration':
+        return '/admin/usuarios';
+      case 'new_lead':
+        return '/admin/mensagens';
+      default:
+        return null;
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -75,6 +90,11 @@ const NotificationBell = () => {
                   onClick={() => {
                     if (!notification.read) {
                       markAsRead(notification.id);
+                    }
+                    const route = getNotificationRoute(notification.type);
+                    if (route) {
+                      setOpen(false);
+                      navigateAdmin(route);
                     }
                   }}
                 >
