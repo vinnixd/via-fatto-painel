@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, Loader2, CalendarIcon, ImageIcon, AlertCircle } from 'lucide-react';
+import { Save, Loader2, CalendarIcon, ImageIcon, AlertCircle, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -81,6 +81,7 @@ const BlogFormPage = () => {
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [customCategory, setCustomCategory] = useState('');
+  const [generatingSeo, setGeneratingSeo] = useState(false);
 
   useEffect(() => {
     if (existingPost) {
@@ -406,7 +407,42 @@ const BlogFormPage = () => {
           {/* SEO */}
           <TabsContent value="seo" className="mt-4 space-y-4">
             <Card>
-              <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>SEO</CardTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={generatingSeo || !form.title.trim()}
+                    onClick={async () => {
+                      setGeneratingSeo(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-blog-seo', {
+                          body: {
+                            title: form.title,
+                            excerpt: form.excerpt,
+                            category: customCategory || form.category,
+                            content: form.content,
+                          },
+                        });
+                        if (error) throw error;
+                        if (data?.error) { toast.error(data.error); return; }
+                        if (data?.seo_title) updateField('seo_title', data.seo_title);
+                        if (data?.seo_description) updateField('seo_description', data.seo_description);
+                        toast.success('SEO gerado com IA!');
+                      } catch (err: any) {
+                        toast.error('Erro ao gerar SEO: ' + (err.message || 'Tente novamente'));
+                      } finally {
+                        setGeneratingSeo(false);
+                      }
+                    }}
+                  >
+                    {generatingSeo ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                    Gerar com IA
+                  </Button>
+                </div>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="seo_title">SEO Title</Label>
