@@ -956,7 +956,7 @@ const PropertyFormPage = () => {
                   </span>
                 )}
                 {autoSaveStatus === 'saved' && (
-                  <span className="text-xs text-green-600 flex items-center gap-1">
+                  <span className="text-xs text-foreground/70 flex items-center gap-1">
                     <Check className="h-3 w-3" />
                     Salvo automaticamente
                   </span>
@@ -996,7 +996,7 @@ const PropertyFormPage = () => {
                       }`}
                     >
                       {status === 'complete' ? (
-                        <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-foreground flex items-center justify-center">
                           <Check className="h-3 w-3 text-white" />
                         </div>
                       ) : status === 'in-progress' ? (
@@ -1442,17 +1442,17 @@ const PropertyFormPage = () => {
                           </button>
                           <button
                             type="button"
-                            className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${formData.financing ? 'border-green-500 bg-green-500/10' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
+                            className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${formData.financing ? 'border-foreground bg-foreground/5' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
                             onClick={() => setFormData(prev => ({ ...prev, financing: !prev.financing }))}
                           >
                             <div className="flex items-center gap-2">
-                              <DollarSign className={`h-4 w-4 ${formData.financing ? 'text-green-500' : 'text-muted-foreground'}`} />
+                              <DollarSign className={`h-4 w-4 ${formData.financing ? 'text-foreground' : 'text-muted-foreground'}`} />
                               <div className="text-left">
                                 <p className="font-medium text-sm">Financiamento</p>
                                 <p className="text-xs text-muted-foreground">Aceita financiar</p>
                               </div>
                             </div>
-                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${formData.financing ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${formData.financing ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'}`}>
                               {formData.financing ? 'Sim' : 'Não'}
                             </span>
                           </button>
@@ -2113,7 +2113,7 @@ const PropertyFormPage = () => {
                             <p className="text-blue-600 text-lg hover:underline cursor-pointer truncate">
                               {formData.seo_title || formData.title || 'Título do imóvel'}
                             </p>
-                            <p className="text-xs text-green-700 truncate">
+                            <p className="text-xs text-foreground/70 truncate">
                               seusite.com.br/imoveis/{formData.slug || 'url-do-imovel'}
                             </p>
                             <p className="text-sm text-muted-foreground line-clamp-2">

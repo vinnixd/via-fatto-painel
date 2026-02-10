@@ -193,13 +193,13 @@ const PlansPage = () => {
                   <div className="space-y-3">
                     {/* Users and Properties */}
                     <div className="flex items-center gap-3 text-sm">
-                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
                         <Check className="h-3.5 w-3.5" />
                       </div>
                       <span><Users className="h-4 w-4 inline mr-1" />{plan.max_users} Usuários</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
                         <Check className="h-3.5 w-3.5" />
                       </div>
                       <span><Building2 className="h-4 w-4 inline mr-1" />{plan.max_properties} Imóveis</span>
@@ -208,7 +208,7 @@ const PlansPage = () => {
                     {/* Features from database */}
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-3 text-sm">
-                        <div className={`p-1 rounded-full ${isHighlighted ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-600'}`}>
+                        <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
                           <Check className="h-3.5 w-3.5" />
                         </div>
                         <span>{feature}</span>
@@ -219,7 +219,7 @@ const PlansPage = () => {
                   <div className="pt-6 space-y-4">
                     <Button 
                       className="w-full" 
-                      variant={buttonConfig.disabled ? "outline" : (isHighlighted ? "default" : buttonConfig.variant)}
+                      variant={buttonConfig.disabled ? "outline" : (isHighlighted ? "admin" : "admin")}
                       disabled={buttonConfig.disabled}
                     >
                       {buttonConfig.text}
@@ -227,7 +227,7 @@ const PlansPage = () => {
                     
                     {!isAnnual && (
                       <p className="text-xs text-center text-muted-foreground">
-                        Contrate o plano anual e ganhe até <span className="font-semibold text-primary">20% de desconto</span>.
+                        Contrate o plano anual e ganhe até <span className="font-semibold text-foreground">20% de desconto</span>.
                       </p>
                     )}
                   </div>

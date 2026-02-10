@@ -973,7 +973,7 @@ const PropertiesListPage = () => {
               </div>
             )}
             {isReorderMode && (
-              <div className="mt-3 p-2 bg-primary/10 rounded-lg text-sm text-primary flex items-center gap-2">
+              <div className="mt-3 p-2 bg-muted rounded-lg text-sm text-foreground/70 flex items-center gap-2">
                 <GripVertical className="h-4 w-4" />
                 Arraste os imóveis para reordenar. Clique em "Salvar Ordem" quando terminar.
               </div>
@@ -984,7 +984,7 @@ const PropertiesListPage = () => {
         {/* Properties Grid */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : properties.length === 0 ? (
           <Card className="border-0 shadow-sm">

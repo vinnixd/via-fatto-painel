@@ -145,7 +145,7 @@ const SeoContent = () => {
         <div className="text-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 rounded-full border-4 border-muted animate-pulse" />
-            <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="text-muted-foreground text-sm">Carregando configurações...</p>
         </div>
@@ -335,19 +335,19 @@ const SeoContent = () => {
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
-              <span className="text-primary">•</span>
+              <span className="text-foreground">•</span>
               Use palavras-chave relevantes no título e descrição
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary">•</span>
+              <span className="text-foreground">•</span>
               Mantenha o título com menos de 60 caracteres
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary">•</span>
+              <span className="text-foreground">•</span>
               A descrição deve ter entre 120 e 160 caracteres
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-primary">•</span>
+              <span className="text-foreground">•</span>
               Inclua sua cidade/região nas palavras-chave
             </li>
           </ul>

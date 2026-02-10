@@ -602,7 +602,7 @@ const UsersPage = () => {
                       
                       <Button
                         size="sm"
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-[hsl(var(--admin-primary))] hover:bg-[hsl(var(--admin-primary-hover))] text-[hsl(var(--admin-primary-foreground))]"
                         onClick={() => toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' })}
                         disabled={toggleStatusMutation.isPending}
                       >

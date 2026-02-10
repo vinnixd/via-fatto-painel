@@ -125,7 +125,7 @@ const BlogListPage = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={() => navigateAdmin('/admin/blog/novo')}>
+          <Button variant="admin" onClick={() => navigateAdmin('/admin/blog/novo')}>
             <Plus className="h-4 w-4 mr-2" />
             Novo Artigo
           </Button>
@@ -188,7 +188,12 @@ const BlogListPage = () => {
                       ) : '—'}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <Badge variant={post.published ? 'default' : 'outline'} className="text-xs">
+                      <Badge 
+                        className={post.published 
+                          ? 'bg-foreground text-background hover:bg-foreground/90 text-xs' 
+                          : 'border border-border text-foreground text-xs bg-transparent'
+                        }
+                      >
                         {post.published ? 'Publicado' : 'Rascunho'}
                       </Badge>
                     </TableCell>

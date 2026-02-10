@@ -274,7 +274,7 @@ const TenantDomainsPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-foreground">
                 {domains.filter(d => d.verified).length}
               </div>
             </CardContent>
@@ -286,7 +286,7 @@ const TenantDomainsPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-amber-600">
+              <div className="text-2xl font-bold text-foreground">
                 {domains.filter(d => !d.verified).length}
               </div>
             </CardContent>
@@ -334,12 +334,12 @@ const TenantDomainsPage = () => {
                       </TableCell>
                       <TableCell>
                         {domain.verified ? (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                          <Badge className="bg-muted text-foreground hover:bg-muted">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verificado
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-amber-600 border-amber-300">
+                          <Badge variant="outline" className="text-muted-foreground border-border">
                             <Clock className="h-3 w-3 mr-1" />
                             Pendente
                           </Badge>
@@ -454,12 +454,12 @@ const TenantDomainsPage = () => {
                       </TableCell>
                       <TableCell>
                         {domain.verified ? (
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                          <Badge className="bg-muted text-foreground hover:bg-muted">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verificado
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="text-amber-600 border-amber-300">
+                          <Badge variant="outline" className="text-muted-foreground border-border">
                             <Clock className="h-3 w-3 mr-1" />
                             Pendente
                           </Badge>
