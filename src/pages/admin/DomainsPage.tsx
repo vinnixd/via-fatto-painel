@@ -90,7 +90,7 @@ const helpCards = [
     description: 'Use um domínio próprio para destacar a identidade da sua marca.',
     linkText: 'Ver tutorial',
     linkUrl: 'https://docs.lovable.dev/features/custom-domain',
-    color: 'bg-blue-500/10 text-blue-600',
+    color: 'bg-muted text-foreground/70',
   },
   {
     icon: LinkIcon,
@@ -98,7 +98,7 @@ const helpCards = [
     description: 'Siga estes passos para revisar se seu domínio ficou corretamente vinculado.',
     linkText: 'Ver tutorial',
     linkUrl: 'https://docs.lovable.dev/features/custom-domain',
-    color: 'bg-purple-500/10 text-purple-600',
+    color: 'bg-muted text-foreground/70',
   },
   {
     icon: Calendar,
@@ -106,7 +106,7 @@ const helpCards = [
     description: 'Identifique se o registro do seu domínio deve ser renovado em breve.',
     linkText: 'Ver tutorial',
     linkUrl: 'https://docs.lovable.dev/features/custom-domain',
-    color: 'bg-amber-500/10 text-amber-600',
+    color: 'bg-muted text-foreground/70',
   },
   {
     icon: Shield,
@@ -114,7 +114,7 @@ const helpCards = [
     description: 'Saiba se seu certificado de segurança está ativo.',
     linkText: 'Ver tutorial',
     linkUrl: 'https://docs.lovable.dev/features/custom-domain',
-    color: 'bg-emerald-500/10 text-emerald-600',
+    color: 'bg-muted text-foreground/70',
   },
 ];
 
@@ -331,7 +331,7 @@ const DomainsPage = () => {
                       {domain.status === 'active' ? (
                         <Badge
                           variant="outline"
-                          className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800"
+                          className="gap-1.5 text-foreground border-border bg-muted"
                         >
                           <CheckCircle className="h-3 w-3" />
                           Ativo
@@ -350,7 +350,7 @@ const DomainsPage = () => {
                       {domain.sslStatus === 'active' ? (
                         <Badge
                           variant="outline"
-                          className="gap-1.5 text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800"
+                          className="gap-1.5 text-foreground border-border bg-muted"
                         >
                           <Shield className="h-3 w-3" />
                           SSL ativo
@@ -432,7 +432,7 @@ const DomainsPage = () => {
             {helpCards.map((card, index) => (
               <Card 
                 key={index} 
-                className="group hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-0.5 border-transparent hover:border-primary/20"
+                className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border hover:border-foreground/20"
               >
                 <CardContent className="p-5">
                   <div className="flex gap-4">

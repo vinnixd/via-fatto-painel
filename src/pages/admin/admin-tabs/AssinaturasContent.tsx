@@ -70,13 +70,13 @@ const AssinaturasContent = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Ativo</Badge>;
+        return <Badge className="bg-muted text-foreground hover:bg-muted">Ativo</Badge>;
       case 'trial':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Trial</Badge>;
+        return <Badge className="bg-muted text-foreground hover:bg-muted">Trial</Badge>;
       case 'suspended':
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Suspenso</Badge>;
+        return <Badge className="bg-muted text-muted-foreground hover:bg-muted">Suspenso</Badge>;
       case 'canceled':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelado</Badge>;
+        return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Cancelado</Badge>;
       default:
         return <Badge variant="outline">Desconhecido</Badge>;
     }
@@ -116,7 +116,7 @@ const AssinaturasContent = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${
               activeTab === tab.id
-                ? 'bg-primary text-primary-foreground'
+                ? 'bg-foreground text-background'
                 : 'bg-muted text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -138,22 +138,22 @@ const AssinaturasContent = () => {
             <div className="animate-fade-in">
               {/* Quick Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+                <Card className="border bg-card">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-green-500/20 rounded-xl">
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <CheckCircle2 className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Status</p>
-                      <p className="font-semibold text-green-600 capitalize">{subscription.status === 'active' ? 'Ativo' : subscription.status}</p>
+                      <p className="font-semibold capitalize">{subscription.status === 'active' ? 'Ativo' : subscription.status}</p>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+                <Card className="border bg-card">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-primary/20 rounded-xl">
-                      <Wallet className="h-5 w-5 text-primary" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Wallet className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Plano</p>
@@ -162,10 +162,10 @@ const AssinaturasContent = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+                <Card className="border bg-card">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-orange-500/20 rounded-xl">
-                      <Calendar className="h-5 w-5 text-orange-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Calendar className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Próximo</p>
@@ -174,10 +174,10 @@ const AssinaturasContent = () => {
                   </CardContent>
                 </Card>
                 
-                <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+                <Card className="border bg-card">
                   <CardContent className="p-4 flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-500/20 rounded-xl">
-                      <Receipt className="h-5 w-5 text-blue-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Receipt className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Valor</p>
@@ -190,10 +190,10 @@ const AssinaturasContent = () => {
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
                   <Card className="overflow-hidden">
-                    <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
+                    <div className="bg-muted/50 p-6 border-b">
                       <div className="flex items-center gap-3">
-                        <div className="p-3 bg-primary/20 rounded-xl">
-                          <CreditCard className="h-6 w-6 text-primary" />
+                        <div className="p-3 bg-muted rounded-xl">
+                          <CreditCard className="h-6 w-6 text-foreground/70" />
                         </div>
                         <div>
                           <h3 className="font-semibold text-lg">Assinatura {subscription.billing_cycle === 'annual' ? 'Anual' : 'Mensal'}</h3>

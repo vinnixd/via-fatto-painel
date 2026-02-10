@@ -166,7 +166,7 @@ const CargosPermissoesContent = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-primary" />
+            <ShieldCheck className="h-5 w-5 text-foreground/70" />
             <CardTitle className="text-xl">Cargos e Permissões</CardTitle>
           </div>
           <CardDescription>

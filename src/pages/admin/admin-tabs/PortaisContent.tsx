@@ -196,8 +196,8 @@ const PortaisContent = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-muted rounded-lg">
+                <CheckCircle className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Ativos</p>
@@ -290,7 +290,7 @@ const PortaisContent = () => {
                       {getMethodBadge(portal.metodo)}
                       <Badge variant="outline" className="uppercase">{portal.formato_feed}</Badge>
                       {portal.ativo ? (
-                        <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                        <Badge className="bg-muted text-foreground">Ativo</Badge>
                       ) : (
                         <Badge variant="secondary">Inativo</Badge>
                       )}

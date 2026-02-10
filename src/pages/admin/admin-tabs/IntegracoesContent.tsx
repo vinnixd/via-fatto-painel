@@ -136,7 +136,7 @@ const IntegracoesContent = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -206,7 +206,7 @@ const IntegracoesContent = () => {
                 <CardTitle className="text-lg">{integration.title}</CardTitle>
                 <div className="flex items-center gap-2">
                   {isValid && (
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                    <Badge className="bg-muted text-foreground border-border">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Ativo
                     </Badge>
@@ -257,10 +257,10 @@ const IntegracoesContent = () => {
     <div>
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        <Card className="border bg-card">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-primary/20 rounded-lg">
-              <Code className="h-5 w-5 text-primary" />
+            <div className="p-2 bg-muted rounded-lg">
+              <Code className="h-5 w-5 text-foreground/70" />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Integrações Ativas</p>
@@ -304,14 +304,14 @@ const IntegracoesContent = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                 activeTab === tab.id
-                  ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                  ? 'bg-foreground text-background shadow-lg'
                   : 'bg-card hover:bg-muted border border-border'
               }`}
             >
               <tab.icon className="h-5 w-5" />
               <div>
                 <p className="font-medium">{tab.label}</p>
-                <p className={`text-xs ${activeTab === tab.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                <p className={`text-xs ${activeTab === tab.id ? 'text-background/70' : 'text-muted-foreground'}`}>
                   {tab.description}
                 </p>
               </div>
@@ -344,7 +344,7 @@ const IntegracoesContent = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm ${
                   activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-foreground text-background'
                     : 'bg-muted text-muted-foreground'
                 }`}
               >
