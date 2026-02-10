@@ -1005,7 +1005,7 @@ const PropertiesListPage = () => {
                 <span className="font-semibold text-foreground">{currentProperties}</span> / {maxProperties} imóveis utilizados
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all ${
@@ -1019,6 +1019,11 @@ const PropertiesListPage = () => {
                 />
               </div>
               <span className="text-xs font-medium">{Math.round((currentProperties / maxProperties) * 100)}%</span>
+              {!canAddProperty && (
+                <Button size="sm" variant="outline" asChild className="h-7 text-xs ml-1">
+                  <AdminLink to="/admin/assinaturas/upgrade">Fazer upgrade</AdminLink>
+                </Button>
+              )}
             </div>
           </div>
         )}

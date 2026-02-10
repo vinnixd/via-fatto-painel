@@ -371,7 +371,7 @@ const UsersPage = () => {
                 <span className="font-semibold text-foreground">{currentUsers}</span> / {maxUsers} usuários utilizados
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
                 <div 
                   className={`h-full rounded-full transition-all ${
@@ -385,6 +385,11 @@ const UsersPage = () => {
                 />
               </div>
               <span className="text-xs font-medium">{Math.round((currentUsers / maxUsers) * 100)}%</span>
+              {!canAddUser && (
+                <Button size="sm" variant="outline" className="h-7 text-xs ml-1" onClick={() => navigateAdmin('/admin/assinaturas/upgrade')}>
+                  Fazer upgrade
+                </Button>
+              )}
             </div>
           </div>
         )}
