@@ -1162,30 +1162,6 @@ const PropertyFormPage = () => {
                               disabled={!isSlugEditable}
                             />
                           </div>
-                          <div className="lg:col-span-2 space-y-2">
-                            <Label htmlFor="reference">Código</Label>
-                            <div className="flex gap-1">
-                              <Input
-                                id="reference"
-                                value={formData.reference}
-                                onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                                placeholder="001234"
-                                className="h-11"
-                              />
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="icon"
-                                className="h-11 w-11 shrink-0"
-                                onClick={() => {
-                                  const randomNum = Math.floor(100000 + Math.random() * 900000);
-                                  setFormData({ ...formData, reference: String(randomNum) });
-                                }}
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
                         </div>
                       </div>
 
