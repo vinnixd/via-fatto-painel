@@ -139,7 +139,7 @@ const SortablePropertyCard = ({
       ref={setNodeRef}
       style={style}
       className={`border-0 shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 cursor-pointer ${
-        isDragging ? 'ring-2 ring-primary z-50' : ''
+        isDragging ? 'ring-2 ring-foreground z-50' : ''
       } ${isSelected ? 'ring-2 ring-destructive' : ''}`}
       onClick={() => {
         if (isSelectMode) {
@@ -300,7 +300,7 @@ const SortablePropertyCard = ({
 
       {/* Content */}
       <CardContent className="p-2.5">
-        <h3 className="font-medium text-sm line-clamp-1 mb-1 group-hover:text-primary transition-colors">
+        <h3 className="font-medium text-sm line-clamp-1 mb-1 group-hover:text-foreground transition-colors">
           {property.title}
         </h3>
 
@@ -777,15 +777,15 @@ const PropertiesListPage = () => {
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
       string,
-      { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }
+      { label: string; className: string }
     > = {
-      venda: { label: 'Venda', variant: 'default' },
-      aluguel: { label: 'Aluguel', variant: 'secondary' },
-      vendido: { label: 'Vendido', variant: 'destructive' },
-      alugado: { label: 'Alugado', variant: 'outline' },
+      venda: { label: 'Venda', className: 'bg-foreground text-background hover:bg-foreground/90' },
+      aluguel: { label: 'Aluguel', className: 'bg-secondary text-secondary-foreground hover:bg-secondary/80' },
+      vendido: { label: 'Vendido', className: 'bg-destructive text-destructive-foreground hover:bg-destructive/80' },
+      alugado: { label: 'Alugado', className: 'border border-border text-foreground' },
     };
-    const config = statusConfig[status] || { label: status, variant: 'outline' };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = statusConfig[status] || { label: status, className: 'border border-border text-foreground' };
+    return <Badge className={config.className}>{config.label}</Badge>;
   };
 
   const getTypeIcon = (type: string) => {
@@ -801,28 +801,28 @@ const PropertiesListPage = () => {
       <div className="p-6 space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Total de Imóveis</p>
-              <p className="text-2xl font-bold text-primary">{stats.total}</p>
+              <p className="text-2xl font-bold text-foreground">{stats.total}</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-green-500/10 to-green-500/5">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">À Venda</p>
-              <p className="text-2xl font-bold text-green-600">{stats.venda}</p>
+              <p className="text-2xl font-bold text-foreground">{stats.venda}</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-orange-500/10 to-orange-500/5">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Aluguel</p>
-              <p className="text-2xl font-bold text-orange-600">{stats.aluguel}</p>
+              <p className="text-2xl font-bold text-foreground">{stats.aluguel}</p>
             </CardContent>
           </Card>
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-yellow-500/10 to-yellow-500/5">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Destaques</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.featured}</p>
+              <p className="text-2xl font-bold text-foreground">{stats.featured}</p>
             </CardContent>
           </Card>
         </div>
