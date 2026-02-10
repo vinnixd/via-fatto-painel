@@ -42,6 +42,7 @@ import {
   Radio
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -352,6 +353,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 const PropertiesListPage = () => {
   const navigate = useNavigate();
+  const { canAddProperty, currentProperties, maxProperties } = useSubscriptionLimits();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -956,12 +958,19 @@ const PropertiesListPage = () => {
                         <span className="hidden sm:inline">Exportar e Importar</span>
                       </AdminLink>
                     </Button>
-                    <Button asChild className="gap-2 shadow-md">
-                      <AdminLink to="/admin/imoveis/novo">
+                    {canAddProperty ? (
+                      <Button asChild className="gap-2 shadow-md">
+                        <AdminLink to="/admin/imoveis/novo">
+                          <Plus className="h-4 w-4" />
+                          Novo Imóvel
+                        </AdminLink>
+                      </Button>
+                    ) : (
+                      <Button disabled className="gap-2 shadow-md" title={`Limite de ${maxProperties} imóveis atingido`}>
                         <Plus className="h-4 w-4" />
-                        Novo Imóvel
-                      </AdminLink>
-                    </Button>
+                        Novo Imóvel ({currentProperties}/{maxProperties})
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -1001,12 +1010,19 @@ const PropertiesListPage = () => {
                   : 'Comece cadastrando seu primeiro imóvel'}
               </p>
               {!search && (
-                <Button asChild>
-                  <AdminLink to="/admin/imoveis/novo">
+                canAddProperty ? (
+                  <Button asChild>
+                    <AdminLink to="/admin/imoveis/novo">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Cadastrar Imóvel
+                    </AdminLink>
+                  </Button>
+                ) : (
+                  <Button disabled>
                     <Plus className="h-4 w-4 mr-2" />
-                    Cadastrar Imóvel
-                  </AdminLink>
-                </Button>
+                    Limite atingido ({currentProperties}/{maxProperties})
+                  </Button>
+                )
               )}
             </CardContent>
           </Card>

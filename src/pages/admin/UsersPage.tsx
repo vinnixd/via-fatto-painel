@@ -53,6 +53,7 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 
 interface UserWithRole {
   id: string;
@@ -81,6 +82,7 @@ const UsersPage = () => {
   const { canAccessUsers, loading: permissionsLoading } = usePermissions();
   const { navigateAdmin } = useAdminNavigation();
   const queryClient = useQueryClient();
+  const { canAddUser, currentUsers, maxUsers } = useSubscriptionLimits();
   
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
@@ -248,6 +250,10 @@ const UsersPage = () => {
   const handleCreateInvite = () => {
     if (!inviteData.email) {
       toast.error('Email é obrigatório');
+      return;
+    }
+    if (!canAddUser) {
+      toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para convidar mais membros.`);
       return;
     }
     createInviteMutation.mutate(inviteData);
@@ -603,7 +609,13 @@ const UsersPage = () => {
                       <Button
                         size="sm"
                         className="bg-[hsl(var(--admin-primary))] hover:bg-[hsl(var(--admin-primary-hover))] text-[hsl(var(--admin-primary-foreground))]"
-                        onClick={() => toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' })}
+                        onClick={() => {
+                          if (!canAddUser) {
+                            toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para aprovar mais membros.`);
+                            return;
+                          }
+                          toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' });
+                        }}
                         disabled={toggleStatusMutation.isPending}
                       >
                         <CheckCircle2 className="h-4 w-4 mr-1" />
