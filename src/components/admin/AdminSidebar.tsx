@@ -95,8 +95,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
               />
             ) : (
               <>
-                <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary-foreground" />
+                <div className="h-8 w-8 rounded-lg bg-sidebar-foreground flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-sidebar-background" />
                 </div>
                 <span className="font-bold text-lg">Painel Admin</span>
               </>
@@ -112,8 +112,8 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                 className="h-8 w-8 object-contain brightness-0 invert"
               />
             ) : (
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <Building2 className="h-5 w-5 text-primary-foreground" />
+              <div className="h-8 w-8 rounded-lg bg-sidebar-foreground flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-sidebar-background" />
               </div>
             )}
           </AdminLink>

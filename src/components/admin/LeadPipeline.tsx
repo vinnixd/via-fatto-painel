@@ -149,7 +149,7 @@ export function LeadPipeline({
             key={stage.id}
             className={cn(
               'flex-shrink-0 w-[280px] rounded-xl border bg-card transition-colors',
-              dragOverStage === stage.id && 'border-primary bg-primary/5'
+              dragOverStage === stage.id && 'border-foreground bg-muted'
             )}
             onDragOver={(e) => handleDragOver(e, stage.id)}
             onDragLeave={handleDragLeave}

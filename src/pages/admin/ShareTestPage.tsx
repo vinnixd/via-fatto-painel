@@ -189,8 +189,8 @@ const ShareTestPage = () => {
             <p>
               <strong>4.</strong> Ao clicar no link, o usuário é redirecionado automaticamente para a página do imóvel após 2 segundos.
             </p>
-            <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-              <p className="text-primary font-medium">
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <p className="text-foreground font-medium">
                 💡 Dica: Use o botão "Copiar Link WhatsApp" nos cards de imóveis para copiar rapidamente.
               </p>
             </div>

@@ -204,7 +204,7 @@ const SortableImage = ({ image, index, onRemove }: SortableImageProps) => {
         <X className="h-4 w-4" />
       </Button>
       {index === 0 && (
-        <span className="absolute bottom-2 left-2 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1">
+        <span className="absolute bottom-2 left-2 bg-foreground text-background text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1">
           <Camera className="h-3 w-3" />
           Foto de capa
         </span>
@@ -917,7 +917,7 @@ const PropertyFormPage = () => {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </AdminLayout>
     );
@@ -991,7 +991,7 @@ const PropertyFormPage = () => {
                       }}
                       className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
                         isActive 
-                          ? 'border-primary text-primary' 
+                          ? 'border-foreground text-foreground' 
                           : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
                       }`}
                     >
@@ -1033,7 +1033,7 @@ const PropertyFormPage = () => {
                   <Card className="border-0 shadow-sm">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Home className="h-5 w-5 text-primary" />
+                        <Home className="h-5 w-5 text-foreground/70" />
                         Informações Básicas
                       </CardTitle>
                       <CardDescription>
@@ -1410,17 +1410,17 @@ const PropertyFormPage = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <button
                             type="button"
-                            className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${formData.active ? 'border-primary bg-primary/10' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
+                            className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${formData.active ? 'border-foreground bg-muted' : 'border-border bg-muted/30 hover:bg-muted/50'}`}
                             onClick={() => setFormData(prev => ({ ...prev, active: !prev.active }))}
                           >
                             <div className="flex items-center gap-2">
-                              <Check className={`h-4 w-4 ${formData.active ? 'text-primary' : 'text-muted-foreground'}`} />
+                              <Check className={`h-4 w-4 ${formData.active ? 'text-foreground' : 'text-muted-foreground'}`} />
                               <div className="text-left">
                                 <p className="font-medium text-sm">Ativo</p>
                                 <p className="text-xs text-muted-foreground">Visível no site</p>
                               </div>
                             </div>
-                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${formData.active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                            <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${formData.active ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'}`}>
                               {formData.active ? 'Sim' : 'Não'}
                             </span>
                           </button>
