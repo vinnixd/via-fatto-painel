@@ -255,6 +255,8 @@ const PropertyFormPage = () => {
   const [isSlugEditable, setIsSlugEditable] = useState(false);
   const [descriptionTone, setDescriptionTone] = useState<string | null>(null);
 
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
   // Unsaved changes - warn on browser close/refresh
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -265,6 +267,7 @@ const PropertyFormPage = () => {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [hasUnsavedChanges]);
+
 
   // CEP lookup function
   const handleCepLookup = useCallback(async (cep: string) => {
@@ -746,6 +749,33 @@ const PropertyFormPage = () => {
     created_by: user?.id,
   });
 
+  // Autosave every 30 seconds for editing mode
+  useEffect(() => {
+    if (!isEditing || !hasUnsavedChanges || !id) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        setAutoSaveStatus('saving');
+        const propertyData = buildPropertyData();
+        const { error } = await supabase
+          .from('properties')
+          .update(propertyData)
+          .eq('id', id);
+        
+        if (!error) {
+          setAutoSaveStatus('saved');
+          setLastAutoSave(new Date());
+          setHasUnsavedChanges(false);
+          setTimeout(() => setAutoSaveStatus('idle'), 3000);
+        }
+      } catch (err) {
+        console.error('Autosave error:', err);
+      }
+    }, 30000);
+
+    return () => clearTimeout(timer);
+  }, [isEditing, hasUnsavedChanges, formData, id]);
+
   const handleSaveImages = async (propertyId: string) => {
     if (isEditing) {
       const currentImageIds = images.filter(img => img.id).map(img => img.id);
@@ -918,12 +948,26 @@ const PropertyFormPage = () => {
                   {progressPercentage}% concluído
                 </Badge>
               </div>
-              {lastAutoSave && (
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  Salvo às {lastAutoSave.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {autoSaveStatus === 'saving' && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Salvando...
+                  </span>
+                )}
+                {autoSaveStatus === 'saved' && (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    <Check className="h-3 w-3" />
+                    Salvo automaticamente
+                  </span>
+                )}
+                {lastAutoSave && autoSaveStatus === 'idle' && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Salvo às {lastAutoSave.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
             </div>
             <Progress value={progressPercentage} className="h-1.5" />
           </div>
@@ -2159,18 +2203,68 @@ const PropertyFormPage = () => {
                         Próximo
                       </Button>
                     ) : (
-                      <Button 
-                        type="submit" 
-                        variant="admin" 
-                        disabled={saving || savingDraft} 
-                        className="min-w-[180px]"
-                      >
-                        {saving ? (
-                          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</>
-                        ) : (
-                          <><Send className="h-4 w-4 mr-2" />{isEditing ? 'Salvar e Publicar' : 'Cadastrar e Publicar'}</>
+                      <>
+                        <Button 
+                          type="submit" 
+                          variant="admin" 
+                          disabled={saving || savingDraft} 
+                          className="min-w-[180px]"
+                        >
+                          {saving ? (
+                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Salvando...</>
+                          ) : (
+                            <><Send className="h-4 w-4 mr-2" />{isEditing ? 'Salvar e Publicar' : 'Cadastrar e Publicar'}</>
+                          )}
+                        </Button>
+                        {!isEditing && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            disabled={saving || savingDraft}
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              setSaving(true);
+                              try {
+                                if (!formData.title || !formData.address_city || !formData.address_state) {
+                                  toast.error('Preencha os campos obrigatórios: título, cidade e estado');
+                                  return;
+                                }
+                                const propertyData = buildPropertyData();
+                                const { data, error } = await supabase
+                                  .from('properties')
+                                  .insert(propertyData)
+                                  .select('id')
+                                  .single();
+                                if (error) throw error;
+                                await handleSaveImages(data.id);
+                                toast.success('Imóvel cadastrado! Iniciando novo cadastro...');
+                                // Reset form
+                                setFormData({
+                                  title: '', slug: '', description: '', price: '', condo_fee: '', condo_exempt: false,
+                                  iptu: '', status: 'venda', type: 'casa', profile: 'residencial', condition: null,
+                                  address_street: '', address_neighborhood: '', address_city: '', address_state: '',
+                                  address_zipcode: '', location_type: 'approximate', bedrooms: '', suites: '',
+                                  bathrooms: '', garages: '', area: '', built_area: '', financing: false,
+                                  documentation: 'regular', featured: false, active: true, features: [], amenities: [],
+                                  reference: '', category_id: '', seo_title: '', seo_description: '', integrar_portais: false,
+                                });
+                                setImages([]);
+                                setActiveStep(0);
+                                setHasUnsavedChanges(false);
+                              } catch (error: any) {
+                                console.error('Error:', error);
+                                toast.error(error?.message || 'Erro ao salvar imóvel');
+                              } finally {
+                                setSaving(false);
+                              }
+                            }}
+                            className="gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Cadastrar e adicionar outro
+                          </Button>
                         )}
-                      </Button>
+                      </>
                     )}
                   </div>
                 </div>
