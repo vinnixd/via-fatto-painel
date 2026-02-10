@@ -457,7 +457,7 @@ const DesignerPage = () => {
                           )}
                         </div>
                         <Label htmlFor="logo-horizontal-upload" className="cursor-pointer block mt-auto">
-                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_horizontal_url ? 'Alterar' : 'Enviar'}
                           </div>
@@ -492,7 +492,7 @@ const DesignerPage = () => {
                           )}
                         </div>
                         <Label htmlFor="logo-vertical-upload" className="cursor-pointer block mt-auto">
-                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_vertical_url ? 'Alterar' : 'Enviar'}
                           </div>
@@ -527,7 +527,7 @@ const DesignerPage = () => {
                           )}
                         </div>
                         <Label htmlFor="logo-symbol-upload" className="cursor-pointer block mt-auto">
-                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                          <div className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm">
                             <Upload className="h-4 w-4" />
                             {config.logo_symbol_url ? 'Alterar' : 'Enviar'}
                           </div>
@@ -593,7 +593,7 @@ const DesignerPage = () => {
                       <div className="space-y-3">
                         <div className="flex items-center gap-2">
                           <Label htmlFor="favicon-upload" className="cursor-pointer">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors">
                               <Upload className="h-4 w-4" />
                               {config.favicon_url ? 'Alterar ícone' : 'Enviar ícone'}
                             </div>
@@ -763,7 +763,7 @@ const DesignerPage = () => {
                               onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0], 'watermark_url' as keyof SiteConfig)}
                             />
                             <label htmlFor="watermark-upload" className="cursor-pointer inline-block">
-                              <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                              <div className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm">
                                 <Upload className="h-4 w-4" />
                                 {config.watermark_url ? 'Alterar Marca d\'Água' : 'Enviar Marca d\'Água'}
                               </div>
@@ -1069,7 +1069,7 @@ const DesignerPage = () => {
                             onClick={() => setConfig({ ...config, about_image_position: option.value as 'top' | 'center' | 'bottom' })}
                             className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                               config.about_image_position === option.value
-                                ? 'bg-primary text-primary-foreground'
+                                ? 'bg-foreground text-background'
                                 : 'bg-muted hover:bg-muted/80 text-foreground'
                             }`}
                           >
