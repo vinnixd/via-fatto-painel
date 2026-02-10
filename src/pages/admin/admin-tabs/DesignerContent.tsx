@@ -271,7 +271,7 @@ const DesignerContent = () => {
         <div className="text-center space-y-4">
           <div className="relative">
             <div className="w-16 h-16 rounded-full border-4 border-muted animate-pulse" />
-            <Loader2 className="h-8 w-8 animate-spin text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
           <p className="text-muted-foreground text-sm">Carregando configurações...</p>
         </div>
@@ -285,9 +285,9 @@ const DesignerContent = () => {
     <div className="relative">
       {/* Stats Bar - Compact and modern */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-500/5 border border-violet-500/20">
-          <div className="p-2 rounded-lg bg-violet-500/20">
-            <Palette className="h-4 w-4 text-violet-600" />
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card">
+          <div className="p-2 rounded-lg bg-muted">
+            <Palette className="h-4 w-4 text-foreground/70" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground truncate">Cores</p>
@@ -295,9 +295,9 @@ const DesignerContent = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20">
-          <div className="p-2 rounded-lg bg-emerald-500/20">
-            <Image className="h-4 w-4 text-emerald-600" />
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card">
+          <div className="p-2 rounded-lg bg-muted">
+            <Image className="h-4 w-4 text-foreground/70" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground truncate">Imagens</p>
@@ -305,9 +305,9 @@ const DesignerContent = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20">
-          <div className="p-2 rounded-lg bg-blue-500/20">
-            <Share2 className="h-4 w-4 text-blue-600" />
+        <div className="flex items-center gap-3 p-3 rounded-xl border bg-card">
+          <div className="p-2 rounded-lg bg-muted">
+            <Share2 className="h-4 w-4 text-foreground/70" />
           </div>
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground truncate">Redes</p>
@@ -329,13 +329,13 @@ const DesignerContent = () => {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all duration-200 group",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                      ? "bg-foreground text-background shadow-md"
                       : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <div className={cn(
                     "p-1.5 rounded-md transition-colors",
-                    isActive ? "bg-primary-foreground/20" : "bg-muted group-hover:bg-background"
+                    isActive ? "bg-background/20" : "bg-muted group-hover:bg-background"
                   )}>
                     <tab.icon className="h-4 w-4" />
                   </div>
@@ -343,7 +343,7 @@ const DesignerContent = () => {
                     <p className="font-medium text-sm truncate">{tab.label}</p>
                     <p className={cn(
                       "text-xs truncate transition-colors",
-                      isActive ? "text-primary-foreground/70" : "text-muted-foreground"
+                      isActive ? "text-background/70" : "text-muted-foreground"
                     )}>
                       {tab.description}
                     </p>
@@ -400,7 +400,7 @@ const DesignerContent = () => {
                       className={cn(
                         "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-all",
                         isActive
-                          ? "bg-primary text-primary-foreground font-medium"
+                          ? "bg-foreground text-background font-medium"
                           : "bg-muted text-muted-foreground"
                       )}
                     >
@@ -423,8 +423,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl">
-                      <ImagePlus className="h-5 w-5 text-primary" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <ImagePlus className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Logotipos</CardTitle>
@@ -471,8 +471,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-amber-500/10 rounded-xl">
-                      <Globe className="h-5 w-5 text-amber-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Globe className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Favicon</CardTitle>
@@ -495,7 +495,7 @@ const DesignerContent = () => {
                     <div className="flex-1">
                       <p className="text-sm text-muted-foreground mb-2">PNG ou ICO, 64x64 recomendado</p>
                       <Label htmlFor="favicon-upload" className="cursor-pointer inline-block">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm font-medium">
                           <Upload className="h-4 w-4" />
                           {config.favicon_url ? 'Alterar' : 'Enviar'}
                         </div>
@@ -519,8 +519,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-violet-500/20 to-violet-500/10 rounded-xl">
-                      <Palette className="h-5 w-5 text-violet-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Palette className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Cores da Marca</CardTitle>
@@ -557,8 +557,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-xl">
-                      <Layout className="h-5 w-5 text-blue-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Layout className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Seção Principal</CardTitle>
@@ -598,7 +598,7 @@ const DesignerContent = () => {
                       <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-3">Recomendado: 1920x1080px, formato 16:9</p>
                         <Label htmlFor="hero-upload" className="cursor-pointer inline-block">
-                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm font-medium">
                             <Upload className="h-4 w-4" />
                             {config.hero_background_url ? 'Alterar Imagem' : 'Enviar Imagem'}
                           </div>
@@ -644,8 +644,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 rounded-xl">
-                      <FileText className="h-5 w-5 text-emerald-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <FileText className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Página Sobre</CardTitle>
@@ -684,7 +684,7 @@ const DesignerContent = () => {
                       )}
                       <div className="space-y-3">
                         <Label htmlFor="about-upload" className="cursor-pointer inline-block">
-                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm font-medium">
                             <Upload className="h-4 w-4" />
                             {config.about_image_url ? 'Alterar' : 'Enviar'}
                           </div>
@@ -727,8 +727,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-rose-500/20 to-rose-500/10 rounded-xl">
-                      <Phone className="h-5 w-5 text-rose-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Phone className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Informações de Contato</CardTitle>
@@ -792,8 +792,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500/20 to-blue-500/10 rounded-xl">
-                      <Share2 className="h-5 w-5 text-blue-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Share2 className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Redes Sociais</CardTitle>
@@ -848,8 +848,8 @@ const DesignerContent = () => {
               <Card>
                 <CardHeader className="pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-cyan-500/10 rounded-xl">
-                      <Droplets className="h-5 w-5 text-cyan-600" />
+                    <div className="p-2.5 bg-muted rounded-xl">
+                      <Droplets className="h-5 w-5 text-foreground/70" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">Marca d'água</CardTitle>
@@ -887,7 +887,7 @@ const DesignerContent = () => {
                           <div>
                             <p className="text-sm text-muted-foreground mb-2">PNG com transparência recomendado</p>
                             <Label htmlFor="watermark-upload" className="cursor-pointer inline-block">
-                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium">
+                              <div className="inline-flex items-center gap-2 px-4 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-sm font-medium">
                                 <Upload className="h-4 w-4" />
                                 {config.watermark_url ? 'Alterar' : 'Enviar'}
                               </div>
@@ -1003,7 +1003,7 @@ const LogoUploadCard = ({ label, hint, imageUrl, inputId, onUpload, aspectRatio 
         "rounded-xl border-2 border-dashed flex items-center justify-center overflow-hidden transition-all duration-200",
         aspectRatio === 'wide' ? 'h-20' : 'h-20',
         imageUrl 
-          ? "border-border bg-muted hover:border-primary" 
+          ? "border-border bg-muted hover:border-foreground" 
           : "border-muted-foreground/30 bg-muted/50"
       )}>
         {imageUrl ? (
@@ -1020,7 +1020,7 @@ const LogoUploadCard = ({ label, hint, imageUrl, inputId, onUpload, aspectRatio 
       </div>
     </div>
     <Label htmlFor={inputId} className="cursor-pointer mt-2">
-      <div className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs font-medium">
+      <div className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[hsl(var(--admin-primary))] text-[hsl(var(--admin-primary-foreground))] rounded-lg hover:bg-[hsl(var(--admin-primary-hover))] transition-colors text-xs font-medium">
         <Upload className="h-3.5 w-3.5" />
         {imageUrl ? 'Alterar' : 'Enviar'}
       </div>
