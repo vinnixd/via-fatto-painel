@@ -67,6 +67,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 import { compressImage } from '@/lib/imageCompression';
 import type { Database } from '@/integrations/supabase/types';
 import {
@@ -233,6 +234,7 @@ const PropertyFormPage = () => {
   const { navigateAdmin } = useAdminNavigation();
   const { user } = useAuth();
   const isEditing = !!id;
+  const { canAddProperty, currentProperties, maxProperties, isLoading: limitsLoading } = useSubscriptionLimits();
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -857,6 +859,13 @@ const PropertyFormPage = () => {
     }
 
     try {
+      if (!isEditing && !canAddProperty) {
+        toast.error(`Limite de ${maxProperties} imóveis atingido no seu plano. Faça upgrade para cadastrar mais.`);
+        setSaving(false);
+        setSavingDraft(false);
+        return;
+      }
+
       if (!formData.title || !formData.address_city || !formData.address_state) {
         toast.error('Preencha os campos obrigatórios: título, cidade e estado');
         setSaving(false);
@@ -2201,6 +2210,10 @@ const PropertyFormPage = () => {
                               e.preventDefault();
                               setSaving(true);
                               try {
+                                if (!canAddProperty) {
+                                  toast.error(`Limite de ${maxProperties} imóveis atingido no seu plano.`);
+                                  return;
+                                }
                                 if (!formData.title || !formData.address_city || !formData.address_state) {
                                   toast.error('Preencha os campos obrigatórios: título, cidade e estado');
                                   return;

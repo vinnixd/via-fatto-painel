@@ -62,6 +62,7 @@ import {
   Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
 
 interface TenantUser {
   id: string;
@@ -210,9 +211,15 @@ const TenantMembersPage = () => {
     },
   });
 
+  const { canAddUser, maxUsers } = useSubscriptionLimits();
+
   const handleAddMember = () => {
     if (!newMemberEmail.trim()) {
       toast.error('Digite o email do usuário.');
+      return;
+    }
+    if (!canAddUser) {
+      toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para adicionar mais membros.`);
       return;
     }
 
