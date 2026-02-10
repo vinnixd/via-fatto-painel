@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const DISMISSED_KEY = 'overdue-invoice-dismissed';
+const SHOWN_SESSION_KEY = 'overdue-invoice-shown-session';
 
 const funMessages = [
   '⚡ Eita! Parece que uma faturinha escapou do radar...',
@@ -38,14 +39,19 @@ const OverdueInvoicePopup = () => {
   useEffect(() => {
     if (!isAdmin || overdueInvoices.length === 0) return;
 
+    // Check if already shown in this session
+    if (sessionStorage.getItem(SHOWN_SESSION_KEY)) return;
+
     // Check if already dismissed today
     const dismissed = localStorage.getItem(DISMISSED_KEY);
     if (dismissed) {
       const dismissedDate = new Date(dismissed);
       const now = new Date();
-      // Show again next day
       if (dismissedDate.toDateString() === now.toDateString()) return;
     }
+
+    // Mark as shown for this session
+    sessionStorage.setItem(SHOWN_SESSION_KEY, 'true');
 
     // Small delay so it doesn't flash on page load
     const timer = setTimeout(() => setOpen(true), 1500);
