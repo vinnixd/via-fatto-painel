@@ -55,33 +55,33 @@ const PlansPage = () => {
   const getPlanStyle = (slug: string, isHighlighted: boolean) => {
     if (isHighlighted) {
       return {
-        gradient: 'from-primary/10 to-violet-500/10',
-        borderColor: 'border-primary/30 hover:border-primary/50',
-        iconBg: 'bg-primary/20',
-        iconColor: 'text-primary',
+        gradient: 'from-foreground/5 to-foreground/10',
+        borderColor: 'border-foreground/30 hover:border-foreground/50',
+        iconBg: 'bg-foreground/10',
+        iconColor: 'text-foreground',
       };
     }
     switch (slug) {
       case 'essencial':
         return {
-          gradient: 'from-blue-500/10 to-cyan-500/10',
-          borderColor: 'border-blue-500/20 hover:border-blue-500/40',
-          iconBg: 'bg-blue-500/10',
-          iconColor: 'text-blue-500',
+          gradient: 'from-muted to-muted/50',
+          borderColor: 'border-border hover:border-foreground/30',
+          iconBg: 'bg-muted',
+          iconColor: 'text-foreground/70',
         };
       case 'escala':
         return {
-          gradient: 'from-amber-500/10 to-orange-500/10',
-          borderColor: 'border-amber-500/20 hover:border-amber-500/40',
-          iconBg: 'bg-amber-500/20',
-          iconColor: 'text-amber-500',
+          gradient: 'from-muted to-muted/50',
+          borderColor: 'border-border hover:border-foreground/30',
+          iconBg: 'bg-muted',
+          iconColor: 'text-foreground/70',
         };
       default:
         return {
-          gradient: 'from-primary/10 to-primary/5',
-          borderColor: 'border-primary/20',
-          iconBg: 'bg-primary/10',
-          iconColor: 'text-primary',
+          gradient: 'from-muted to-muted/50',
+          borderColor: 'border-border',
+          iconBg: 'bg-muted',
+          iconColor: 'text-foreground/70',
         };
     }
   };
@@ -124,14 +124,14 @@ const PlansPage = () => {
             checked={isAnnual}
             onCheckedChange={handleBillingCycleChange}
             disabled={updateBillingCycle.isPending}
-            className="data-[state=checked]:bg-primary"
+            className="data-[state=checked]:bg-foreground"
           />
           <div className="flex items-center gap-2">
             <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
               Anual
             </span>
             {isAnnual && (
-              <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+              <Badge variant="secondary" className="bg-muted text-foreground/70">
                 <Percent className="h-3 w-3 mr-1" />
                 20% OFF
               </Badge>
@@ -152,14 +152,14 @@ const PlansPage = () => {
               <Card 
                 key={plan.id} 
                 className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 ${style.borderColor} ${
-                  isHighlighted ? 'scale-[1.02] ring-2 ring-primary/20' : ''
+                  isHighlighted ? 'scale-[1.02] ring-2 ring-foreground/20' : ''
                 }`}
               >
                 {/* Gradient Background */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-50`} />
                 
                 {isHighlighted && (
-                  <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground gap-1">
+                  <Badge className="absolute top-4 right-4 bg-foreground text-background gap-1">
                     <Sparkles className="h-3 w-3" />
                     Popular
                   </Badge>

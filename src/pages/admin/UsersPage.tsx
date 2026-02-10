@@ -303,8 +303,8 @@ const UsersPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="bg-card border">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Total Membros</p>
@@ -354,7 +354,7 @@ const UsersPage = () => {
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             {(invites?.length || 0) > 0 && (
-              <span className="text-primary font-medium">{invites?.length} convite(s) pendente(s)</span>
+              <span className="text-foreground font-medium">{invites?.length} convite(s) pendente(s)</span>
             )}
           </p>
           
@@ -631,13 +631,13 @@ const UsersPage = () => {
         <Card>
           <CardContent className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <Users className="h-5 w-5 text-primary" />
+              <Users className="h-5 w-5 text-foreground/70" />
               <h3 className="font-semibold text-foreground">Membros da Equipe ({activeUsers.length})</h3>
             </div>
 
             {usersLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : activeUsers.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
@@ -650,7 +650,7 @@ const UsersPage = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={member.avatar_url || undefined} className="object-cover" />
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        <AvatarFallback className="bg-muted text-foreground font-semibold">
                           {getInitials(member.name, member.email)}
                         </AvatarFallback>
                       </Avatar>

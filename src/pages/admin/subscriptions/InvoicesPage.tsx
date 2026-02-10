@@ -95,38 +95,22 @@ const InvoicesPage = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className={`bg-gradient-to-br ${
-            overallStatus.color === 'red' ? 'from-red-500/10 to-red-500/5 border-red-500/20' :
-            overallStatus.color === 'yellow' ? 'from-yellow-500/10 to-yellow-500/5 border-yellow-500/20' :
-            'from-green-500/10 to-green-500/5 border-green-500/20'
-          }`}>
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${
-                overallStatus.color === 'red' ? 'bg-red-500/20' :
-                overallStatus.color === 'yellow' ? 'bg-yellow-500/20' :
-                'bg-green-500/20'
-              }`}>
-                <overallStatus.icon className={`h-5 w-5 ${
-                  overallStatus.color === 'red' ? 'text-red-600' :
-                  overallStatus.color === 'yellow' ? 'text-yellow-600' :
-                  'text-green-600'
-                }`} />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <overallStatus.icon className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Status</p>
-                <p className={`font-semibold ${
-                  overallStatus.color === 'red' ? 'text-red-600' :
-                  overallStatus.color === 'yellow' ? 'text-yellow-600' :
-                  'text-green-600'
-                }`}>{overallStatus.label}</p>
+                <p className="font-semibold">{overallStatus.label}</p>
               </div>
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-primary/20 rounded-xl">
-                <Receipt className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Receipt className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Faturas</p>
@@ -135,10 +119,10 @@ const InvoicesPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-orange-500/20 rounded-xl">
-                <Calendar className="h-5 w-5 text-orange-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Última</p>
@@ -152,10 +136,10 @@ const InvoicesPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2.5 bg-blue-500/20 rounded-xl">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Total pago</p>
@@ -216,7 +200,7 @@ const InvoicesPage = () => {
                   {invoices.map((invoice) => (
                     <TableRow key={invoice.id} className="group">
                       <TableCell>
-                        <span className="text-primary hover:underline cursor-pointer font-medium">
+                        <span className="text-foreground hover:underline cursor-pointer font-medium">
                           {invoice.invoice_number || `#${invoice.id.slice(0, 8)}`}
                         </span>
                       </TableCell>

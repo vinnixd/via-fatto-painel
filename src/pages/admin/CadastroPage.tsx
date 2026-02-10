@@ -165,7 +165,7 @@ const CadastroPage = () => {
                 />
                 <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer">
                   Li e concordo com os{' '}
-                  <a href="#" className="text-primary hover:underline font-medium">
+                  <a href="#" className="text-foreground hover:underline font-medium">
                     Termos de Uso
                   </a>
                 </label>

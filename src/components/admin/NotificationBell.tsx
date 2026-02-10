@@ -35,9 +35,9 @@ const NotificationBell = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'new_registration':
-        return <UserPlus className="h-4 w-4 text-primary" />;
+        return <UserPlus className="h-4 w-4 text-foreground/70" />;
       case 'new_lead':
-        return <MessageSquare className="h-4 w-4 text-primary" />;
+        return <MessageSquare className="h-4 w-4 text-foreground/70" />;
       case 'overdue_invoice':
         return <AlertCircle className="h-4 w-4 text-destructive" />;
       default:
@@ -85,7 +85,7 @@ const NotificationBell = () => {
                   key={notification.id}
                   className={cn(
                     'p-3 hover:bg-muted/50 transition-colors cursor-pointer',
-                    !notification.read && 'bg-primary/5'
+                    !notification.read && 'bg-muted/50'
                   )}
                   onClick={() => {
                     if (!notification.read) {
@@ -118,7 +118,7 @@ const NotificationBell = () => {
                     </div>
                     {!notification.read && (
                       <div className="flex-shrink-0">
-                        <div className="h-2 w-2 rounded-full bg-primary" />
+                        <div className="h-2 w-2 rounded-full bg-foreground" />
                       </div>
                     )}
                   </div>
@@ -132,7 +132,7 @@ const NotificationBell = () => {
           <div className="p-2 border-t">
             <AdminLink
               to="/admin/usuarios"
-              className="block w-full text-center text-xs text-primary hover:underline py-1"
+              className="block w-full text-center text-xs text-foreground/70 hover:underline py-1"
               onClick={() => setOpen(false)}
             >
               Ver usuários pendentes

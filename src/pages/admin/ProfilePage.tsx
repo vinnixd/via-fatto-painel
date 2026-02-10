@@ -262,7 +262,7 @@ const ProfilePage = () => {
                 <div className="relative group">
                   <Avatar className="h-28 w-28 border-4 border-background shadow-lg">
                     <AvatarImage src={profile.avatar_url || ''} className="object-cover" />
-                    <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
+                    <AvatarFallback className="text-3xl bg-foreground text-background">
                       {getInitials(profile.name, profile.email)}
                     </AvatarFallback>
                   </Avatar>

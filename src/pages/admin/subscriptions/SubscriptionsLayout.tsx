@@ -93,7 +93,7 @@ const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
                       {item.label}
                     </span>
                     {activeTab === item.adminPath && (
-                      <Check className="h-4 w-4 text-primary" />
+                      <Check className="h-4 w-4 text-foreground" />
                     )}
                   </DropdownMenuItem>
                 ))}

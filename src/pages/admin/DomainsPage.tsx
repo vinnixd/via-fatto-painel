@@ -240,11 +240,11 @@ const DomainsPage = () => {
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <Globe className="h-5 w-5 text-primary" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <Globe className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total de domínios</p>
@@ -253,11 +253,11 @@ const DomainsPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                  <Shield className="h-5 w-5 text-emerald-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">SSL ativo</p>
@@ -266,11 +266,11 @@ const DomainsPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gradient-to-br from-amber-500/5 to-amber-500/10 border-amber-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                  <Star className="h-5 w-5 text-amber-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <Star className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Domínio principal</p>
@@ -440,13 +440,13 @@ const DomainsPage = () => {
                       <card.icon className="h-6 w-6" />
                     </div>
                     <div className="space-y-1 min-w-0">
-                      <h3 className="font-semibold group-hover:text-primary transition-colors">{card.title}</h3>
+                      <h3 className="font-semibold group-hover:text-foreground transition-colors">{card.title}</h3>
                       <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
                       <a
                         href={card.linkUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline inline-flex items-center gap-1 pt-1 font-medium"
+                        className="text-sm text-foreground/70 hover:underline inline-flex items-center gap-1 pt-1 font-medium"
                       >
                         {card.linkText}
                         <ExternalLink className="h-3 w-3" />

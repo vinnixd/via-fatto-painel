@@ -92,7 +92,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
               <Button variant="ghost" className="flex items-center gap-2 h-10 px-2 hover:bg-muted/50">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile?.avatar_url || ''} alt={displayName} className="object-cover" />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  <AvatarFallback className="bg-foreground text-background text-sm">
                     {getInitials(profile?.name, profile?.email)}
                   </AvatarFallback>
                 </Avatar>
@@ -107,7 +107,7 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
               <div className="flex items-center gap-3 p-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={profile?.avatar_url || ''} alt={displayName} className="object-cover" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-foreground text-background">
                     {getInitials(profile?.name, profile?.email)}
                   </AvatarFallback>
                 </Avatar>

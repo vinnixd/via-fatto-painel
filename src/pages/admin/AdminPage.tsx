@@ -143,7 +143,7 @@ const AdminPage = () => {
                       {tab.label}
                     </span>
                     {activeTab === tab.id && (
-                      <Check className="h-4 w-4 text-primary" />
+                      <Check className="h-4 w-4 text-foreground" />
                     )}
                   </DropdownMenuItem>
                 ))}
