@@ -241,7 +241,7 @@ const ProfilePage = () => {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </AdminLayout>
     );
@@ -311,7 +311,7 @@ const ProfilePage = () => {
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
+                  <User className="h-5 w-5 text-foreground/70" />
                   Informações Pessoais
                 </CardTitle>
                 <CardDescription>
@@ -393,7 +393,7 @@ const ProfilePage = () => {
             <Card className="border-0 shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Lock className="h-5 w-5 text-primary" />
+                  <Lock className="h-5 w-5 text-foreground/70" />
                   Segurança
                 </CardTitle>
                 <CardDescription>

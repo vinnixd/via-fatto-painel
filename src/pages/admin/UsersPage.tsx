@@ -267,11 +267,11 @@ const UsersPage = () => {
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Badge className="bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500/20"><Crown className="h-3 w-3 mr-1" />Proprietário</Badge>;
+        return <Badge className="bg-foreground text-background"><Crown className="h-3 w-3 mr-1" />Proprietário</Badge>;
       case 'gestor':
-        return <Badge className="bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20"><Briefcase className="h-3 w-3 mr-1" />Gerente</Badge>;
+        return <Badge className="bg-muted-foreground/20 text-foreground border border-border"><Briefcase className="h-3 w-3 mr-1" />Gerente</Badge>;
       case 'marketing':
-        return <Badge className="bg-purple-500/10 text-purple-600 border border-purple-500/20 hover:bg-purple-500/20">Marketing</Badge>;
+        return <Badge className="bg-muted text-muted-foreground border border-border">Marketing</Badge>;
       case 'corretor':
         return <Badge variant="secondary">Corretor</Badge>;
       default:
@@ -290,7 +290,7 @@ const UsersPage = () => {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </AdminLayout>
     );
@@ -443,11 +443,11 @@ const UsersPage = () => {
                 </div>
               ) : (
                 <div className="py-4 space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800 font-medium mb-2">
+                  <div className="p-4 bg-muted border border-border rounded-lg">
+                    <p className="text-sm text-foreground font-medium mb-2">
                       Convite criado com sucesso!
                     </p>
-                    <p className="text-xs text-green-600 mb-3">
+                    <p className="text-xs text-muted-foreground mb-3">
                       Copie o link abaixo e envie para o membro:
                     </p>
                     <div className="flex gap-2">

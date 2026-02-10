@@ -282,7 +282,7 @@ const DesignerPage = () => {
       <AdminLayout>
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mx-auto" />
             <p className="text-muted-foreground">Carregando configurações...</p>
           </div>
         </div>
@@ -306,10 +306,10 @@ const DesignerPage = () => {
       <div className="p-6">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-lg">
-                <Palette className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Palette className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Cores</p>
@@ -318,10 +318,10 @@ const DesignerPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Image className="h-5 w-5 text-green-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Image className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Imagens</p>
@@ -330,10 +330,10 @@ const DesignerPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Share2 className="h-5 w-5 text-blue-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Share2 className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Redes Sociais</p>
@@ -342,10 +342,10 @@ const DesignerPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <Globe className="h-5 w-5 text-orange-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Globe className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">SEO</p>
@@ -365,14 +365,14 @@ const DesignerPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                   activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                    ? 'bg-foreground text-background shadow-md'
                     : 'bg-card hover:bg-muted border border-border'
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
                 <div>
                   <p className="font-medium">{tab.label}</p>
-                  <p className={`text-xs ${activeTab === tab.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                  <p className={`text-xs ${activeTab === tab.id ? 'text-background/70' : 'text-muted-foreground'}`}>
                     {tab.description}
                   </p>
                 </div>
@@ -425,8 +425,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <ImagePlus className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <ImagePlus className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Logotipos da Empresa</CardTitle>
@@ -549,8 +549,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-orange-500/10 rounded-lg">
-                        <Globe className="h-5 w-5 text-orange-500" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Globe className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Ícone do Site (Favicon)</CardTitle>
@@ -626,8 +626,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Palette className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Palette className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Paleta de Cores</CardTitle>
@@ -704,8 +704,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Droplets className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Droplets className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Marca d'Água</CardTitle>
@@ -875,8 +875,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Type className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Type className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Textos do Hero</CardTitle>
@@ -913,8 +913,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Image className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Image className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Imagem de Fundo</CardTitle>
@@ -975,8 +975,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <FileText className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <FileText className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Seção Sobre</CardTitle>
@@ -1012,8 +1012,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Image className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Image className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Imagem da Página Sobre</CardTitle>
@@ -1084,8 +1084,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Image className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Image className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Imagem da Página Inicial</CardTitle>
@@ -1161,8 +1161,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Phone className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Phone className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Informações de Contato</CardTitle>
@@ -1238,8 +1238,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Share2 className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Share2 className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Redes Sociais</CardTitle>
@@ -1310,8 +1310,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Globe className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Globe className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Otimização para Buscadores (SEO)</CardTitle>
@@ -1378,8 +1378,8 @@ const DesignerPage = () => {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Globe2 className="h-5 w-5 text-primary" />
+                      <div className="p-2 bg-muted rounded-lg">
+                        <Globe2 className="h-5 w-5 text-foreground/70" />
                       </div>
                       <div>
                         <CardTitle>Domínios do Site</CardTitle>

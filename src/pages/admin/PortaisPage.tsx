@@ -193,9 +193,9 @@ const PortaisPage = () => {
 
   const getMethodBadge = (metodo: string) => {
     const variants: Record<string, { label: string; className: string }> = {
-      feed: { label: 'Feed', className: 'bg-blue-100 text-blue-800' },
-      api: { label: 'API', className: 'bg-purple-100 text-purple-800' },
-      manual: { label: 'Manual', className: 'bg-gray-100 text-gray-800' },
+      feed: { label: 'Feed', className: 'bg-muted text-muted-foreground' },
+      api: { label: 'API', className: 'bg-muted text-muted-foreground' },
+      manual: { label: 'Manual', className: 'bg-muted text-muted-foreground' },
     };
     const variant = variants[metodo] || variants.feed;
     return <Badge className={variant.className}>{variant.label}</Badge>;
@@ -217,11 +217,11 @@ const PortaisPage = () => {
       <div className="p-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Globe className="h-5 w-5 text-blue-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <Globe className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Portais</p>
@@ -230,11 +230,11 @@ const PortaisPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <CheckCircle className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Ativos</p>
@@ -245,11 +245,11 @@ const PortaisPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
-                  <FileText className="h-5 w-5 text-amber-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Imóveis Disponíveis</p>
@@ -258,11 +258,11 @@ const PortaisPage = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border bg-card">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-foreground/70" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Com Erros</p>
@@ -333,7 +333,7 @@ const PortaisPage = () => {
                           {portal.formato_feed}
                         </Badge>
                         {portal.ativo ? (
-                          <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                          <Badge className="bg-foreground text-background">Ativo</Badge>
                         ) : (
                           <Badge variant="secondary">Inativo</Badge>
                         )}

@@ -336,13 +336,13 @@ const MessagesPage = () => {
   const getStatusBadge = (read: boolean) => {
     if (read) {
       return (
-        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+        <Badge variant="outline" className="bg-muted text-foreground border-border">
           Contatado
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+      <Badge variant="outline" className="bg-foreground/10 text-foreground border-foreground/20">
         Novo
       </Badge>
     );
@@ -350,10 +350,10 @@ const MessagesPage = () => {
 
   const getOriginBadge = (origem: string) => {
     const originConfig: Record<string, { label: string; className: string }> = {
-      site: { label: 'Site', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-      whatsapp: { label: 'WhatsApp', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
-      manual: { label: 'Manual', className: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
-      portal: { label: 'Portal', className: 'bg-orange-500/10 text-orange-600 border-orange-500/20' },
+      site: { label: 'Site', className: 'bg-muted text-muted-foreground border-border' },
+      whatsapp: { label: 'WhatsApp', className: 'bg-muted text-muted-foreground border-border' },
+      manual: { label: 'Manual', className: 'bg-muted text-muted-foreground border-border' },
+      portal: { label: 'Portal', className: 'bg-muted text-muted-foreground border-border' },
     };
     
     const config = originConfig[origem] || { label: origem, className: 'bg-muted text-muted-foreground border-muted' };
@@ -418,10 +418,10 @@ const MessagesPage = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                <Users className="h-5 w-5 text-muted-foreground" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total</p>
@@ -430,10 +430,10 @@ const MessagesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Plus className="h-5 w-5 text-blue-500" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Plus className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Novos</p>
@@ -442,10 +442,10 @@ const MessagesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <MessageSquare className="h-5 w-5 text-orange-500" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Em Negociação</p>
@@ -454,10 +454,10 @@ const MessagesPage = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-sm bg-card">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Fechados</p>

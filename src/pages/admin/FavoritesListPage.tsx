@@ -74,14 +74,14 @@ const FavoritesListPage = () => {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Heart className="h-5 w-5 text-primary" />
+              <Heart className="h-5 w-5 text-foreground/70" />
               <h3 className="text-lg font-semibold">Lista de Favoritos</h3>
               <span className="text-sm text-muted-foreground">({favorites.length} registros)</span>
             </div>
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : favorites.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
