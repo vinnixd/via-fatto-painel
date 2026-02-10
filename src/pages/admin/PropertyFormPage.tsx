@@ -474,7 +474,7 @@ const PropertyFormPage = () => {
     }
   };
 
-  const MAX_IMAGES = 10;
+  const MAX_IMAGES = Infinity;
   const MAX_FILE_SIZE_MB = 5;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const COMPRESSION_THRESHOLD_MB = 5;
@@ -483,18 +483,7 @@ const PropertyFormPage = () => {
   const [isCompressing, setIsCompressing] = useState(false);
 
   const handleImageUpload = useCallback(async (files: FileList) => {
-    const remainingSlots = MAX_IMAGES - images.length;
-    
-    if (remainingSlots <= 0) {
-      toast.error(`Limite de ${MAX_IMAGES} imagens atingido`);
-      return;
-    }
-
-    const filesToProcess = Array.from(files).slice(0, remainingSlots);
-    
-    if (files.length > remainingSlots) {
-      toast.warning(`Apenas ${remainingSlots} imagem(ns) será(ão) adicionada(s). Limite de ${MAX_IMAGES} imagens.`);
-    }
+    const filesToProcess = Array.from(files);
 
     // Check if any files need compression
     const needsCompression = filesToProcess.some(f => f.size > COMPRESSION_THRESHOLD_BYTES);
@@ -1720,7 +1709,7 @@ const PropertyFormPage = () => {
                             ou clique para selecionar arquivos
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Até 10 imagens ({images.length}/{MAX_IMAGES}) • Compressão automática para arquivos &gt;5MB
+                            {images.length} imagem(ns) • Compressão automática para arquivos &gt;5MB
                           </p>
                         </>
                       )}
