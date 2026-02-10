@@ -767,71 +767,44 @@ const PropertyFormPage = () => {
           Voltar para lista
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar - Steps */}
-          <div className="lg:col-span-1">
-            <Card className="border-0 shadow-sm sticky top-6">
-              <CardContent className="p-4">
-                <nav className="space-y-1">
-                  {steps.map((step, index) => {
-                    const Icon = step.icon;
-                    const isActive = activeStep === index;
-                    const isCompleted = activeStep > index;
-                    
-                    return (
-                      <button
-                        key={step.id}
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setActiveStep(index);
-                        }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
-                          isActive 
-                            ? 'bg-primary text-primary-foreground' 
-                            : isCompleted
-                              ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                              : 'hover:bg-muted text-muted-foreground'
-                        }`}
-                      >
-                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                          isActive 
-                            ? 'bg-primary-foreground/20' 
-                            : isCompleted
-                              ? 'bg-primary/20'
-                              : 'bg-muted'
-                        }`}>
-                          {isCompleted ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Icon className="h-4 w-4" />
-                          )}
-                        </div>
-                        <span className="font-medium text-sm">{step.title}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
-
-                <Separator className="my-4" />
-
-                {/* Quick Stats */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Fotos</span>
-                    <span className="font-medium">{images.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Características</span>
-                    <span className="font-medium">{formData.features.length}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <div>
+          {/* Tabs Navigation */}
+          <div className="mb-6 border-b border-border overflow-x-auto">
+            <nav className="flex gap-1 min-w-max">
+              {steps.map((step, index) => {
+                const Icon = step.icon;
+                const isActive = activeStep === index;
+                
+                return (
+                  <button
+                    key={step.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveStep(index);
+                    }}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+                      isActive 
+                        ? 'border-primary text-primary' 
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground/30'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{step.title}</span>
+                    {step.id === 'images' && images.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">{images.length}</Badge>
+                    )}
+                    {step.id === 'features' && formData.features.length > 0 && (
+                      <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0">{formData.features.length}</Badge>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
+          <div>
             <form 
               onSubmit={handleSubmit} 
               className="space-y-6"
