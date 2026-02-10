@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams, useBlocker } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
@@ -255,18 +255,16 @@ const PropertyFormPage = () => {
   const [isSlugEditable, setIsSlugEditable] = useState(false);
   const [descriptionTone, setDescriptionTone] = useState<string | null>(null);
 
-  // Unsaved changes blocker
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
-  );
-
+  // Unsaved changes - warn on browser close/refresh
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      setShowUnsavedDialog(true);
-      setPendingNavigation(() => () => blocker.proceed());
-    }
-  }, [blocker]);
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
 
   // CEP lookup function
   const handleCepLookup = useCallback(async (cep: string) => {
@@ -2194,9 +2192,6 @@ const PropertyFormPage = () => {
               <AlertDialogCancel onClick={() => {
                 setShowUnsavedDialog(false);
                 setPendingNavigation(null);
-                if (blocker.state === 'blocked') {
-                  blocker.reset();
-                }
               }}>
                 Continuar editando
               </AlertDialogCancel>
