@@ -162,7 +162,7 @@ const CategoriesPage = () => {
           <CardContent className="p-6">
             <div className="flex justify-between mb-6">
               <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FolderOpen className="h-5 w-5 text-primary" />
+                <FolderOpen className="h-5 w-5 text-foreground/70" />
                 Lista de Categorias
               </h3>
               <Button variant="admin" onClick={() => openDialog()}>
@@ -173,7 +173,7 @@ const CategoriesPage = () => {
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : categories.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">

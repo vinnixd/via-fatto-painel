@@ -163,7 +163,7 @@ const IntegrationsPage = () => {
       <AdminLayout>
         <div className="flex items-center justify-center h-screen">
           <div className="text-center space-y-4">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground mx-auto" />
             <p className="text-muted-foreground">Carregando integrações...</p>
           </div>
         </div>
@@ -240,13 +240,13 @@ const IntegrationsPage = () => {
                 <CardTitle className="text-lg">{integration.title}</CardTitle>
                 <div className="flex items-center gap-2">
                   {isValid && (
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">
+                    <Badge className="bg-foreground text-background">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Ativo
                     </Badge>
                   )}
                   {hasError && (
-                    <Badge variant="destructive" className="bg-red-500/10 text-red-600 border-red-500/20">
+                    <Badge variant="destructive">
                       <XCircle className="h-3 w-3 mr-1" />
                       Inválido
                     </Badge>
@@ -300,10 +300,10 @@ const IntegrationsPage = () => {
       <div className="p-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-lg">
-                <Code className="h-5 w-5 text-primary" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Code className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Integrações Ativas</p>
@@ -312,10 +312,10 @@ const IntegrationsPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-orange-500/20 rounded-lg">
-                <BarChart3 className="h-5 w-5 text-orange-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Analytics</p>
@@ -324,10 +324,10 @@ const IntegrationsPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <Card className="border bg-card">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Megaphone className="h-5 w-5 text-blue-600" />
+              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                <Megaphone className="h-5 w-5 text-foreground/70" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Marketing</p>
@@ -347,14 +347,14 @@ const IntegrationsPage = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
                   activeTab === tab.id
-                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25'
+                    ? 'bg-foreground text-background shadow-md'
                     : 'bg-card hover:bg-muted border border-border'
                 }`}
               >
                 <tab.icon className="h-5 w-5" />
                 <div>
                   <p className="font-medium">{tab.label}</p>
-                  <p className={`text-xs ${activeTab === tab.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                  <p className={`text-xs ${activeTab === tab.id ? 'text-background/70' : 'text-muted-foreground'}`}>
                     {tab.description}
                   </p>
                 </div>
