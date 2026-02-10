@@ -990,7 +990,38 @@ const PropertiesListPage = () => {
           </CardContent>
         </Card>
 
-        {/* Properties Grid */}
+        {/* Plan Usage Banner */}
+        {maxProperties < Infinity && (
+          <div className={`flex items-center justify-between rounded-lg border px-4 py-3 text-sm ${
+            !canAddProperty 
+              ? 'bg-destructive/5 border-destructive/20 text-destructive' 
+              : currentProperties / maxProperties >= 0.8 
+                ? 'bg-amber-500/5 border-amber-500/20 text-amber-700 dark:text-amber-400'
+                : 'bg-muted/50 border-border text-muted-foreground'
+          }`}>
+            <div className="flex items-center gap-3">
+              <Home className="h-4 w-4 shrink-0" />
+              <span>
+                <span className="font-semibold text-foreground">{currentProperties}</span> / {maxProperties} imóveis utilizados
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-24 h-2 rounded-full bg-muted overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all ${
+                    !canAddProperty 
+                      ? 'bg-destructive' 
+                      : currentProperties / maxProperties >= 0.8 
+                        ? 'bg-amber-500' 
+                        : 'bg-foreground/40'
+                  }`}
+                  style={{ width: `${Math.min((currentProperties / maxProperties) * 100, 100)}%` }}
+                />
+              </div>
+              <span className="text-xs font-medium">{Math.round((currentProperties / maxProperties) * 100)}%</span>
+            </div>
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
