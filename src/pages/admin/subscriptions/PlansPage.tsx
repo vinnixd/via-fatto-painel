@@ -15,12 +15,13 @@ import {
   ArrowRight,
   TrendingUp,
 } from 'lucide-react';
-import { useSubscriptionPlans, useCurrentSubscription, useUpdateBillingCycle } from '@/hooks/useSubscription';
+import { useSubscriptionPlans, useCurrentSubscription, useUpdateBillingCycle, useChangePlan } from '@/hooks/useSubscription';
 
 const PlansPage = () => {
   const { data: plans, isLoading: loadingPlans } = useSubscriptionPlans();
   const { data: subscription, isLoading: loadingSubscription } = useCurrentSubscription();
   const updateBillingCycle = useUpdateBillingCycle();
+  const changePlan = useChangePlan();
 
   const isLoading = loadingPlans || loadingSubscription;
   const isAnnual = subscription?.billing_cycle === 'annual';
@@ -249,8 +250,10 @@ const PlansPage = () => {
                       <Button 
                         className="w-full" 
                         variant="admin"
+                        disabled={changePlan.isPending}
+                        onClick={() => changePlan.mutate(plan.id)}
                       >
-                        {plan.monthly_price > (currentPlan?.monthly_price || 0) ? 'Fazer upgrade' : 'Migrar para este plano'}
+                        {changePlan.isPending ? 'Atualizando...' : plan.monthly_price > (currentPlan?.monthly_price || 0) ? 'Fazer upgrade' : 'Migrar para este plano'}
                         <ArrowRight className="h-4 w-4 ml-1" />
                       </Button>
                     )}
