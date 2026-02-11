@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import SubscriptionsLayout from './SubscriptionsLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,9 +9,12 @@ import {
   FileText, 
   Receipt, 
   CheckCircle2,
-  Calendar,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  CreditCard,
+  Settings,
+  Building2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useInvoices, useCurrentSubscription } from '@/hooks/useSubscription';
@@ -27,29 +29,92 @@ const InvoicesPage = () => {
 
   // Calculate stats
   const totalPaid = invoices?.reduce((sum, inv) => {
-    if (inv.status === 'paid') {
-      return sum + Number(inv.amount);
-    }
+    if (inv.status === 'paid') return sum + Number(inv.amount);
     return sum;
   }, 0) || 0;
 
   const paidCount = invoices?.filter(inv => inv.status === 'paid').length || 0;
   const overdueCount = invoices?.filter(inv => inv.status === 'overdue').length || 0;
   const pendingCount = invoices?.filter(inv => inv.status === 'pending').length || 0;
-  const lastInvoice = invoices?.[0];
 
-  // Determine overall payment status
-  const getOverallStatus = () => {
+  // Contextual status message
+  const getStatusMessage = () => {
     if (overdueCount > 0) {
-      return { label: 'Atrasado', color: 'red', icon: AlertCircle };
+      return {
+        label: `${overdueCount} fatura${overdueCount > 1 ? 's' : ''} em atraso`,
+        icon: AlertCircle,
+        bgClass: 'bg-destructive/5 border-destructive/20',
+        iconBgClass: 'bg-destructive/10',
+        iconClass: 'text-destructive',
+        textClass: 'text-destructive',
+      };
     }
     if (pendingCount > 0) {
-      return { label: 'Pendente', color: 'yellow', icon: Calendar };
+      return {
+        label: `${pendingCount} fatura${pendingCount > 1 ? 's' : ''} pendente${pendingCount > 1 ? 's' : ''}`,
+        icon: AlertTriangle,
+        bgClass: 'bg-amber-500/5 border-amber-500/20',
+        iconBgClass: 'bg-amber-500/10',
+        iconClass: 'text-amber-600',
+        textClass: 'text-amber-700',
+      };
     }
-    return { label: 'Em dia', color: 'green', icon: CheckCircle2 };
+    return {
+      label: 'Pagamentos em dia',
+      icon: CheckCircle2,
+      bgClass: 'bg-green-500/5 border-green-500/20',
+      iconBgClass: 'bg-green-500/10',
+      iconClass: 'text-green-600',
+      textClass: 'text-green-700',
+    };
   };
 
-  const overallStatus = getOverallStatus();
+  const statusInfo = getStatusMessage();
+  const StatusIcon = statusInfo.icon;
+
+  // Fiscal data completeness
+  const isFiscalComplete = !!(
+    subscription?.fiscal_name &&
+    subscription?.fiscal_document &&
+    subscription?.fiscal_cep &&
+    subscription?.fiscal_city &&
+    subscription?.fiscal_state &&
+    subscription?.fiscal_street &&
+    subscription?.fiscal_number
+  );
+
+  const getActionButton = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return (
+          <Button variant="outline" size="sm" className="gap-1.5 text-amber-700 border-amber-500/30 hover:bg-amber-500/10">
+            <CreditCard className="h-3.5 w-3.5" />
+            Pagar agora
+          </Button>
+        );
+      case 'overdue':
+        return (
+          <Button variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
+            <AlertCircle className="h-3.5 w-3.5" />
+            Regularizar pagamento
+          </Button>
+        );
+      case 'paid':
+        return (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1.5 text-muted-foreground"
+            onClick={() => toast.info('Funcionalidade de download em breve!')}
+          >
+            <Download className="h-3.5 w-3.5" />
+            Baixar nota fiscal
+          </Button>
+        );
+      default:
+        return null;
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -71,11 +136,7 @@ const InvoicesPage = () => {
       <SubscriptionsLayout>
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6">
           <Skeleton className="h-10 w-64" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
+          <Skeleton className="h-20" />
           <Skeleton className="h-64" />
         </div>
       </SubscriptionsLayout>
@@ -93,93 +154,63 @@ const InvoicesPage = () => {
           </p>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border bg-card">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                <overallStatus.icon className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Status</p>
-                <p className="font-semibold">{overallStatus.label}</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border bg-card">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                <Receipt className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Faturas</p>
-                <p className="font-semibold">{paidCount} pagas</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border bg-card">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Última</p>
-                <p className="font-semibold">
-                  {lastInvoice 
-                    ? format(new Date(lastInvoice.due_date + 'T12:00:00'), 'MMM/yyyy', { locale: ptBR })
-                    : 'N/A'
-                  }
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="border bg-card">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-foreground/70" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Total pago</p>
-                <p className="font-semibold">R$ {totalPaid.toFixed(2).replace('.', ',')}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Contextual Status Banner */}
+        <Card className={`mb-6 border ${statusInfo.bgClass}`}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className={`p-2.5 rounded-xl shrink-0 ${statusInfo.iconBgClass}`}>
+              <StatusIcon className={`h-5 w-5 ${statusInfo.iconClass}`} />
+            </div>
+            <div className="flex-1">
+              <p className={`font-semibold ${statusInfo.textClass}`}>{statusInfo.label}</p>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span>{paidCount} paga{paidCount !== 1 ? 's' : ''}</span>
+              <span>R$ {totalPaid.toFixed(2).replace('.', ',')} total</span>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Fiscal Data Card */}
         {subscription && (
-          <Card className="mb-8 overflow-hidden">
-            <div className="bg-gradient-to-r from-muted/50 to-transparent p-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-background rounded-xl">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Dados fiscais</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {subscription.fiscal_name 
-                      ? `${subscription.fiscal_name} - ${subscription.fiscal_document}`
-                      : 'Nenhum dado fiscal cadastrado'
-                    }
-                  </p>
-                </div>
+          <Card className="mb-6 overflow-hidden">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className={`p-2.5 rounded-xl shrink-0 ${
+                isFiscalComplete ? 'bg-green-500/10' : 'bg-amber-500/10'
+              }`}>
+                {isFiscalComplete ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                )}
               </div>
-            </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm">
+                  {isFiscalComplete ? 'Dados fiscais completos' : 'Dados fiscais incompletos'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {subscription.fiscal_name 
+                    ? `${subscription.fiscal_name} — ${subscription.fiscal_document}`
+                    : 'Notas fiscais são geradas automaticamente após confirmação do pagamento.'
+                  }
+                </p>
+              </div>
+              {!isFiscalComplete && (
+                <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                  <Settings className="h-3.5 w-3.5" />
+                  Completar dados fiscais
+                </Button>
+              )}
+            </CardContent>
           </Card>
         )}
 
         {/* Invoices Table */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Histórico de faturas</h2>
-          </div>
+          <h2 className="text-xl font-bold">Histórico de faturas</h2>
           
           {!invoices || invoices.length === 0 ? (
             <Card className="p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Nenhuma fatura encontrada</h3>
               <p className="text-muted-foreground">As faturas aparecerão aqui quando forem geradas.</p>
             </Card>
@@ -193,14 +224,14 @@ const InvoicesPage = () => {
                     <TableHead>Plano</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="w-[80px] text-center">Ação</TableHead>
+                    <TableHead className="text-right">Ação</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {invoices.map((invoice) => (
                     <TableRow key={invoice.id} className="group">
                       <TableCell>
-                        <span className="text-foreground hover:underline cursor-pointer font-medium">
+                        <span className="font-medium">
                           {invoice.invoice_number || `#${invoice.id.slice(0, 8)}`}
                         </span>
                       </TableCell>
@@ -216,15 +247,8 @@ const InvoicesPage = () => {
                       <TableCell className="text-right font-semibold">
                         R$ {Number(invoice.amount).toFixed(2).replace('.', ',')}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 opacity-50 group-hover:opacity-100 transition-opacity"
-                          onClick={() => toast.info('Funcionalidade de download em breve!')}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
+                      <TableCell className="text-right">
+                        {getActionButton(invoice.status)}
                       </TableCell>
                     </TableRow>
                   ))}

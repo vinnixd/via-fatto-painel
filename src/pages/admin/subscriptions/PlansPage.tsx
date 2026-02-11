@@ -11,7 +11,9 @@ import {
   Crown, 
   Users, 
   Building2, 
-  Percent
+  Percent,
+  ArrowRight,
+  TrendingUp,
 } from 'lucide-react';
 import { useSubscriptionPlans, useCurrentSubscription, useUpdateBillingCycle } from '@/hooks/useSubscription';
 
@@ -22,68 +24,52 @@ const PlansPage = () => {
 
   const isLoading = loadingPlans || loadingSubscription;
   const isAnnual = subscription?.billing_cycle === 'annual';
+  const currentPlan = subscription?.plan;
 
   const handleBillingCycleChange = (checked: boolean) => {
     updateBillingCycle.mutate(checked ? 'annual' : 'monthly');
   };
 
-  const getButtonConfig = (planPrice: number) => {
-    const currentPlanPrice = subscription?.plan?.monthly_price || 0;
+  const getButtonConfig = (plan: typeof plans extends (infer T)[] | undefined ? T : never) => {
+    const currentPrice = currentPlan?.monthly_price || 0;
     
-    if (planPrice === currentPlanPrice) {
-      return { text: 'Plano Atual', disabled: true, variant: 'outline' as const };
-    } else if (planPrice < currentPlanPrice) {
-      return { text: 'Reduzir Plano', disabled: false, variant: 'outline' as const };
+    if (plan.monthly_price === currentPrice) {
+      return { text: 'Seu plano atual', disabled: true, variant: 'outline' as const, isCurrentPlan: true };
+    } else if (plan.monthly_price < currentPrice) {
+      return { text: 'Migrar para este plano', disabled: false, variant: 'outline' as const, isCurrentPlan: false };
     } else {
-      return { text: 'Subir de plano', disabled: false, variant: 'default' as const };
+      return { text: 'Fazer upgrade', disabled: false, variant: 'admin' as const, isCurrentPlan: false };
     }
   };
 
   const getPlanIcon = (slug: string) => {
     switch (slug) {
-      case 'essencial':
-        return Sparkles;
-      case 'impulso':
-        return Zap;
-      case 'escala':
-        return Crown;
-      default:
-        return Sparkles;
+      case 'essencial': return Sparkles;
+      case 'impulso': return Zap;
+      case 'escala': return Crown;
+      default: return Sparkles;
     }
   };
 
-  const getPlanStyle = (slug: string, isHighlighted: boolean) => {
-    if (isHighlighted) {
-      return {
-        gradient: 'from-foreground/5 to-foreground/10',
-        borderColor: 'border-foreground/30 hover:border-foreground/50',
-        iconBg: 'bg-foreground/10',
-        iconColor: 'text-foreground',
-      };
+  // Generate comparative advantages
+  const getComparativeText = (plan: { max_users: number; max_properties: number }) => {
+    if (!currentPlan) return null;
+    if (plan.max_users <= currentPlan.max_users && plan.max_properties <= currentPlan.max_properties) return null;
+    
+    const extras: string[] = [];
+    if (plan.max_users > currentPlan.max_users) {
+      extras.push(`+${plan.max_users - currentPlan.max_users} usuários`);
     }
-    switch (slug) {
-      case 'essencial':
-        return {
-          gradient: 'from-muted to-muted/50',
-          borderColor: 'border-border hover:border-foreground/30',
-          iconBg: 'bg-muted',
-          iconColor: 'text-foreground/70',
-        };
-      case 'escala':
-        return {
-          gradient: 'from-muted to-muted/50',
-          borderColor: 'border-border hover:border-foreground/30',
-          iconBg: 'bg-muted',
-          iconColor: 'text-foreground/70',
-        };
-      default:
-        return {
-          gradient: 'from-muted to-muted/50',
-          borderColor: 'border-border',
-          iconBg: 'bg-muted',
-          iconColor: 'text-foreground/70',
-        };
+    if (plan.max_properties > currentPlan.max_properties) {
+      extras.push(`+${plan.max_properties - currentPlan.max_properties} imóveis`);
     }
+    return extras;
+  };
+
+  // Calculate annual savings
+  const getAnnualSavings = (monthlyPrice: number, annualPrice: number) => {
+    const savingsPerMonth = monthlyPrice - annualPrice;
+    return savingsPerMonth * 12;
   };
 
   if (isLoading) {
@@ -116,7 +102,7 @@ const PlansPage = () => {
         </div>
 
         {/* Billing Toggle */}
-        <div className="flex items-center justify-center gap-4 mb-10">
+        <div className="flex items-center justify-center gap-4 mb-4">
           <span className={`text-sm font-medium transition-colors ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
             Mensal
           </span>
@@ -130,35 +116,53 @@ const PlansPage = () => {
             <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
               Anual
             </span>
-            {isAnnual && (
-              <Badge variant="secondary" className="bg-muted text-foreground/70">
-                <Percent className="h-3 w-3 mr-1" />
-                20% OFF
-              </Badge>
-            )}
+            <Badge variant="secondary" className="bg-green-500/10 text-green-700 border-green-500/20">
+              <Percent className="h-3 w-3 mr-1" />
+              20% OFF
+            </Badge>
           </div>
         </div>
+
+        {/* Annual Savings Info */}
+        {isAnnual && currentPlan && (
+          <div className="text-center mb-8">
+            <p className="text-sm text-green-700 font-medium">
+              Economize R$ {getAnnualSavings(currentPlan.monthly_price, currentPlan.annual_price).toFixed(0)} por ano no seu plano atual
+            </p>
+          </div>
+        )}
+        {!isAnnual && <div className="mb-6" />}
 
         {/* Plans Grid */}
         <div className="grid gap-6 lg:grid-cols-3">
           {plans?.map((plan) => {
             const isHighlighted = plan.slug === 'impulso';
             const Icon = getPlanIcon(plan.slug);
-            const style = getPlanStyle(plan.slug, isHighlighted);
             const price = isAnnual ? plan.annual_price : plan.monthly_price;
-            const buttonConfig = getButtonConfig(plan.monthly_price);
+            const buttonConfig = getButtonConfig(plan);
+            const comparative = getComparativeText(plan);
             
             return (
               <Card 
                 key={plan.id} 
-                className={`relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 ${style.borderColor} ${
-                  isHighlighted ? 'scale-[1.02] ring-2 ring-foreground/20' : ''
+                className={`relative overflow-hidden transition-all duration-300 border-2 ${
+                  buttonConfig.isCurrentPlan
+                    ? 'border-foreground/10 opacity-90'
+                    : isHighlighted 
+                      ? 'border-foreground/30 hover:border-foreground/50 hover:shadow-xl scale-[1.02] ring-2 ring-foreground/10'
+                      : 'border-border hover:border-foreground/30 hover:shadow-xl'
                 }`}
               >
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-50`} />
-                
-                {isHighlighted && (
+                {/* Current Plan Badge */}
+                {buttonConfig.isCurrentPlan && (
+                  <Badge className="absolute top-4 right-4 bg-foreground text-background gap-1">
+                    <Check className="h-3 w-3" />
+                    Seu plano atual
+                  </Badge>
+                )}
+
+                {/* Popular Badge */}
+                {isHighlighted && !buttonConfig.isCurrentPlan && (
                   <Badge className="absolute top-4 right-4 bg-foreground text-background gap-1">
                     <Sparkles className="h-3 w-3" />
                     Popular
@@ -166,8 +170,10 @@ const PlansPage = () => {
                 )}
                 
                 <CardHeader className="pb-4 relative">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${style.iconBg}`}>
-                    <Icon className={`h-6 w-6 ${style.iconColor}`} />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
+                    buttonConfig.isCurrentPlan ? 'bg-muted' : 'bg-foreground/5'
+                  }`}>
+                    <Icon className={`h-6 w-6 ${buttonConfig.isCurrentPlan ? 'text-foreground/50' : 'text-foreground/70'}`} />
                   </div>
                   
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
@@ -190,17 +196,30 @@ const PlansPage = () => {
                 </CardHeader>
                 
                 <CardContent className="space-y-4 relative">
+                  {/* Comparative advantages */}
+                  {comparative && comparative.length > 0 && (
+                    <div className="bg-green-500/5 border border-green-500/15 rounded-lg p-3 space-y-1.5">
+                      <p className="text-xs font-medium text-green-700 flex items-center gap-1">
+                        <TrendingUp className="h-3 w-3" />
+                        Você terá:
+                      </p>
+                      {comparative.map((text, i) => (
+                        <p key={i} className="text-sm text-green-700 font-medium">{text}</p>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="space-y-3">
                     {/* Users and Properties */}
                     <div className="flex items-center gap-3 text-sm">
-                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
-                        <Check className="h-3.5 w-3.5" />
+                      <div className="p-1 rounded-full bg-foreground/5">
+                        <Check className="h-3.5 w-3.5 text-foreground/60" />
                       </div>
                       <span><Users className="h-4 w-4 inline mr-1" />{plan.max_users} Usuários</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
-                        <Check className="h-3.5 w-3.5" />
+                      <div className="p-1 rounded-full bg-foreground/5">
+                        <Check className="h-3.5 w-3.5 text-foreground/60" />
                       </div>
                       <span><Building2 className="h-4 w-4 inline mr-1" />{plan.max_properties} Imóveis</span>
                     </div>
@@ -208,8 +227,8 @@ const PlansPage = () => {
                     {/* Features from database */}
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-3 text-sm">
-                        <div className={`p-1 rounded-full ${isHighlighted ? 'bg-foreground/10 text-foreground' : 'bg-foreground/10 text-foreground/70'}`}>
-                          <Check className="h-3.5 w-3.5" />
+                        <div className="p-1 rounded-full bg-foreground/5">
+                          <Check className="h-3.5 w-3.5 text-foreground/60" />
                         </div>
                         <span>{feature}</span>
                       </div>
@@ -217,18 +236,23 @@ const PlansPage = () => {
                   </div>
 
                   <div className="pt-6 space-y-4">
-                    <Button 
-                      className="w-full" 
-                      variant={buttonConfig.disabled ? "outline" : (isHighlighted ? "admin" : "admin")}
-                      disabled={buttonConfig.disabled}
-                    >
-                      {buttonConfig.text}
-                    </Button>
-                    
-                    {!isAnnual && (
-                      <p className="text-xs text-center text-muted-foreground">
-                        Contrate o plano anual e ganhe até <span className="font-semibold text-foreground">20% de desconto</span>.
-                      </p>
+                    {buttonConfig.isCurrentPlan ? (
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        disabled
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Plano atual
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        variant="admin"
+                      >
+                        {plan.monthly_price > (currentPlan?.monthly_price || 0) ? 'Fazer upgrade' : 'Migrar para este plano'}
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
                     )}
                   </div>
                 </CardContent>
@@ -236,6 +260,11 @@ const PlansPage = () => {
             );
           })}
         </div>
+
+        {/* Trust Microcopy */}
+        <p className="text-center text-sm text-muted-foreground mt-8">
+          Cancelamento pode ser feito a qualquer momento. Sem multas ou taxas adicionais.
+        </p>
       </div>
     </SubscriptionsLayout>
   );
