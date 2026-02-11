@@ -189,24 +189,28 @@ const PaymentsPage = () => {
           <>
             {/* Contextual Status Banner */}
             <Card className={`mb-8 border ${status.bgClass}`}>
-              <CardContent className="p-5 flex items-start gap-4">
-                <div className={`p-3 rounded-xl shrink-0 ${status.iconBgClass}`}>
-                  <StatusIcon className={`h-5 w-5 ${status.iconClass}`} />
+              <CardContent className="p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className={`p-3 rounded-xl shrink-0 ${status.iconBgClass}`}>
+                      <StatusIcon className={`h-5 w-5 ${status.iconClass}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-semibold ${status.textClass}`}>{status.label}</p>
+                      <p className="text-sm text-muted-foreground mt-0.5">{status.description}</p>
+                    </div>
+                  </div>
+                  {overdueCount > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto shrink-0 border-amber-500/30 text-amber-700 hover:bg-amber-500/10"
+                      onClick={() => navigateAdmin('/admin/assinaturas/faturas')}
+                    >
+                      Regularizar
+                    </Button>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`font-semibold ${status.textClass}`}>{status.label}</p>
-                  <p className="text-sm text-muted-foreground mt-0.5">{status.description}</p>
-                </div>
-                {overdueCount > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="shrink-0 border-amber-500/30 text-amber-700 hover:bg-amber-500/10"
-                    onClick={() => navigateAdmin('/admin/assinaturas/faturas')}
-                  >
-                    Regularizar
-                  </Button>
-                )}
               </CardContent>
             </Card>
 
