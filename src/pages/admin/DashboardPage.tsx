@@ -301,8 +301,6 @@ const DashboardPage = () => {
         {/* ─── Section: Content & Relationships ─── */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6">
-            {/* Plan Usage */}
-            <PlanUsageCard />
             {/* Recent Properties */}
             <Card className="border bg-card">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
@@ -475,6 +473,9 @@ const DashboardPage = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Plan Usage */}
+            <PlanUsageCard />
           </div>
         </section>
 
