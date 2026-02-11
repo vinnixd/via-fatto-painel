@@ -144,6 +144,39 @@ export function useUpdateFiscalData() {
   });
 }
 
+// Change subscription plan (upgrade or downgrade)
+export function useChangePlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newPlanId: string) => {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .limit(1)
+        .single();
+
+      if (!subscription) throw new Error('Nenhuma assinatura encontrada');
+
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ plan_id: newPlanId })
+        .eq('id', subscription.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription-limits'] });
+      toast.success('Plano atualizado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao atualizar plano: ' + error.message);
+    },
+  });
+}
+
 // Update billing cycle
 export function useUpdateBillingCycle() {
   const queryClient = useQueryClient();
