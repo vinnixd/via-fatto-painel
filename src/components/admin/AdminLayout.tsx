@@ -33,6 +33,10 @@ const getPageTitle = (pathname: string): { title: string; subtitle?: string } =>
     '/admin/membros': { title: 'Membros', subtitle: 'Gerencie sua equipe' },
     '/admin/blog': { title: 'Blog', subtitle: 'Gerencie os artigos do blog' },
     '/admin/blog/novo': { title: 'Novo Artigo', subtitle: 'Criar novo artigo do blog' },
+    '/admin/assinaturas': { title: 'Assinaturas', subtitle: 'Gerencie sua assinatura e pagamentos' },
+    '/admin/assinaturas/planos': { title: 'Assinaturas', subtitle: 'Escolha o plano ideal' },
+    '/admin/assinaturas/faturas': { title: 'Assinaturas', subtitle: 'Histórico de faturas' },
+    '/admin/assinaturas/upgrade': { title: 'Assinaturas', subtitle: 'Upgrade de plano' },
   };
 
   // Check for exact match first
