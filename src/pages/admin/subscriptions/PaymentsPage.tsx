@@ -14,18 +14,24 @@ import {
   Calendar,
   Receipt,
   Building2,
-  Wallet,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  Clock,
+  FileText,
+  History,
 } from 'lucide-react';
-import { useCurrentSubscription, useUpdateFiscalData } from '@/hooks/useSubscription';
-import { format, setDate, addMonths, isBefore, startOfDay } from 'date-fns';
+import { useCurrentSubscription, useUpdateFiscalData, useInvoices } from '@/hooks/useSubscription';
+import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import { format, setDate, addMonths, isBefore, startOfDay, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const PaymentsPage = () => {
   const [showFiscalForm, setShowFiscalForm] = useState(false);
   const { data: subscription, isLoading } = useCurrentSubscription();
+  const { data: invoices } = useInvoices();
   const updateFiscalData = useUpdateFiscalData();
+  const { navigateAdmin } = useAdminNavigation();
 
   const [fiscalData, setFiscalData] = useState({
     fiscal_name: '',
@@ -39,7 +45,6 @@ const PaymentsPage = () => {
     fiscal_complement: '',
   });
 
-  // Load existing fiscal data when subscription is loaded
   useEffect(() => {
     if (subscription) {
       setFiscalData({
@@ -66,33 +71,16 @@ const PaymentsPage = () => {
     });
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Ativo</Badge>;
-      case 'trial':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Trial</Badge>;
-      case 'suspended':
-        return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Suspenso</Badge>;
-      case 'canceled':
-        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelado</Badge>;
-      default:
-        return <Badge variant="outline">Desconhecido</Badge>;
-    }
-  };
-
   const plan = subscription?.plan;
   const price = subscription?.billing_cycle === 'annual' 
     ? plan?.annual_price 
     : plan?.monthly_price;
-  
-  // Calculate next payment date based on billing_day
+
+  // Calculate next payment date
   const getNextPaymentDate = () => {
     const today = startOfDay(new Date());
     const billingDay = subscription?.billing_day || 1;
-    // Try this month's billing day first
     let next = setDate(today, billingDay);
-    // If it's already past, move to next month
     if (isBefore(next, today) || next.getTime() === today.getTime()) {
       next = addMonths(setDate(today, billingDay), 1);
     }
@@ -100,18 +88,81 @@ const PaymentsPage = () => {
   };
 
   const nextPaymentDate = getNextPaymentDate();
+  const daysUntilPayment = differenceInDays(nextPaymentDate, startOfDay(new Date()));
+
+  // Determine contextual status
+  const overdueCount = invoices?.filter(inv => inv.status === 'overdue').length || 0;
+  const pendingCount = invoices?.filter(inv => inv.status === 'pending').length || 0;
+
+  const getContextualStatus = () => {
+    if (subscription?.status === 'suspended') {
+      return {
+        label: 'Suspenso – regularização necessária',
+        description: 'Sua assinatura foi suspensa. Regularize seus pagamentos para reativar o acesso.',
+        icon: AlertCircle,
+        bgClass: 'bg-destructive/5 border-destructive/20',
+        iconBgClass: 'bg-destructive/10',
+        iconClass: 'text-destructive',
+        textClass: 'text-destructive',
+      };
+    }
+    if (overdueCount > 0) {
+      return {
+        label: 'Ação necessária – risco de suspensão',
+        description: `Você tem ${overdueCount} fatura${overdueCount > 1 ? 's' : ''} em atraso. Regularize para evitar a suspensão.`,
+        icon: AlertTriangle,
+        bgClass: 'bg-amber-500/5 border-amber-500/20',
+        iconBgClass: 'bg-amber-500/10',
+        iconClass: 'text-amber-600',
+        textClass: 'text-amber-700',
+      };
+    }
+    if (pendingCount > 0) {
+      return {
+        label: 'Ativo – pagamento pendente',
+        description: `Você tem ${pendingCount} fatura${pendingCount > 1 ? 's' : ''} pendente${pendingCount > 1 ? 's' : ''}.`,
+        icon: Clock,
+        bgClass: 'bg-amber-500/5 border-amber-500/20',
+        iconBgClass: 'bg-amber-500/10',
+        iconClass: 'text-amber-600',
+        textClass: 'text-amber-700',
+      };
+    }
+    return {
+      label: 'Ativo – pagamentos em dia',
+      description: 'Sua assinatura está ativa e todos os pagamentos estão em dia.',
+      icon: CheckCircle2,
+      bgClass: 'bg-green-500/5 border-green-500/20',
+      iconBgClass: 'bg-green-500/10',
+      iconClass: 'text-green-600',
+      textClass: 'text-green-700',
+    };
+  };
+
+  const status = getContextualStatus();
+  const StatusIcon = status.icon;
+
+  // Fiscal data completeness
+  const isFiscalComplete = !!(
+    subscription?.fiscal_name &&
+    subscription?.fiscal_document &&
+    subscription?.fiscal_cep &&
+    subscription?.fiscal_city &&
+    subscription?.fiscal_state &&
+    subscription?.fiscal_street &&
+    subscription?.fiscal_number
+  );
 
   if (isLoading) {
     return (
       <SubscriptionsLayout>
         <div className="max-w-5xl mx-auto animate-fade-in space-y-6">
           <Skeleton className="h-10 w-64" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
+          <Skeleton className="h-24" />
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Skeleton className="h-64 lg:col-span-2" />
+            <Skeleton className="h-64" />
           </div>
-          <Skeleton className="h-64" />
         </div>
       </SubscriptionsLayout>
     );
@@ -136,99 +187,108 @@ const PaymentsPage = () => {
           </Card>
         ) : (
           <>
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 bg-green-500/20 rounded-xl">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Status</p>
-                    <p className="font-semibold text-green-600 capitalize">{subscription.status === 'active' ? 'Ativo' : subscription.status}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 bg-primary/20 rounded-xl">
-                    <Wallet className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Plano</p>
-                    <p className="font-semibold">{plan?.name || 'N/A'}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 bg-orange-500/20 rounded-xl">
-                    <Calendar className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Próximo</p>
-                    <p className="font-semibold">{format(nextPaymentDate, 'dd/MM/yyyy')}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2.5 bg-blue-500/20 rounded-xl">
-                    <Receipt className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Valor</p>
-                    <p className="font-semibold">R$ {price?.toFixed(0) || '0'}/{subscription.billing_cycle === 'annual' ? 'mês*' : 'mês'}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            {/* Contextual Status Banner */}
+            <Card className={`mb-8 border ${status.bgClass}`}>
+              <CardContent className="p-5 flex items-start gap-4">
+                <div className={`p-3 rounded-xl shrink-0 ${status.iconBgClass}`}>
+                  <StatusIcon className={`h-5 w-5 ${status.iconClass}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`font-semibold ${status.textClass}`}>{status.label}</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">{status.description}</p>
+                </div>
+                {overdueCount > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0 border-amber-500/30 text-amber-700 hover:bg-amber-500/10"
+                    onClick={() => navigateAdmin('/admin/assinaturas/faturas')}
+                  >
+                    Regularizar
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
 
             <div className="grid gap-6 lg:grid-cols-3">
               {/* Main Payment Info */}
               <div className="lg:col-span-2 space-y-6">
+                {/* Subscription Card */}
                 <Card className="overflow-hidden">
-                  <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border-b">
+                  <div className="bg-muted/30 p-6 border-b">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-primary/20 rounded-xl">
-                        <CreditCard className="h-6 w-6 text-primary" />
+                      <div className="p-3 bg-foreground/5 rounded-xl">
+                        <CreditCard className="h-6 w-6 text-foreground/70" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-semibold text-lg">Assinatura {subscription.billing_cycle === 'annual' ? 'Anual' : 'Mensal'}</h3>
-                        <p className="text-sm text-muted-foreground">Cobrança {subscription.billing_cycle === 'annual' ? 'anual' : 'recorrente'}</p>
+                        <p className="text-sm text-muted-foreground">Cobrança recorrente automática</p>
                       </div>
-                      {getStatusBadge(subscription.status)}
+                      <Badge variant="outline" className="bg-muted/50">{plan?.name}</Badge>
                     </div>
                   </div>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 space-y-5">
+                    {/* Price */}
                     <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium">Plano {plan?.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Próximo pagamento: <span className="font-medium text-foreground">
-                            {format(nextPaymentDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold">R$ {price?.toFixed(2).replace('.', ',') || '0,00'}</span>
-                        <span className="text-muted-foreground">/{subscription.billing_cycle === 'annual' ? 'mês' : 'mês'}</span>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Valor do plano</p>
+                        <div className="flex items-baseline gap-1 mt-1">
+                          <span className="text-3xl font-bold">R$ {price?.toFixed(2).replace('.', ',') || '0,00'}</span>
+                          <span className="text-muted-foreground text-sm">/ mês</span>
+                        </div>
+                        {subscription.billing_cycle === 'annual' && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Cobrado anualmente (R$ {((price || 0) * 12).toFixed(2).replace('.', ',')}/ano)
+                          </p>
+                        )}
                       </div>
                     </div>
-                    {subscription.billing_cycle === 'annual' && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        *Cobrado anualmente (R$ {((price || 0) * 12).toFixed(2).replace('.', ',')}/ano)
-                      </p>
-                    )}
+
+                    {/* Next Payment */}
+                    <div className="bg-muted/30 rounded-lg p-4 flex items-center gap-4">
+                      <div className="p-2 bg-background rounded-lg">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">
+                            Próxima cobrança em {daysUntilPayment} dia{daysUntilPayment !== 1 ? 's' : ''}
+                          </p>
+                          {daysUntilPayment <= 5 && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+                              Em breve
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(nextPaymentDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap gap-3 pt-2 border-t">
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Alterar forma de pagamento
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => navigateAdmin('/admin/assinaturas/faturas')}
+                      >
+                        <History className="h-4 w-4" />
+                        Ver histórico de cobranças
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Sidebar Info */}
+              {/* Sidebar */}
               <div className="space-y-6">
+                {/* Fiscal Data Card with Status */}
                 <Card>
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
@@ -237,15 +297,33 @@ const PaymentsPage = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {subscription.fiscal_name ? (
+                    {/* Fiscal Status Badge */}
+                    <div className={`flex items-center gap-2 text-sm rounded-lg p-2.5 ${
+                      isFiscalComplete 
+                        ? 'bg-green-500/5 text-green-700' 
+                        : 'bg-amber-500/5 text-amber-700'
+                    }`}>
+                      {isFiscalComplete ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span className="font-medium">Dados fiscais completos</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="font-medium">Dados fiscais incompletos</span>
+                        </>
+                      )}
+                    </div>
+
+                    {subscription.fiscal_name && (
                       <div className="space-y-1">
-                        <p className="font-semibold text-lg">{subscription.fiscal_name}</p>
+                        <p className="font-semibold">{subscription.fiscal_name}</p>
                         <p className="text-sm text-muted-foreground">{subscription.fiscal_document}</p>
                       </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">Nenhum dado fiscal cadastrado</p>
                     )}
-                    <div className="pt-3 border-t">
+
+                    <div className="pt-2 border-t">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -253,9 +331,13 @@ const PaymentsPage = () => {
                         onClick={() => setShowFiscalForm(true)}
                       >
                         <Settings className="h-4 w-4" />
-                        {subscription.fiscal_name ? 'Editar dados fiscais' : 'Cadastrar dados fiscais'}
+                        {isFiscalComplete ? 'Editar dados fiscais' : 'Completar dados fiscais'}
                       </Button>
                     </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Notas fiscais são geradas automaticamente após confirmação do pagamento.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -268,7 +350,7 @@ const PaymentsPage = () => {
                       </div>
                       <div>
                         <p className="font-medium text-sm">Precisa de ajuda?</p>
-                        <a href="#" className="text-sm text-primary hover:underline">
+                        <a href="#" className="text-sm text-muted-foreground hover:text-foreground hover:underline">
                           Saiba mais sobre pagamentos e assinaturas
                         </a>
                       </div>
