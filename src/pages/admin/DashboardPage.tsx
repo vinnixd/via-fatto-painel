@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardCharts from '@/components/admin/DashboardCharts';
+import PlanUsageCard from '@/components/admin/PlanUsageCard';
 import { useProfile } from '@/hooks/useProfile';
 import { useTenant } from '@/contexts/TenantContext';
 import {
@@ -300,6 +301,10 @@ const DashboardPage = () => {
         {/* ─── Section: Content & Relationships ─── */}
         <section>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Plan Usage - spans full width on mobile, first column on desktop */}
+            <div className="lg:col-span-3">
+              <PlanUsageCard />
+            </div>
             {/* Recent Properties */}
             <Card className="border bg-card">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
