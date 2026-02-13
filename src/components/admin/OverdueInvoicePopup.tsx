@@ -82,24 +82,26 @@ const OverdueInvoicePopup = () => {
           <DialogTitle className="text-xl font-bold">
             {message}
           </DialogTitle>
-          <DialogDescription className="text-center pt-2 space-y-2">
-            <p>
-              Você tem <strong className="text-foreground">{overdueInvoices.length} {overdueInvoices.length === 1 ? 'fatura em atraso' : 'faturas em atraso'}</strong> no valor total de{' '}
-              <strong className="text-foreground">
-                R$ {totalOverdue.toFixed(2).replace('.', ',')}
-              </strong>.
-            </p>
-            {latestOverdue && (
-              <p className="text-xs">
-                Vencimento mais recente:{' '}
-                <span className="font-medium">
-                  {format(new Date(latestOverdue.due_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </span>
+          <DialogDescription asChild>
+            <div className="text-center pt-2 space-y-2">
+              <p>
+                Você tem <strong className="text-foreground">{overdueInvoices.length} {overdueInvoices.length === 1 ? 'fatura em atraso' : 'faturas em atraso'}</strong> no valor total de{' '}
+                <strong className="text-foreground">
+                  R$ {totalOverdue.toFixed(2).replace('.', ',')}
+                </strong>.
               </p>
-            )}
-            <p className="text-xs text-muted-foreground pt-1">
-              Regularize para continuar aproveitando todos os recursos sem interrupções 😉
-            </p>
+              {latestOverdue && (
+                <p className="text-xs">
+                  Vencimento mais recente:{' '}
+                  <span className="font-medium">
+                    {format(new Date(latestOverdue.due_date + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </span>
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground pt-1">
+                Regularize para continuar aproveitando todos os recursos sem interrupções 😉
+              </p>
+            </div>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col sm:flex-row gap-2 pt-2">
