@@ -1,12 +1,64 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Copy, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import pixQrCode from '@/assets/pix-qrcode.png';
+import { QRCodeSVG } from 'qrcode.react';
 
 const PIX_KEY = '14eb662f-9010-4430-a206-7f16e9427bbc';
-const PIX_CODE = '00020126810014br.gov.bcb.pix013614eb662f-9010-4430-a206-7f16e9427bbc0219Sistema Imobiliario5204000053039865802BR5922VINICIUS SILVA MACHADO6010PLANALTINA62190515SaaSImobiliario630420C0';
+const PIX_MERCHANT_NAME = 'VINICIUS SILVA MACHADO';
+const PIX_MERCHANT_CITY = 'PLANALTINA';
+const PIX_TXID = 'SaaSImobiliario';
+
+/**
+ * Generates EMV QR Code payload for PIX with amount
+ * Based on BCB PIX specification
+ */
+function buildPixPayload(key: string, merchantName: string, merchantCity: string, amount: number, txId: string): string {
+  const tlv = (id: string, value: string) => `${id}${String(value.length).padStart(2, '0')}${value}`;
+
+  // Merchant Account Information (ID 26)
+  const gui = tlv('00', 'br.gov.bcb.pix');
+  const pixKey = tlv('01', key);
+  const description = tlv('02', 'Sistema Imobiliario');
+  const merchantAccount = tlv('26', gui + pixKey + description);
+
+  let payload = '';
+  payload += tlv('00', '01'); // Payload Format Indicator
+  payload += merchantAccount;
+  payload += tlv('52', '0000'); // Merchant Category Code
+  payload += tlv('53', '986'); // Transaction Currency (BRL)
+  payload += tlv('54', amount.toFixed(2)); // Transaction Amount
+  payload += tlv('58', 'BR'); // Country Code
+  payload += tlv('59', merchantName); // Merchant Name
+  payload += tlv('60', merchantCity); // Merchant City
+  payload += tlv('62', tlv('05', txId)); // Additional Data (TxID)
+
+  // CRC16 placeholder
+  payload += '6304';
+
+  // Calculate CRC16 (CCITT-FALSE)
+  const crc = crc16ccitt(payload);
+  payload += crc;
+
+  return payload;
+}
+
+function crc16ccitt(str: string): string {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+    crc &= 0xFFFF;
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
 
 interface PixPaymentDialogProps {
   open: boolean;
@@ -18,6 +70,11 @@ interface PixPaymentDialogProps {
 const PixPaymentDialog = ({ open, onOpenChange, invoiceNumber, amount }: PixPaymentDialogProps) => {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+
+  const pixCode = useMemo(
+    () => buildPixPayload(PIX_KEY, PIX_MERCHANT_NAME, PIX_MERCHANT_CITY, amount, PIX_TXID),
+    [amount]
+  );
 
   const handleCopy = async (text: string, type: 'key' | 'code') => {
     try {
@@ -53,8 +110,11 @@ const PixPaymentDialog = ({ open, onOpenChange, invoiceNumber, amount }: PixPaym
             <p className="text-2xl font-bold">{formattedAmount}</p>
           </div>
 
+          {/* QR Code */}
           <div className="flex justify-center">
-            <img src={pixQrCode} alt="QR Code Pix" className="h-48 w-48 rounded-xl" />
+            <div className="bg-white p-3 rounded-xl">
+              <QRCodeSVG value={pixCode} size={192} level="M" />
+            </div>
           </div>
 
           {/* PIX Key */}
@@ -80,13 +140,13 @@ const PixPaymentDialog = ({ open, onOpenChange, invoiceNumber, amount }: PixPaym
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pix Copia e Cola</label>
             <div className="bg-muted rounded-lg px-3 py-2.5 text-xs font-mono break-all max-h-20 overflow-y-auto select-all">
-              {PIX_CODE}
+              {pixCode}
             </div>
             <Button
               variant="outline"
               size="sm"
               className="w-full gap-1.5"
-              onClick={() => handleCopy(PIX_CODE, 'code')}
+              onClick={() => handleCopy(pixCode, 'code')}
             >
               {copiedCode ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
               {copiedCode ? 'Código copiado!' : 'Copiar código Pix'}
