@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import SubscriptionsLayout from './SubscriptionsLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,10 +21,13 @@ import { toast } from 'sonner';
 import { useInvoices, useCurrentSubscription } from '@/hooks/useSubscription';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import PixPaymentDialog from '@/components/admin/PixPaymentDialog';
 
 const InvoicesPage = () => {
   const { data: invoices, isLoading: loadingInvoices } = useInvoices();
   const { data: subscription, isLoading: loadingSubscription } = useCurrentSubscription();
+  const [pixDialogOpen, setPixDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<{ number: string | null; amount: number } | null>(null);
 
   const isLoading = loadingInvoices || loadingSubscription;
 
@@ -83,18 +87,33 @@ const InvoicesPage = () => {
     subscription?.fiscal_number
   );
 
-  const getActionButton = (status: string) => {
+  const openPixDialog = (invoiceNumber: string | null, amount: number) => {
+    setSelectedInvoice({ number: invoiceNumber, amount });
+    setPixDialogOpen(true);
+  };
+
+  const getActionButton = (status: string, invoiceNumber: string | null, amount: number) => {
     switch (status) {
       case 'pending':
         return (
-          <Button variant="outline" size="sm" className="gap-1.5 text-amber-700 border-amber-500/30 hover:bg-amber-500/10">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1.5 text-amber-700 border-amber-500/30 hover:bg-amber-500/10"
+            onClick={() => openPixDialog(invoiceNumber, amount)}
+          >
             <CreditCard className="h-3.5 w-3.5" />
             Pagar agora
           </Button>
         );
       case 'overdue':
         return (
-          <Button variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+            onClick={() => openPixDialog(invoiceNumber, amount)}
+          >
             <AlertCircle className="h-3.5 w-3.5" />
             Regularizar pagamento
           </Button>
@@ -248,7 +267,7 @@ const InvoicesPage = () => {
                         R$ {Number(invoice.amount).toFixed(2).replace('.', ',')}
                       </TableCell>
                       <TableCell className="text-right">
-                        {getActionButton(invoice.status)}
+                        {getActionButton(invoice.status, invoice.invoice_number, Number(invoice.amount))}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -258,6 +277,15 @@ const InvoicesPage = () => {
           )}
         </div>
       </div>
+
+      {selectedInvoice && (
+        <PixPaymentDialog
+          open={pixDialogOpen}
+          onOpenChange={setPixDialogOpen}
+          invoiceNumber={selectedInvoice.number}
+          amount={selectedInvoice.amount}
+        />
+      )}
     </SubscriptionsLayout>
   );
 };
