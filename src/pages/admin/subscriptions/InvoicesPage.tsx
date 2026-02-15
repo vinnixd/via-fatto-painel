@@ -41,7 +41,7 @@ const InvoicesPage = () => {
   const getStatusMessage = () => {
     if (overdueCount > 0) {
       return {
-        label: `${overdueCount} fatura${overdueCount > 1 ? 's' : ''} em atraso`,
+        label: `${overdueCount} fatura${overdueCount > 1 ? 's' : ''} vencida${overdueCount > 1 ? 's' : ''}`,
         icon: AlertCircle,
         bgClass: 'bg-destructive/5 border-destructive/20',
         iconBgClass: 'bg-destructive/10',
@@ -51,7 +51,7 @@ const InvoicesPage = () => {
     }
     if (pendingCount > 0) {
       return {
-        label: `${pendingCount} fatura${pendingCount > 1 ? 's' : ''} pendente${pendingCount > 1 ? 's' : ''}`,
+        label: `${pendingCount} fatura${pendingCount > 1 ? 's' : ''} em aberto`,
         icon: AlertTriangle,
         bgClass: 'bg-amber-500/5 border-amber-500/20',
         iconBgClass: 'bg-amber-500/10',
@@ -121,9 +121,9 @@ const InvoicesPage = () => {
       case 'paid':
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Pago</Badge>;
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pendente</Badge>;
+        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Em aberto</Badge>;
       case 'overdue':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Atrasado</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Vencida</Badge>;
       case 'canceled':
         return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Cancelado</Badge>;
       default:
