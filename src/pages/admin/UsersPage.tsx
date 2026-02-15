@@ -377,7 +377,9 @@ const UsersPage = () => {
                   className={`h-full rounded-full transition-all ${
                     !canAddUser 
                       ? 'bg-destructive' 
-                      : 'bg-amber-500'
+                      : currentUsers / maxUsers >= 0.8 
+                        ? 'bg-amber-500' 
+                        : 'bg-foreground/40'
                   }`}
                   style={{ width: `${Math.min((currentUsers / maxUsers) * 100, 100)}%` }}
                 />

@@ -1011,7 +1011,9 @@ const PropertiesListPage = () => {
                   className={`h-full rounded-full transition-all ${
                     !canAddProperty 
                       ? 'bg-destructive' 
-                      : 'bg-amber-500'
+                      : currentProperties / maxProperties >= 0.8 
+                        ? 'bg-amber-500' 
+                        : 'bg-foreground/40'
                   }`}
                   style={{ width: `${Math.min((currentProperties / maxProperties) * 100, 100)}%` }}
                 />

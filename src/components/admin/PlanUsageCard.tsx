@@ -26,7 +26,7 @@ const UsageBar = ({ current, max, label, icon: Icon }: { current: number; max: n
       <div className="h-2.5 rounded-full bg-muted overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${
-            atLimit ? 'bg-destructive' : 'bg-amber-500'
+            atLimit ? 'bg-destructive' : nearLimit ? 'bg-amber-500' : 'bg-foreground/70'
           }`}
           style={{ width: `${max === Infinity ? 5 : pct}%` }}
         />
