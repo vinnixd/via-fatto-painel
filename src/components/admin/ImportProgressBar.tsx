@@ -174,11 +174,7 @@ const ImportProgressBar = ({ onComplete }: ImportProgressBarProps) => {
             
             <Progress 
               value={progress} 
-              className={`h-2 ${
-                isCompleted 
-                  ? hasErrors ? '[&>div]:bg-yellow-500' : '[&>div]:bg-green-500'
-                  : '[&>div]:bg-blue-500'
-              }`}
+              className="h-2 bg-foreground/25"
             />
             
             <div className="flex items-center flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground">
