@@ -10,15 +10,27 @@ function normalizePropertyDescription(description: string): string {
   let text = (description ?? '').replace(/\r\n/g, '\n').trim();
   if (!text) return '';
 
-  // Strip markdown formatting
-  text = text.replace(/^#{1,6}\s+/gm, '');       // headers
-  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');  // bold
-  text = text.replace(/\*([^*]+)\*/g, '$1');       // italic
-  text = text.replace(/__([^_]+)__/g, '$1');       // bold alt
-  text = text.replace(/_([^_]+)_/g, '$1');         // italic alt
+  // Strip ALL markdown formatting aggressively
+  text = text.replace(/^#{1,6}\s+/gm, '');
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1');
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+  text = text.replace(/\*([^*]+)\*/g, '$1');
+  text = text.replace(/___([^_]+)___/g, '$1');
+  text = text.replace(/__([^_]+)__/g, '$1');
+  text = text.replace(/_([^_]+)_/g, '$1');
+  text = text.replace(/~~([^~]+)~~/g, '$1');
+  text = text.replace(/`([^`]+)`/g, '$1');
+  text = text.replace(/^>\s+/gm, '');
+  text = text.replace(/^---+$/gm, '');
+  text = text.replace(/^\*\*\*+$/gm, '');
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
 
   // Convert markdown lists to ✓
-  text = text.replace(/^[-*]\s+/gm, '✓ ');
+  text = text.replace(/^[-*•]\s+/gm, '✓ ');
+  text = text.replace(/^\d+\.\s+/gm, '✓ ');
+
+  // Remove trailing colons from standalone label lines
+  text = text.replace(/^([A-ZÀ-Ú][^✓\n]{3,50}):$/gm, '$1');
 
   const inputLines = text.split('\n');
   const outputLines: string[] = [];
@@ -61,7 +73,6 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Get properties without descriptions or with short descriptions
     const { data: properties, error: fetchError } = await supabase
       .from('properties')
       .select('id, title, type, status, bedrooms, suites, bathrooms, garages, area, built_area, address_neighborhood, address_city, description, features, amenities')
@@ -95,23 +106,33 @@ serve(async (req) => {
       galpao: 'Galpão'
     };
 
-    const systemPrompt = `Você é um especialista em marketing imobiliário. Gere descrições de imóveis SEMPRE neste formato EXATO:
+    const systemPrompt = `Você é um copywriter imobiliário. Gere descrições em TEXTO PURO (plain text), sem NENHUMA formatação.
 
-FORMATO OBRIGATÓRIO (siga exatamente esta estrutura):
+ESTRUTURA OBRIGATÓRIA (5 blocos, separados por linha em branco):
 
-[SUBTÍTULO] - Uma linha curta e impactante sobre o imóvel
-[INTRODUÇÃO] - Um parágrafo curto e envolvente (2-3 linhas)
-[DESTAQUES] - Lista de 5 a 7 itens com "✓" no início de cada linha
-[FECHAMENTO] - Uma frase curta destacando o valor do imóvel
-[CTA] - Chamada para ação
+1. Uma frase curta e impactante sobre o imóvel (máximo 15 palavras)
 
-REGRAS:
-- NÃO use títulos como "Subtítulo:", "Introdução:", "Destaques:", etc.
-- NÃO use formatação markdown: nada de **, ##, ###, *, _
-- NÃO use negrito, itálico ou cabeçalhos
-- Os itens da lista DEVEM começar com "✓ " (checkmark)
-- Mantenha o texto em TEXTO PURO (plain text)
-- Use português brasileiro`;
+2. Parágrafo de apresentação (2-3 linhas curtas)
+
+3. Lista de 5 a 7 destaques, cada um em sua própria linha começando com ✓ (checkmark). Máximo 8 palavras por item.
+
+4. Frase de fechamento (1-2 linhas)
+
+5. Chamada para ação (1 linha)
+
+PROIBIDO — se você usar qualquer um destes, a resposta será REJEITADA:
+- Asteriscos: ** ou * ou ***
+- Hashtags: # ou ## ou ###
+- Sublinhados: __ ou _texto_
+- Markdown de qualquer tipo
+- Títulos de seção como "Destaques:", "Localização:", "Diferenciais:"
+- Parágrafos com mais de 3 linhas
+
+OBRIGATÓRIO:
+- Texto 100% plain text, sem formatação
+- Itens da lista DEVEM começar com "✓ "
+- Máximo 150 palavras no total
+- Português brasileiro`;
 
     let processed = 0;
     let errors = 0;
@@ -121,23 +142,19 @@ REGRAS:
         const typeLabel = typeLabels[property.type] || 'Imóvel';
         const statusLabel = property.status === 'venda' ? 'à venda' : 'para alugar';
 
-        const userPrompt = `Gere uma descrição de imóvel seguindo EXATAMENTE o formato especificado.
+        const userPrompt = `Gere uma descrição de imóvel em texto puro, sem markdown.
 
-Informações do imóvel:
-- Tipo: ${typeLabel}
-- Status: ${statusLabel}
-- Quartos: ${property.bedrooms || 0}
-- Suítes: ${property.suites || 0}
-- Banheiros: ${property.bathrooms || 0}
-- Vagas: ${property.garages || 0}
-- Área total: ${property.area || 0}m²
-- Área construída: ${property.built_area || 0}m²
-- Bairro: ${property.address_neighborhood || 'Não informado'}
-- Cidade: ${property.address_city || 'Não informado'}
-- Características: ${property.features?.join(', ') || 'Não informado'}
-- Comodidades: ${property.amenities?.join(', ') || 'Não informado'}
+Informações:
+- Tipo: ${typeLabel} ${statusLabel}
+- Quartos: ${property.bedrooms || 0} | Suítes: ${property.suites || 0}
+- Banheiros: ${property.bathrooms || 0} | Vagas: ${property.garages || 0}
+- Área: ${property.area || 0}m² | Construída: ${property.built_area || 0}m²
+- Bairro: ${property.address_neighborhood || 'N/I'}
+- Cidade: ${property.address_city || 'N/I'}
+- Características: ${property.features?.join(', ') || 'N/I'}
+- Comodidades: ${property.amenities?.join(', ') || 'N/I'}
 
-Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista de destaques com ✓, fechamento e CTA.`;
+Responda APENAS com o texto plain text.`;
 
         console.log(`Processing: ${property.title}`);
 
@@ -149,6 +166,7 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
+            temperature: 0.7,
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt }
@@ -183,7 +201,6 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
           errors++;
         }
 
-        // Rate limiting delay
         await new Promise(resolve => setTimeout(resolve, 500));
       } catch (err) {
         console.error(`Error processing ${property.title}:`, err);

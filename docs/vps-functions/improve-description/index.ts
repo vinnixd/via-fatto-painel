@@ -9,15 +9,28 @@ function normalizePropertyDescription(description: string): string {
   let text = (description ?? '').replace(/\r\n/g, '\n').trim();
   if (!text) return '';
 
-  // Strip markdown formatting
-  text = text.replace(/^#{1,6}\s+/gm, '');       // headers
-  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');  // bold
-  text = text.replace(/\*([^*]+)\*/g, '$1');       // italic
-  text = text.replace(/__([^_]+)__/g, '$1');       // bold alt
-  text = text.replace(/_([^_]+)_/g, '$1');         // italic alt
+  // Strip ALL markdown formatting aggressively
+  text = text.replace(/^#{1,6}\s+/gm, '');           // ### headers
+  text = text.replace(/\*\*\*([^*]+)\*\*\*/g, '$1');  // ***bold italic***
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');       // **bold**
+  text = text.replace(/\*([^*]+)\*/g, '$1');            // *italic*
+  text = text.replace(/___([^_]+)___/g, '$1');          // ___bold italic___
+  text = text.replace(/__([^_]+)__/g, '$1');            // __bold__
+  text = text.replace(/_([^_]+)_/g, '$1');              // _italic_
+  text = text.replace(/~~([^~]+)~~/g, '$1');            // ~~strikethrough~~
+  text = text.replace(/`([^`]+)`/g, '$1');              // `code`
+  text = text.replace(/^>\s+/gm, '');                   // > blockquotes
+  text = text.replace(/^---+$/gm, '');                  // --- horizontal rules
+  text = text.replace(/^\*\*\*+$/gm, '');               // *** horizontal rules
+  text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');  // [links](url)
 
   // Convert markdown lists to ✓
-  text = text.replace(/^[-*]\s+/gm, '✓ ');
+  text = text.replace(/^[-*•]\s+/gm, '✓ ');
+  text = text.replace(/^\d+\.\s+/gm, '✓ ');
+
+  // Remove section headers disguised as bold text (e.g. "**Localização Privilegiada:**")
+  // These were already stripped above, but remove trailing colons from standalone label lines
+  text = text.replace(/^([A-ZÀ-Ú][^✓\n]{3,50}):$/gm, '$1');
 
   const inputLines = text.split('\n');
   const outputLines: string[] = [];
@@ -29,6 +42,7 @@ function normalizePropertyDescription(description: string): string {
       continue;
     }
 
+    // Split multiple ✓ items on same line
     const items = line.match(/[✓✔]\s*[^✓✔]+/g);
     if (items && items.length > 1) {
       items.forEach((it, idx) => {
@@ -71,36 +85,36 @@ serve(async (req) => {
 
     const statusLabel = propertyInfo?.status === 'venda' ? 'à venda' : 'para alugar';
 
-    const systemPrompt = `Você é um especialista em marketing imobiliário. Gere descrições de imóveis SEMPRE neste formato EXATO:
+    const systemPrompt = `Você é um copywriter imobiliário. Reescreva descrições de imóveis em TEXTO PURO (plain text), sem NENHUMA formatação.
 
-FORMATO OBRIGATÓRIO (siga exatamente esta estrutura):
+ESTRUTURA OBRIGATÓRIA (5 blocos, separados por linha em branco):
 
-[SUBTÍTULO] - Uma linha curta e impactante sobre o imóvel (ex: "Apartamento impecável à venda — 157m² de puro conforto e sofisticação")
+1. Uma frase curta e impactante sobre o imóvel (máximo 15 palavras)
 
-[INTRODUÇÃO] - Um parágrafo curto e envolvente (2-3 linhas) apresentando o imóvel.
+2. Parágrafo de apresentação (2-3 linhas curtas)
 
-[DESTAQUES] - Lista de 5 a 7 itens com "✓" no início de cada linha. Cada item deve ser curto (até 6 palavras). Exemplos:
-✓ 2 suítes espaçosas
-✓ 3 vagas de garagem
-✓ Acabamentos de alto padrão
-✓ Mobiliário de excelente qualidade
-✓ Living integrado e iluminado
-✓ Pronto para morar — é entrar e se apaixonar!
+3. Lista de 5 a 7 destaques, cada um em sua própria linha começando com ✓ (checkmark). Máximo 8 palavras por item.
 
-[FECHAMENTO] - Uma frase curta destacando o valor do imóvel (1-2 linhas).
+4. Frase de fechamento (1-2 linhas)
 
-[CTA] - Chamada para ação (ex: "Agende sua visita e surpreenda-se!")
+5. Chamada para ação (1 linha)
 
-REGRAS:
-- NÃO use títulos como "Subtítulo:", "Introdução:", "Destaques:", etc.
-- NÃO use formatação markdown: nada de **, ##, ###, *, _
-- NÃO use negrito, itálico ou cabeçalhos
-- NÃO escreva parágrafos longos
-- Os itens da lista DEVEM começar com "✓ " (checkmark)
-- Mantenha o texto CONCISO e ORGANIZADO em TEXTO PURO (plain text)
-- Use português brasileiro`;
+PROIBIDO — se você usar qualquer um destes, a resposta será REJEITADA:
+- Asteriscos: ** ou * ou ***
+- Hashtags: # ou ## ou ###
+- Sublinhados: __ ou _texto_
+- Markdown de qualquer tipo
+- Títulos de seção como "Destaques:", "Localização:", "Diferenciais:"
+- Parágrafos com mais de 3 linhas
+- Mais de 7 seções/blocos no total
 
-    const userPrompt = `Gere uma descrição de imóvel seguindo EXATAMENTE o formato especificado.
+OBRIGATÓRIO:
+- Texto 100% plain text, sem formatação
+- Itens da lista DEVEM começar com "✓ " (caractere Unicode checkmark + espaço)
+- Máximo 150 palavras no total
+- Português brasileiro`;
+
+    const userPrompt = `Reescreva esta descrição de imóvel seguindo RIGOROSAMENTE o formato plain text especificado. Sem markdown, sem negrito, sem títulos.
 
 Informações do imóvel:
 - Tipo: ${typeLabel}
@@ -116,9 +130,9 @@ Informações do imóvel:
 - Características: ${propertyInfo?.features?.join(', ') || 'Não informado'}
 - Comodidades: ${propertyInfo?.amenities?.join(', ') || 'Não informado'}
 
-${description ? `Descrição original para referência: ${description}` : ''}
+${description ? `Descrição original para referência:\n${description}` : ''}
 
-Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista de destaques com ✓, fechamento e CTA.`;
+Responda APENAS com o texto plain text, sem explicações adicionais.`;
 
     console.log("Calling OpenAI API for description improvement...");
 
@@ -130,6 +144,7 @@ Gere a descrição AGORA, seguindo o formato com subtítulo, introdução, lista
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
+        temperature: 0.7,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
