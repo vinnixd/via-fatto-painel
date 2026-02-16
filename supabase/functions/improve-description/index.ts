@@ -6,8 +6,15 @@ const corsHeaders = {
 };
 
 function normalizePropertyDescription(description: string): string {
-  const text = (description ?? '').replace(/\r\n/g, '\n').trim();
+  let text = (description ?? '').replace(/\r\n/g, '\n').trim();
   if (!text) return '';
+
+  // Strip markdown formatting
+  text = text.replace(/^#{1,6}\s+/gm, '');       // headers
+  text = text.replace(/\*\*([^*]+)\*\*/g, '$1');  // bold
+  text = text.replace(/\*([^*]+)\*/g, '$1');       // italic
+  text = text.replace(/__([^_]+)__/g, '$1');       // bold alt
+  text = text.replace(/_([^_]+)_/g, '$1');         // italic alt
 
   const inputLines = text.split('\n');
   const outputLines: string[] = [];
@@ -83,9 +90,11 @@ FORMATO OBRIGATÓRIO (siga exatamente esta estrutura):
 
 REGRAS:
 - NÃO use títulos como "Subtítulo:", "Introdução:", "Destaques:", etc.
+- NÃO use formatação markdown: nada de **, ##, ###, *, _
+- NÃO use negrito, itálico ou cabeçalhos
 - NÃO escreva parágrafos longos
 - Os itens da lista DEVEM começar com "✓ " (checkmark)
-- Mantenha o texto CONCISO e ORGANIZADO
+- Mantenha o texto CONCISO e ORGANIZADO em TEXTO PURO (plain text)
 - Use português brasileiro`;
 
     const userPrompt = `Gere uma descrição de imóvel seguindo EXATAMENTE o formato especificado.
