@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Copy, CheckCircle2 } from 'lucide-react';
+import { Copy, CheckCircle2, PartyPopper } from 'lucide-react';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
+import confetti from 'canvas-confetti';
 
 const PIX_KEY = '14eb662f-9010-4430-a206-7f16e9427bbc';
 const PIX_MERCHANT_NAME = 'VINICIUS SILVA MACHADO';
@@ -70,6 +71,7 @@ interface PixPaymentDialogProps {
 const PixPaymentDialog = ({ open, onOpenChange, invoiceNumber, amount }: PixPaymentDialogProps) => {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const pixCode = useMemo(
     () => buildPixPayload(PIX_KEY, PIX_MERCHANT_NAME, PIX_MERCHANT_CITY, amount, PIX_TXID),
@@ -94,69 +96,108 @@ const PixPaymentDialog = ({ open, onOpenChange, invoiceNumber, amount }: PixPaym
 
   const formattedAmount = `R$ ${Number(amount).toFixed(2).replace('.', ',')}`;
 
+  const handleConfirmPayment = useCallback(() => {
+    setConfirmed(true);
+    const end = Date.now() + 2500;
+    const fire = () => {
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, zIndex: 9999 });
+      if (Date.now() < end) requestAnimationFrame(fire);
+    };
+    fire();
+  }, []);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) setConfirmed(false); onOpenChange(v); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center text-lg">Pagamento via Pix</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 pt-2">
-          {/* Invoice info */}
-          <div className="text-center space-y-1">
-            {invoiceNumber && (
-              <p className="text-sm text-muted-foreground">Fatura {invoiceNumber}</p>
-            )}
-            <p className="text-2xl font-bold">{formattedAmount}</p>
-          </div>
-
-          {/* QR Code */}
-          <div className="flex justify-center">
-            <div className="bg-white p-3 rounded-xl">
-              <QRCodeSVG value={pixCode} size={192} level="M" />
+        {confirmed ? (
+          <div className="flex flex-col items-center gap-4 py-8 animate-fade-in">
+            <div className="bg-green-500/10 p-4 rounded-full">
+              <CheckCircle2 className="h-12 w-12 text-green-600" />
             </div>
+            <h3 className="text-xl font-bold text-center">Pagamento informado!</h3>
+            <p className="text-sm text-muted-foreground text-center max-w-xs">
+              Obrigado! Sua fatura será confirmada em breve. Você receberá uma notificação assim que o pagamento for processado.
+            </p>
+            <Button
+              className="mt-2 gap-2"
+              onClick={() => { setConfirmed(false); onOpenChange(false); }}
+            >
+              <PartyPopper className="h-4 w-4" />
+              Fechar
+            </Button>
           </div>
+        ) : (
+          <div className="space-y-5 pt-2">
+            {/* Invoice info */}
+            <div className="text-center space-y-1">
+              {invoiceNumber && (
+                <p className="text-sm text-muted-foreground">Fatura {invoiceNumber}</p>
+              )}
+              <p className="text-2xl font-bold">{formattedAmount}</p>
+            </div>
 
-          {/* PIX Key */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Chave Pix</label>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted rounded-lg px-3 py-2.5 text-sm font-mono break-all select-all">
-                {PIX_KEY}
+            {/* QR Code */}
+            <div className="flex justify-center">
+              <div className="bg-white p-3 rounded-xl">
+                <QRCodeSVG value={pixCode} size={192} level="M" />
+              </div>
+            </div>
+
+            {/* PIX Key */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Chave Pix</label>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-muted rounded-lg px-3 py-2.5 text-sm font-mono break-all select-all">
+                  {PIX_KEY}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5"
+                  onClick={() => handleCopy(PIX_KEY, 'key')}
+                >
+                  {copiedKey ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copiedKey ? 'Copiado' : 'Copiar'}
+                </Button>
+              </div>
+            </div>
+
+            {/* PIX Copia e Cola */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pix Copia e Cola</label>
+              <div className="bg-muted rounded-lg px-3 py-2.5 text-xs font-mono break-all max-h-20 overflow-y-auto select-all">
+                {pixCode}
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="shrink-0 gap-1.5"
-                onClick={() => handleCopy(PIX_KEY, 'key')}
+                className="w-full gap-1.5"
+                onClick={() => handleCopy(pixCode, 'code')}
               >
-                {copiedKey ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-                {copiedKey ? 'Copiado' : 'Copiar'}
+                {copiedCode ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {copiedCode ? 'Código copiado!' : 'Copiar código Pix'}
               </Button>
             </div>
-          </div>
 
-          {/* PIX Copia e Cola */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pix Copia e Cola</label>
-            <div className="bg-muted rounded-lg px-3 py-2.5 text-xs font-mono break-all max-h-20 overflow-y-auto select-all">
-              {pixCode}
-            </div>
+            {/* Confirm payment button */}
             <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1.5"
-              onClick={() => handleCopy(pixCode, 'code')}
+              className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+              size="lg"
+              onClick={handleConfirmPayment}
             >
-              {copiedCode ? <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-              {copiedCode ? 'Código copiado!' : 'Copiar código Pix'}
+              <CheckCircle2 className="h-5 w-5" />
+              Já realizei o pagamento
             </Button>
-          </div>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Após o pagamento, a confirmação pode levar alguns minutos.
-          </p>
-        </div>
+            <p className="text-xs text-center text-muted-foreground">
+              Após o pagamento, a confirmação pode levar alguns minutos.
+            </p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
