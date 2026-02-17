@@ -247,6 +247,8 @@ const PropertyFormPage = () => {
   const [isImprovingTitle, setIsImprovingTitle] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
   const [isGeneratingSeo, setIsGeneratingSeo] = useState(false);
+  const [isGeneratingVariations, setIsGeneratingVariations] = useState(false);
+  const [titleVariations, setTitleVariations] = useState<string[]>([]);
   const [isLookingUpCep, setIsLookingUpCep] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -535,24 +537,28 @@ const PropertyFormPage = () => {
     }));
   };
 
+  // Build property info for AI calls
+  const buildTitlePropertyInfo = useCallback(() => ({
+    type: formData.type,
+    status: formData.status,
+    bedrooms: formData.bedrooms || 0,
+    suites: formData.suites || 0,
+    garages: formData.garages || 0,
+    area: formData.area || 0,
+    neighborhood: formData.address_neighborhood,
+    city: formData.address_city,
+    street: formData.address_street,
+    features: formData.features,
+  }), [formData.type, formData.status, formData.bedrooms, formData.suites, formData.garages, formData.area, formData.address_neighborhood, formData.address_city, formData.address_street, formData.features]);
+
   // Generate title with AI
   const handleGenerateTitle = async () => {
     setIsGeneratingTitle(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-title', {
         body: {
-          title: formData.title || 'Novo imóvel',
-          propertyInfo: {
-            type: formData.type,
-            status: formData.status,
-            bedrooms: formData.bedrooms || 0,
-            suites: formData.suites || 0,
-            garages: formData.garages || 0,
-            area: formData.area || 0,
-            neighborhood: formData.address_neighborhood,
-            city: formData.address_city,
-            features: formData.features,
-          }
+          title: formData.title || '',
+          propertyInfo: buildTitlePropertyInfo(),
         }
       });
       
@@ -566,6 +572,33 @@ const PropertyFormPage = () => {
       toast.error(err.message || 'Erro ao gerar título');
     } finally {
       setIsGeneratingTitle(false);
+    }
+  };
+
+  // Generate 3 title variations
+  const handleGenerateVariations = async () => {
+    setIsGeneratingVariations(true);
+    setTitleVariations([]);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-title', {
+        body: {
+          title: formData.title || '',
+          propertyInfo: buildTitlePropertyInfo(),
+          variations: true,
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.titles && data.titles.length > 0) {
+        setTitleVariations(data.titles);
+      } else {
+        toast.error('Nenhuma variação gerada');
+      }
+    } catch (err: any) {
+      console.error('Error generating variations:', err);
+      toast.error(err.message || 'Erro ao gerar variações');
+    } finally {
+      setIsGeneratingVariations(false);
     }
   };
 
@@ -1058,21 +1091,35 @@ const PropertyFormPage = () => {
                         </div>
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                           <div className="lg:col-span-6 space-y-2">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between flex-wrap gap-1">
                               <Label htmlFor="title">Título do Anúncio *</Label>
-                              <div className="flex gap-1">
+                              <div className="flex gap-1 flex-wrap">
                                 <Button
                                   type="button"
                                   variant="ghost"
                                   size="sm"
                                   onClick={handleGenerateTitle}
-                                  disabled={isGeneratingTitle}
+                                  disabled={isGeneratingTitle || isGeneratingVariations}
                                   className="h-6 px-2 gap-1 text-xs"
                                 >
                                   {isGeneratingTitle ? (
                                     <><Loader2 className="h-3 w-3 animate-spin" />Gerando...</>
                                   ) : (
-                                    <><Sparkles className="h-3 w-3" />Gerar título otimizado</>
+                                    <><Sparkles className="h-3 w-3" />Gerar título</>
+                                  )}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleGenerateVariations}
+                                  disabled={isGeneratingVariations || isGeneratingTitle}
+                                  className="h-6 px-2 gap-1 text-xs"
+                                >
+                                  {isGeneratingVariations ? (
+                                    <><Loader2 className="h-3 w-3 animate-spin" />Gerando 3...</>
+                                  ) : (
+                                    <><Sparkles className="h-3 w-3" />3 variações</>
                                   )}
                                 </Button>
                                 {formData.title && (
@@ -1087,17 +1134,7 @@ const PropertyFormPage = () => {
                                         const { data, error } = await supabase.functions.invoke('improve-title', {
                                           body: {
                                             title: formData.title,
-                                            propertyInfo: {
-                                              type: formData.type,
-                                              status: formData.status,
-                                              bedrooms: formData.bedrooms || 0,
-                                              suites: formData.suites || 0,
-                                              garages: formData.garages || 0,
-                                              area: formData.area || 0,
-                                              neighborhood: formData.address_neighborhood,
-                                              city: formData.address_city,
-                                              features: formData.features,
-                                            }
+                                            propertyInfo: buildTitlePropertyInfo(),
                                           }
                                         });
                                         if (error) throw error;
@@ -1127,10 +1164,43 @@ const PropertyFormPage = () => {
                               id="title"
                               value={formData.title}
                               onChange={(e) => handleTitleChange(e.target.value)}
-                              placeholder="Ex: Casa à venda no Lago Sul com 3 suítes e área gourmet"
+                              placeholder="Ex: Apartamento 3Q Reformado 120m² na 313 Asa Norte"
                               className="h-11"
                               required
                             />
+                            {/* Title variations selector */}
+                            {titleVariations.length > 0 && (
+                              <div className="space-y-2 p-3 rounded-lg border bg-muted/50">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-medium text-muted-foreground">Escolha uma variação:</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setTitleVariations([])}
+                                    className="h-5 px-1 text-xs text-muted-foreground"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                                {titleVariations.map((variation, idx) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => {
+                                      handleTitleChange(variation);
+                                      setTitleVariations([]);
+                                      toast.success('Título selecionado!');
+                                    }}
+                                    className="w-full text-left p-2 rounded-md text-sm hover:bg-accent transition-colors border border-transparent hover:border-border flex items-center gap-2"
+                                  >
+                                    <Badge variant="outline" className="shrink-0 text-xs">{idx + 1}</Badge>
+                                    <span>{variation}</span>
+                                    <span className="ml-auto text-xs text-muted-foreground shrink-0">{variation.length}c</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="lg:col-span-4 space-y-2">
                             <div className="flex items-center justify-between">
