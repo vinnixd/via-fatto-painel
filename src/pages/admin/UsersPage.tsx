@@ -82,7 +82,7 @@ const UsersPage = () => {
   const { canAccessUsers, loading: permissionsLoading } = usePermissions();
   const { navigateAdmin } = useAdminNavigation();
   const queryClient = useQueryClient();
-  const { canAddUser, currentUsers, maxUsers } = useSubscriptionLimits();
+  const { canAddUser, currentUsers, maxUsers, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
@@ -253,7 +253,11 @@ const UsersPage = () => {
       return;
     }
     if (!canAddUser) {
-      toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para convidar mais membros.`);
+      if (isBlockedByOverdue) {
+        toast.error(`Você possui ${overdueCount} faturas em atraso. Regularize seus pagamentos para convidar novos membros.`);
+      } else {
+        toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para convidar mais membros.`);
+      }
       return;
     }
     createInviteMutation.mutate(inviteData);
@@ -647,7 +651,11 @@ const UsersPage = () => {
                         className="bg-[hsl(var(--admin-primary))] hover:bg-[hsl(var(--admin-primary-hover))] text-[hsl(var(--admin-primary-foreground))]"
                         onClick={() => {
                           if (!canAddUser) {
-                            toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para aprovar mais membros.`);
+                            if (isBlockedByOverdue) {
+                              toast.error(`Você possui ${overdueCount} faturas em atraso. Regularize seus pagamentos para aprovar mais membros.`);
+                            } else {
+                              toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para aprovar mais membros.`);
+                            }
                             return;
                           }
                           toggleStatusMutation.mutate({ userId: member.id, newStatus: 'active' });

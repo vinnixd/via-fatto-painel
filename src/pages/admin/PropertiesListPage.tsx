@@ -353,7 +353,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 const PropertiesListPage = () => {
   const navigate = useNavigate();
-  const { canAddProperty, currentProperties, maxProperties } = useSubscriptionLimits();
+  const { canAddProperty, currentProperties, maxProperties, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -966,9 +966,9 @@ const PropertiesListPage = () => {
                         </AdminLink>
                       </Button>
                     ) : (
-                      <Button disabled className="gap-2 shadow-md" title={`Limite de ${maxProperties} imóveis atingido`}>
+                      <Button disabled className="gap-2 shadow-md" title={isBlockedByOverdue ? `${overdueCount} faturas em atraso - regularize para cadastrar imóveis` : `Limite de ${maxProperties} imóveis atingido`}>
                         <Plus className="h-4 w-4" />
-                        Novo Imóvel ({currentProperties}/{maxProperties})
+                        {isBlockedByOverdue ? 'Bloqueado - Faturas em atraso' : `Novo Imóvel (${currentProperties}/${maxProperties})`}
                       </Button>
                     )}
                   </>
