@@ -211,7 +211,7 @@ const TenantMembersPage = () => {
     },
   });
 
-  const { canAddUser, maxUsers } = useSubscriptionLimits();
+  const { canAddUser, maxUsers, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
 
   const handleAddMember = () => {
     if (!newMemberEmail.trim()) {
@@ -219,7 +219,11 @@ const TenantMembersPage = () => {
       return;
     }
     if (!canAddUser) {
-      toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para adicionar mais membros.`);
+      if (isBlockedByOverdue) {
+        toast.error(`Você possui ${overdueCount} faturas em atraso. Regularize seus pagamentos para adicionar mais membros.`);
+      } else {
+        toast.error(`Limite de ${maxUsers} usuários atingido no seu plano. Faça upgrade para adicionar mais membros.`);
+      }
       return;
     }
 

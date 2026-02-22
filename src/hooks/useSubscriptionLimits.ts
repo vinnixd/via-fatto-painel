@@ -10,6 +10,8 @@ interface SubscriptionLimits {
   canAddProperty: boolean;
   isLoading: boolean;
   planName: string | null;
+  overdueCount: number;
+  isBlockedByOverdue: boolean;
 }
 
 export function useSubscriptionLimits(): SubscriptionLimits {
@@ -48,25 +50,39 @@ export function useSubscriptionLimits(): SubscriptionLimits {
 
       if (propError) throw propError;
 
+      // Count overdue invoices
+      const { count: overdueCount, error: overdueError } = await supabase
+        .from('invoices')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'overdue');
+
+      if (overdueError) throw overdueError;
+
       return {
         maxUsers,
         maxProperties,
         currentUsers: userCount ?? 0,
         currentProperties: propertyCount ?? 0,
         planName,
+        overdueCount: overdueCount ?? 0,
       };
     },
     staleTime: 30_000,
   });
+
+  const overdueCount = data?.overdueCount ?? 0;
+  const isBlockedByOverdue = overdueCount >= 3;
 
   return {
     maxUsers: data?.maxUsers ?? Infinity,
     maxProperties: data?.maxProperties ?? Infinity,
     currentUsers: data?.currentUsers ?? 0,
     currentProperties: data?.currentProperties ?? 0,
-    canAddUser: (data?.currentUsers ?? 0) < (data?.maxUsers ?? Infinity),
-    canAddProperty: (data?.currentProperties ?? 0) < (data?.maxProperties ?? Infinity),
+    canAddUser: !isBlockedByOverdue && (data?.currentUsers ?? 0) < (data?.maxUsers ?? Infinity),
+    canAddProperty: !isBlockedByOverdue && (data?.currentProperties ?? 0) < (data?.maxProperties ?? Infinity),
     isLoading,
     planName: data?.planName ?? null,
+    overdueCount,
+    isBlockedByOverdue,
   };
 }
