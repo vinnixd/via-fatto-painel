@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isAdminSubdomain } from '@/hooks/useAdminRoutes';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -196,7 +197,8 @@ const UsersPage = () => {
       return invite;
     },
     onSuccess: (invite) => {
-      const link = `${window.location.origin}/admin/convite/${invite.token}`;
+      const invitePath = isAdminSubdomain() ? `/convite/${invite.token}` : `/admin/convite/${invite.token}`;
+      const link = `${window.location.origin}${invitePath}`;
       setGeneratedLink(link);
       queryClient.invalidateQueries({ queryKey: ['admin-invites'] });
       toast.success('Convite criado com sucesso!');
@@ -615,7 +617,7 @@ const UsersPage = () => {
                         variant="ghost"
                         size="icon"
                         title="Copiar link"
-                        onClick={() => copyToClipboard(`${window.location.origin}/admin/convite/${invite.token}`)}
+                        onClick={() => copyToClipboard(`${window.location.origin}${isAdminSubdomain() ? `/convite/${invite.token}` : `/admin/convite/${invite.token}`}`)}
                       >
                         <Copy className="h-4 w-4" />
                       </Button>
