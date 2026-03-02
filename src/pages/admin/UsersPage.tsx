@@ -34,6 +34,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Users,
   UserPlus,
   MoreHorizontal,
@@ -49,6 +59,7 @@ import {
   X,
   AlertCircle,
   CheckCircle2,
+  Trash2,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -94,6 +105,9 @@ const UsersPage = () => {
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<UserWithRole | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<UserWithRole | null>(null);
 
   useEffect(() => {
     if (!permissionsLoading && !canAccessUsers) {
@@ -244,6 +258,34 @@ const UsersPage = () => {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Erro ao remover convite');
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      // Delete user_roles first
+      const { error: rolesError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+      if (rolesError) throw rolesError;
+
+      // Delete profile (sets status to allow cleanup)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ status: 'deleted' })
+        .eq('id', userId);
+      if (profileError) throw profileError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      setDeleteDialogOpen(false);
+      setDeletingUser(null);
+      toast.success('Usuário excluído com sucesso!');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Erro ao excluir usuário');
     },
   });
 
@@ -763,6 +805,18 @@ const UsersPage = () => {
                               Reativar
                             </DropdownMenuItem>
                           )}
+                          {member.id !== user?.id && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setDeletingUser(member);
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Excluir
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -824,6 +878,33 @@ const UsersPage = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete User Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir{' '}
+                <strong>{deletingUser?.name || deletingUser?.email}</strong>?
+                Esta ação removerá o acesso e as permissões do usuário permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deletingUser) {
+                    deleteUserMutation.mutate(deletingUser.id);
+                  }
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AdminLayout>
   );
