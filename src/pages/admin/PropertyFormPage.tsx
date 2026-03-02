@@ -242,7 +242,15 @@ const PropertyFormPage = () => {
   const [images, setImages] = useState<PropertyImage[]>([]);
   const [newFeature, setNewFeature] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(() => {
+    if (!isEditing) {
+      try {
+        const saved = localStorage.getItem('property-form-step');
+        if (saved) return Number(saved) || 0;
+      } catch {}
+    }
+    return 0;
+  });
   const [isImprovingDescription, setIsImprovingDescription] = useState(false);
   const [isImprovingTitle, setIsImprovingTitle] = useState(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
@@ -336,42 +344,70 @@ const PropertyFormPage = () => {
     { id: 'seo', title: 'SEO', icon: Settings2 },
   ];
 
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    slug: '',
-    description: '',
-    price: '',
-    condo_fee: '',
-    condo_exempt: false,
-    iptu: '',
-    status: 'venda',
-    type: 'casa',
-    profile: 'residencial',
-    condition: null,
-    address_street: '',
-    address_neighborhood: '',
-    address_city: '',
-    address_state: '',
-    address_zipcode: '',
-    location_type: 'approximate',
-    bedrooms: '',
-    suites: '',
-    bathrooms: '',
-    garages: '',
-    area: '',
-    built_area: '',
-    financing: false,
-    documentation: 'regular',
-    featured: false,
-    active: true,
-    features: [],
-    amenities: [],
-    reference: '',
-    category_id: '',
-    seo_title: '',
-    seo_description: '',
-    integrar_portais: false,
-  });
+  const DRAFT_KEY = 'property-form-draft';
+  const DRAFT_STEP_KEY = 'property-form-step';
+
+  const getInitialFormData = (): FormData => {
+    const defaults: FormData = {
+      title: '',
+      slug: '',
+      description: '',
+      price: '',
+      condo_fee: '',
+      condo_exempt: false,
+      iptu: '',
+      status: 'venda',
+      type: 'casa',
+      profile: 'residencial',
+      condition: null,
+      address_street: '',
+      address_neighborhood: '',
+      address_city: '',
+      address_state: '',
+      address_zipcode: '',
+      location_type: 'approximate',
+      bedrooms: '',
+      suites: '',
+      bathrooms: '',
+      garages: '',
+      area: '',
+      built_area: '',
+      financing: false,
+      documentation: 'regular',
+      featured: false,
+      active: true,
+      features: [],
+      amenities: [],
+      reference: '',
+      category_id: '',
+      seo_title: '',
+      seo_description: '',
+      integrar_portais: false,
+    };
+
+    if (!isEditing) {
+      try {
+        const saved = localStorage.getItem(DRAFT_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          return { ...defaults, ...parsed };
+        }
+      } catch {}
+    }
+    return defaults;
+  };
+
+  const getInitialStep = (): number => {
+    if (!isEditing) {
+      try {
+        const saved = localStorage.getItem(DRAFT_STEP_KEY);
+        if (saved) return Number(saved) || 0;
+      } catch {}
+    }
+    return 0;
+  };
+
+  const [formData, setFormData] = useState<FormData>(getInitialFormData);
 
   // Calculate progress
   const progressPercentage = useMemo(() => {
@@ -427,6 +463,24 @@ const PropertyFormPage = () => {
       setHasUnsavedChanges(true);
     }
   }, [formData, images]);
+
+  // Persist draft to localStorage for new properties
+  useEffect(() => {
+    if (!isEditing) {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+      } catch {}
+    }
+  }, [formData, isEditing]);
+
+  // Persist active step
+  useEffect(() => {
+    if (!isEditing) {
+      try {
+        localStorage.setItem(DRAFT_STEP_KEY, String(activeStep));
+      } catch {}
+    }
+  }, [activeStep, isEditing]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -932,6 +986,8 @@ const PropertyFormPage = () => {
       await handleSaveImages(propertyId!);
 
       setHasUnsavedChanges(false);
+      // Clear draft from localStorage after successful save
+      try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(DRAFT_STEP_KEY); } catch {}
       
       if (asDraft) {
         toast.success('Rascunho salvo com sucesso!');
@@ -2310,6 +2366,7 @@ const PropertyFormPage = () => {
                                 setImages([]);
                                 setActiveStep(0);
                                 setHasUnsavedChanges(false);
+                                try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(DRAFT_STEP_KEY); } catch {}
                               } catch (error: any) {
                                 console.error('Error:', error);
                                 toast.error(error?.message || 'Erro ao salvar imóvel');
