@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Building2, Eye, EyeOff, Mail, Lock, User, AlertCircle, Loader2, BadgeCheck } from 'lucide-react';
+import { User, Mail, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { z } from 'zod';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
+import { useAdminRoutes } from '@/hooks/useAdminRoutes';
+import AuthBackground from '@/components/auth/AuthBackground';
+import AuthInput from '@/components/auth/AuthInput';
+import PasswordInput from '@/components/auth/PasswordInput';
+import CreciInput from '@/components/auth/CreciInput';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
@@ -33,12 +36,11 @@ interface InviteData {
 
 const InviteSignupPage = () => {
   const { token } = useParams<{ token: string }>();
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(true);
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
-  const [signupData, setSignupData] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
@@ -47,6 +49,7 @@ const InviteSignupPage = () => {
   });
   const { signUp, user, isAdmin } = useAuth();
   const { navigateAdmin } = useAdminNavigation();
+  const { getPath } = useAdminRoutes();
 
   useEffect(() => {
     if (user && isAdmin) {
@@ -77,7 +80,7 @@ const InviteSignupPage = () => {
           setInviteError(result.error_message || 'Convite inválido');
         } else {
           setInviteData(result);
-          setSignupData((prev) => ({
+          setFormData((prev) => ({
             ...prev,
             email: result.email,
             name: result.name || '',
@@ -98,7 +101,7 @@ const InviteSignupPage = () => {
     e.preventDefault();
 
     try {
-      signupSchema.parse(signupData);
+      signupSchema.parse(formData);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -117,23 +120,22 @@ const InviteSignupPage = () => {
       const redirectUrl = `${window.location.origin}/admin`;
       
       const { error: signUpError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
+        email: formData.email,
+        password: formData.password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name: signupData.name,
-            creci: signupData.creci,
+            name: formData.name,
+            creci: formData.creci,
           },
         },
       });
 
       if (signUpError) throw signUpError;
 
-      // Mark invite as used
       await supabase.rpc('use_invite', {
         invite_token: token,
-        user_id: null, // Will be set by the function if needed
+        user_id: null,
       });
 
       toast.success('Conta criada com sucesso! Você já pode fazer login.');
@@ -150,170 +152,147 @@ const InviteSignupPage = () => {
     }
   };
 
+  const roleLabel = inviteData?.role === 'admin' ? 'Administrador' : 
+                    inviteData?.role === 'corretor' ? 'Corretor' :
+                    inviteData?.role === 'gestor' ? 'Gestor' :
+                    inviteData?.role === 'marketing' ? 'Marketing' : 'Membro';
+
   if (validating) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-0">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Validando convite...</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+        <AuthBackground />
+        <div className="relative z-10">
+          <Card className="w-full max-w-md shadow-xl border-border/30 bg-background">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-foreground mb-4" />
+              <p className="text-muted-foreground">Validando convite...</p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (inviteError) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-0">
-          <CardHeader className="text-center pb-2">
-            <div className="flex justify-center mb-4">
-              <div className="h-14 w-14 rounded-xl bg-destructive/10 flex items-center justify-center">
-                <AlertCircle className="h-8 w-8 text-destructive" />
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4">
+        <AuthBackground />
+        <div className="relative z-10 w-full max-w-md">
+          <Card className="shadow-xl border-border/30 bg-background">
+            <CardContent className="pt-8 pb-6 px-6 md:px-8 text-center">
+              <div className="flex justify-center mb-4">
+                <div className="h-14 w-14 rounded-xl bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="h-8 w-8 text-destructive" />
+                </div>
               </div>
-            </div>
-            <CardTitle className="text-2xl font-bold">Convite Inválido</CardTitle>
-            <CardDescription className="text-destructive">{inviteError}</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Entre em contato com o administrador para solicitar um novo convite.
-            </p>
-            <Button variant="outline" onClick={() => navigateAdmin('/admin/login')}>
-              Voltar para Login
-            </Button>
-          </CardContent>
-        </Card>
+              <h1 className="text-2xl font-bold mb-2">Convite Inválido</h1>
+              <p className="text-destructive text-sm mb-4">{inviteError}</p>
+              <p className="text-sm text-muted-foreground mb-6">
+                Entre em contato com o administrador para solicitar um novo convite.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => navigateAdmin('/admin/login')}
+              >
+                Voltar para Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-0">
-        <CardHeader className="text-center pb-2">
-          <div className="flex justify-center mb-4">
-            <div className="h-14 w-14 rounded-xl bg-primary flex items-center justify-center">
-              <Building2 className="h-8 w-8 text-primary-foreground" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Criar sua Conta</CardTitle>
-          <CardDescription>
-            Você foi convidado como{' '}
-            <span className="font-medium text-primary">
-              {inviteData?.role === 'admin' ? 'Administrador' : 'Corretor'}
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name">Nome</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="signup-name"
-                  type="text"
-                  placeholder="Seu nome completo"
-                  className="pl-10"
-                  value={signupData.name}
-                  onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden py-8 px-4">
+      <AuthBackground />
+      
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center">
+        {/* Title above card */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-bold text-white italic mb-3">
+            Bem-vindo!
+          </h1>
+          <p className="text-white/70 text-sm md:text-base max-w-sm mx-auto">
+            Você foi convidado como <span className="text-white font-semibold">{roleLabel}</span>. Crie sua conta para começar.
+          </p>
+        </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  className="pl-10 bg-muted"
-                  value={signupData.email}
-                  readOnly
-                  disabled
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                O email não pode ser alterado pois está vinculado ao convite.
-              </p>
-            </div>
+        {/* Card */}
+        <Card className="w-full shadow-xl border-border/30 bg-background">
+          <CardContent className="pt-8 pb-6 px-6 md:px-8">
+            <h2 className="text-xl font-semibold text-center mb-6">
+              Crie sua conta
+            </h2>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-creci">CRECI (opcional)</Label>
-              <div className="relative">
-                <BadgeCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="signup-creci"
-                  type="text"
-                  placeholder="Ex: 12345-F"
-                  className="pl-10"
-                  value={signupData.creci}
-                  onChange={(e) => setSignupData({ ...signupData, creci: e.target.value })}
-                />
-              </div>
-            </div>
+            <form onSubmit={handleSignup} className="space-y-4">
+              <AuthInput
+                id="name"
+                label="Nome completo"
+                placeholder="Seu nome completo"
+                value={formData.name}
+                onChange={(value) => setFormData({ ...formData, name: value })}
+                icon={User}
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Senha</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="signup-password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="pl-10 pr-10"
-                  value={signupData.password}
-                  onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
+              <AuthInput
+                id="email"
+                label="Email"
+                type="email"
+                placeholder="seu@email.com"
+                value={formData.email}
+                onChange={() => {}}
+                icon={Mail}
+                helpText="O email não pode ser alterado pois está vinculado ao convite."
+                disabled
+              />
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-confirm">Confirmar Senha</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="signup-confirm"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="pl-10"
-                  value={signupData.confirmPassword}
-                  onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
+              <CreciInput
+                id="creci"
+                label="CRECI (opcional)"
+                value={formData.creci}
+                onChange={(value) => setFormData({ ...formData, creci: value })}
+              />
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Criando conta...' : 'Criar Conta'}
-            </Button>
+              <PasswordInput
+                id="password"
+                label="Senha"
+                value={formData.password}
+                onChange={(value) => setFormData({ ...formData, password: value })}
+              />
 
-            <p className="text-center text-sm text-muted-foreground">
-              Já tem uma conta?{' '}
-              <button
-                type="button"
-                onClick={() => navigateAdmin('/admin/login')}
-                className="text-primary hover:underline"
+              <PasswordInput
+                id="confirmPassword"
+                label="Confirmar senha"
+                value={formData.confirmPassword}
+                onChange={(value) => setFormData({ ...formData, confirmPassword: value })}
+              />
+
+              <Button
+                type="submit"
+                className="w-full h-12 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white font-medium mt-4"
+                disabled={loading}
               >
-                Fazer login
-              </button>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Criar conta
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+
+              <p className="text-center text-sm text-muted-foreground pt-2">
+                Já tem uma conta?{' '}
+                <Link
+                  to={getPath('/admin/login')}
+                  className="text-foreground hover:underline font-semibold"
+                >
+                  Entrar
+                </Link>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
