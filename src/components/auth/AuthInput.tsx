@@ -12,6 +12,7 @@ interface AuthInputProps {
   icon: LucideIcon;
   required?: boolean;
   helpText?: string;
+  disabled?: boolean;
 }
 
 const AuthInput = ({
@@ -24,6 +25,7 @@ const AuthInput = ({
   icon: Icon,
   required = true,
   helpText,
+  disabled = false,
 }: AuthInputProps) => {
   return (
     <div className="space-y-2">
@@ -36,10 +38,12 @@ const AuthInput = ({
           id={id}
           type={type}
           placeholder={placeholder}
-          className="pl-10 h-11 bg-background border-border/60 focus:border-primary"
+          className={`pl-10 h-11 bg-background border-border/60 focus:border-primary ${disabled ? 'bg-muted opacity-70 cursor-not-allowed' : ''}`}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           required={required}
+          disabled={disabled}
+          readOnly={disabled}
         />
       </div>
       {helpText && (
