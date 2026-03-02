@@ -10,6 +10,9 @@ import { cn } from '@/lib/utils';
 import { APP_VERSION, SYSTEM_NAME, SYSTEM_YEAR } from '@/lib/constants';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
 import { toAdminPath } from '@/hooks/useAdminRoutes';
+import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 const getPageTitle = (pathname: string): { title: string; subtitle?: string } => {
   // Normaliza o pathname para o formato admin
@@ -70,6 +73,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const { user, loading, canAccessAdmin } = useAuth();
   const { navigateAdmin } = useAdminNavigation();
   const location = useLocation();
+  const { isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // Persist sidebar state in localStorage
     const saved = localStorage.getItem('admin-sidebar-collapsed');
@@ -118,7 +122,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         )}
       >
         <AdminHeader title={title} subtitle={subtitle} />
-        {/* Global Import Progress Bar - visible on all admin pages */}
+        {isBlockedByOverdue && (
+          <Alert variant="destructive" className="mx-6 mt-4 border-destructive/50 bg-destructive/10">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="ml-2">
+              <strong>Atenção:</strong> Você possui {overdueCount} fatura{overdueCount > 1 ? 's' : ''} em atraso. 
+              O sistema está com funcionalidades limitadas até a regularização.{' '}
+              <a href="/admin/assinaturas/faturas" className="underline font-medium hover:opacity-80">
+                Ver faturas
+              </a>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="fixed bottom-4 right-4 z-50 w-96 max-w-[calc(100vw-2rem)]">
           <ImportProgressBar />
         </div>
