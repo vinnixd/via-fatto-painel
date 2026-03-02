@@ -264,19 +264,27 @@ const UsersPage = () => {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      // Delete user_roles first
-      const { error: rolesError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
-      if (rolesError) throw rolesError;
-
-      // Delete profile (sets status to allow cleanup)
+      // 1) Mark profile as deleted first to avoid partial state in UI
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ status: 'deleted' })
         .eq('id', userId);
-      if (profileError) throw profileError;
+
+      if (profileError) {
+        throw new Error(
+          profileError.code === '42501'
+            ? 'Sem permissão para excluir usuário. Verifique a policy de UPDATE em profiles para admin na VPS.'
+            : profileError.message
+        );
+      }
+
+      // 2) Remove roles after profile is hidden from list
+      const { error: rolesError } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId);
+
+      if (rolesError) throw rolesError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
