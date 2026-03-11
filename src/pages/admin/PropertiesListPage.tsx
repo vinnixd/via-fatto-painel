@@ -1087,7 +1087,12 @@ const PropertiesListPage = () => {
                       formatPrice={formatPrice}
                       toggleFeatured={toggleFeatured}
                       setDeleteId={setDeleteId}
-                      onCardClick={(id) => navigate(`/admin/imoveis/${id}`)}
+                      onCardClick={(id) => {
+                        const property = properties.find(p => p.id === id);
+                        if (property) {
+                          window.open(`/imovel/${property.slug}`, '_blank');
+                        }
+                      }}
                     />
                   ))}
                 </div>
