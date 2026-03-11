@@ -412,7 +412,7 @@ const DashboardPage = () => {
                           <Eye className="h-3.5 w-3.5" />
                           <span className="text-xs font-medium">{property.views.toLocaleString('pt-BR')}</span>
                         </div>
-                      </AdminLink>
+                      </a>
                     ))}
                   </div>
                 )}

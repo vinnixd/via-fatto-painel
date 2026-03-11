@@ -68,7 +68,7 @@ interface SEODebugPanelProps {
 function SEODebugPanel({ seoData }: SEODebugPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (process.env.NODE_ENV === 'production') return null;
+  if (import.meta.env.PROD) return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-[9999]">
