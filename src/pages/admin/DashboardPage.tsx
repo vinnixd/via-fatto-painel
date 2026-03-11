@@ -386,9 +386,11 @@ const DashboardPage = () => {
                 ) : (
                   <div className="space-y-1.5">
                     {topProperties.map((property, index) => (
-                      <AdminLink
+                      <a
                         key={property.id}
-                        to={`/admin/imoveis/${property.id}`}
+                        href={`/imovel/${property.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/60 transition-colors group"
                       >
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center font-semibold text-xs ${
