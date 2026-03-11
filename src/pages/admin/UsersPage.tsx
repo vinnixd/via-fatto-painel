@@ -464,7 +464,16 @@ const UsersPage = () => {
             else setInviteDialogOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button variant="admin">
+              <Button variant="admin" onClick={(e) => {
+                if (!canAddUser) {
+                  e.preventDefault();
+                  if (isBlockedByOverdue) {
+                    toast.error(`Você possui ${overdueCount} faturas em atraso. Regularize seus pagamentos para convidar novos membros.`);
+                  } else {
+                    setShowUpgradeDialog(true);
+                  }
+                }
+              }}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Convidar Membro
               </Button>
