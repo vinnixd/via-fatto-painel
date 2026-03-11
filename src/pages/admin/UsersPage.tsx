@@ -98,6 +98,7 @@ const UsersPage = () => {
   const queryClient = useQueryClient();
   const { canAddUser, currentUsers, maxUsers, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
     email: '',
