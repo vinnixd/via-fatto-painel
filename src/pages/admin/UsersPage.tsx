@@ -61,6 +61,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Trash2,
+  ArrowRight,
+  TrendingUp,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -96,6 +98,7 @@ const UsersPage = () => {
   const queryClient = useQueryClient();
   const { canAddUser, currentUsers, maxUsers, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteData, setInviteData] = useState({
     email: '',
@@ -461,7 +464,16 @@ const UsersPage = () => {
             else setInviteDialogOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button variant="admin">
+              <Button variant="admin" onClick={(e) => {
+                if (!canAddUser) {
+                  e.preventDefault();
+                  if (isBlockedByOverdue) {
+                    toast.error(`Você possui ${overdueCount} faturas em atraso. Regularize seus pagamentos para convidar novos membros.`);
+                  } else {
+                    setShowUpgradeDialog(true);
+                  }
+                }
+              }}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Convidar Membro
               </Button>
@@ -915,6 +927,47 @@ const UsersPage = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Upgrade Dialog */}
+        <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <div className="flex items-center justify-center mb-2">
+                <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                  <TrendingUp className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+              <DialogTitle className="text-center">Limite de usuários atingido</DialogTitle>
+              <DialogDescription className="text-center">
+                Seu plano atual permite até <span className="font-semibold text-foreground">{maxUsers} usuário{maxUsers !== 1 ? 's' : ''}</span> e você já possui <span className="font-semibold text-foreground">{currentUsers}</span> cadastrado{currentUsers !== 1 ? 's' : ''}.
+                Faça upgrade para adicionar mais membros à sua equipe.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3 pt-2">
+              <Button
+                variant="admin"
+                className="w-full"
+                onClick={() => {
+                  setShowUpgradeDialog(false);
+                  navigateAdmin('/admin/assinaturas/upgrade');
+                }}
+              >
+                Fazer upgrade
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-muted-foreground"
+                onClick={() => {
+                  setShowUpgradeDialog(false);
+                  navigateAdmin('/admin/assinaturas/planos');
+                }}
+              >
+                Ver todos os planos
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
