@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -353,6 +354,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 const PropertiesListPage = () => {
   const navigate = useNavigate();
+  const { tenantId } = useTenant();
   const { canAddProperty, currentProperties, maxProperties, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -387,27 +389,24 @@ const PropertiesListPage = () => {
   const fetchStats = async () => {
     try {
       // Fetch total count
-      const { count: total } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true });
+      let totalQuery = supabase.from('properties').select('*', { count: 'exact', head: true });
+      if (tenantId) totalQuery = totalQuery.eq('tenant_id', tenantId);
+      const { count: total } = await totalQuery;
 
       // Fetch venda count
-      const { count: venda } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'venda');
+      let vendaQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'venda');
+      if (tenantId) vendaQuery = vendaQuery.eq('tenant_id', tenantId);
+      const { count: venda } = await vendaQuery;
 
       // Fetch aluguel count
-      const { count: aluguel } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'aluguel');
+      let aluguelQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'aluguel');
+      if (tenantId) aluguelQuery = aluguelQuery.eq('tenant_id', tenantId);
+      const { count: aluguel } = await aluguelQuery;
 
       // Fetch featured count
-      const { count: featured } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('featured', true);
+      let featuredQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('featured', true);
+      if (tenantId) featuredQuery = featuredQuery.eq('tenant_id', tenantId);
+      const { count: featured } = await featuredQuery;
 
       setStats({
         total: total || 0,
@@ -426,6 +425,10 @@ const PropertiesListPage = () => {
       let query = supabase
         .from('properties')
         .select('*', { count: 'exact' });
+
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
 
       // Apply sorting based on sortBy state
       if (isReorderMode || sortBy === 'manual') {
@@ -503,11 +506,11 @@ const PropertiesListPage = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => {
     fetchProperties();
-  }, [page, search, isReorderMode, sortBy]);
+  }, [page, search, isReorderMode, sortBy, tenantId]);
 
   // Listen for import job completion to refresh the list
   useEffect(() => {
