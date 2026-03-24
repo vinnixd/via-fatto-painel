@@ -68,6 +68,7 @@ const BlogListPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
   const { data: posts, isLoading } = useBlogPosts({
     search: search || undefined,
@@ -78,6 +79,12 @@ const BlogListPage = () => {
   const deleteMutation = useDeleteBlogPost();
   const togglePublished = useToggleBlogPostPublished();
   const duplicateMutation = useDuplicateBlogPost();
+
+  const handleArticleGenerated = (article: any) => {
+    // Navigate to new blog form with AI-generated data in sessionStorage
+    sessionStorage.setItem('ai_generated_article', JSON.stringify(article));
+    navigateAdmin('/admin/blog/novo');
+  };
 
   const handleDelete = () => {
     if (deleteId) {
