@@ -281,6 +281,13 @@ const BlogListPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Generate Article Dialog */}
+      <GenerateArticleDialog
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+        onGenerated={handleArticleGenerated}
+      />
     </AdminLayout>
   );
 };
