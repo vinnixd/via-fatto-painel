@@ -389,27 +389,24 @@ const PropertiesListPage = () => {
   const fetchStats = async () => {
     try {
       // Fetch total count
-      const { count: total } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true });
+      let totalQuery = supabase.from('properties').select('*', { count: 'exact', head: true });
+      if (tenantId) totalQuery = totalQuery.eq('tenant_id', tenantId);
+      const { count: total } = await totalQuery;
 
       // Fetch venda count
-      const { count: venda } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'venda');
+      let vendaQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'venda');
+      if (tenantId) vendaQuery = vendaQuery.eq('tenant_id', tenantId);
+      const { count: venda } = await vendaQuery;
 
       // Fetch aluguel count
-      const { count: aluguel } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'aluguel');
+      let aluguelQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'aluguel');
+      if (tenantId) aluguelQuery = aluguelQuery.eq('tenant_id', tenantId);
+      const { count: aluguel } = await aluguelQuery;
 
       // Fetch featured count
-      const { count: featured } = await supabase
-        .from('properties')
-        .select('*', { count: 'exact', head: true })
-        .eq('featured', true);
+      let featuredQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('featured', true);
+      if (tenantId) featuredQuery = featuredQuery.eq('tenant_id', tenantId);
+      const { count: featured } = await featuredQuery;
 
       setStats({
         total: total || 0,
