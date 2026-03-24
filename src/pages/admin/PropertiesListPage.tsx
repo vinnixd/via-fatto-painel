@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
+import { useTenant } from '@/contexts/TenantContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
