@@ -482,10 +482,10 @@ const BlogFormPage = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
                   <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>Dimensões recomendadas: <strong>1920×630px</strong> (proporção ~3:1). Formatos aceitos: JPG, PNG, WebP.</span>
+                  <span>Dimensões recomendadas: <strong>1280×800px</strong> (ou 1920×1200px para retina, proporção 16:10). Formatos aceitos: JPG, PNG, WebP.</span>
                 </div>
                 {form.cover_image_url && (
-                  <div className="relative aspect-[3/1] rounded-lg overflow-hidden bg-muted">
+                  <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-muted">
                     <img src={form.cover_image_url} alt="Capa" className="w-full h-full object-cover" />
                   </div>
                 )}
@@ -746,7 +746,7 @@ const BlogFormPage = () => {
           </DialogHeader>
           <article className="prose prose-sm max-w-none dark:prose-invert">
             {form.cover_image_url && (
-              <img src={form.cover_image_url} alt={form.title} className="w-full rounded-lg aspect-[3/1] object-cover" />
+              <img src={form.cover_image_url} alt={form.title} className="w-full rounded-lg aspect-[16/10] object-cover" />
             )}
             <h1>{form.title}</h1>
             {form.subtitle && <p className="text-xl text-muted-foreground lead">{form.subtitle}</p>}
