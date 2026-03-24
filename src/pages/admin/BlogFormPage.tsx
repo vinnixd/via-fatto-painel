@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { useAdminNavigation } from '@/hooks/useAdminNavigation';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, Loader2, CalendarIcon, ImageIcon, AlertCircle, Sparkles } from 'lucide-react';
+import { Save, Loader2, CalendarIcon, AlertCircle, Sparkles, X, Plus, Wand2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -26,12 +27,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { compressImage } from '@/lib/imageCompression';
 import RichTextEditor from '@/components/admin/blog/RichTextEditor';
 import { useProfile } from '@/hooks/useProfile';
+import GenerateArticleDialog from '@/components/admin/blog/GenerateArticleDialog';
 import {
   useBlogPost,
   useCreateBlogPost,
   useUpdateBlogPost,
   type BlogPost,
 } from '@/hooks/useBlogPosts';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const CATEGORIES = [
   'Mercado Imobiliário',
@@ -57,6 +65,11 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
 const BlogFormPage = () => {
   const { id } = useParams();
   const isEditing = !!id;
@@ -68,6 +81,7 @@ const BlogFormPage = () => {
 
   const [form, setForm] = useState({
     title: '',
+    subtitle: '',
     slug: '',
     excerpt: '',
     content: '',
@@ -79,17 +93,52 @@ const BlogFormPage = () => {
     published_at: null as string | null,
     seo_title: '',
     seo_description: '',
+    tags: [] as string[],
+    faq: [] as FaqItem[],
   });
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [customCategory, setCustomCategory] = useState('');
   const [generatingSeo, setGeneratingSeo] = useState(false);
+  const [newTag, setNewTag] = useState('');
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Load AI-generated article from sessionStorage
+  useEffect(() => {
+    if (!isEditing) {
+      const aiArticle = sessionStorage.getItem('ai_generated_article');
+      if (aiArticle) {
+        sessionStorage.removeItem('ai_generated_article');
+        try {
+          const article = JSON.parse(aiArticle);
+          setForm(prev => ({
+            ...prev,
+            title: article.title || '',
+            subtitle: article.subtitle || '',
+            slug: slugify(article.title || ''),
+            excerpt: article.excerpt || '',
+            content: article.content || '',
+            category: article.category || '',
+            seo_title: article.seo_title || '',
+            seo_description: article.seo_description || '',
+            tags: Array.isArray(article.tags) ? article.tags : [],
+            faq: Array.isArray(article.faq) ? article.faq : [],
+          }));
+          toast.success('Artigo gerado com IA carregado! Revise e publique.');
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [isEditing]);
 
   // Load existing post data
   useEffect(() => {
     if (existingPost) {
       setForm({
         title: existingPost.title || '',
+        subtitle: (existingPost as any).subtitle || '',
         slug: existingPost.slug || '',
         excerpt: existingPost.excerpt || '',
         content: existingPost.content || '',
@@ -101,6 +150,8 @@ const BlogFormPage = () => {
         published_at: existingPost.published_at,
         seo_title: existingPost.seo_title || '',
         seo_description: existingPost.seo_description || '',
+        tags: Array.isArray((existingPost as any).tags) ? (existingPost as any).tags : [],
+        faq: Array.isArray((existingPost as any).faq) ? (existingPost as any).faq : [],
       });
       setSlugManuallyEdited(true);
     }
@@ -162,6 +213,50 @@ const BlogFormPage = () => {
     }
   };
 
+  const addTag = () => {
+    const tag = newTag.trim();
+    if (tag && !form.tags.includes(tag)) {
+      updateField('tags', [...form.tags, tag]);
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    updateField('tags', form.tags.filter(t => t !== tag));
+  };
+
+  const addFaqItem = () => {
+    updateField('faq', [...form.faq, { question: '', answer: '' }]);
+  };
+
+  const updateFaqItem = (index: number, field: 'question' | 'answer', value: string) => {
+    const updated = [...form.faq];
+    updated[index] = { ...updated[index], [field]: value };
+    updateField('faq', updated);
+  };
+
+  const removeFaqItem = (index: number) => {
+    updateField('faq', form.faq.filter((_, i) => i !== index));
+  };
+
+  const handleArticleGenerated = (article: any) => {
+    setForm(prev => ({
+      ...prev,
+      title: article.title || prev.title,
+      subtitle: article.subtitle || prev.subtitle,
+      slug: slugify(article.title || prev.title),
+      excerpt: article.excerpt || prev.excerpt,
+      content: article.content || prev.content,
+      category: article.category || prev.category,
+      seo_title: article.seo_title || prev.seo_title,
+      seo_description: article.seo_description || prev.seo_description,
+      tags: Array.isArray(article.tags) ? article.tags : prev.tags,
+      faq: Array.isArray(article.faq) ? article.faq : prev.faq,
+    }));
+    setSlugManuallyEdited(false);
+    toast.success('Artigo gerado! Revise o conteúdo antes de publicar.');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -181,6 +276,7 @@ const BlogFormPage = () => {
     const category = customCategory || form.category;
     const postData: any = {
       title: form.title,
+      subtitle: form.subtitle || null,
       slug: form.slug,
       excerpt: form.excerpt,
       content: form.content,
@@ -192,9 +288,10 @@ const BlogFormPage = () => {
       published_at: form.published_at,
       seo_title: form.seo_title || null,
       seo_description: form.seo_description || null,
+      tags: form.tags.length > 0 ? form.tags : [],
+      faq: form.faq.length > 0 ? form.faq : [],
     };
 
-    // Auto-fill published_at when publishing
     if (form.published && !form.published_at) {
       postData.published_at = new Date().toISOString();
     }
@@ -226,11 +323,23 @@ const BlogFormPage = () => {
   return (
     <AdminLayout>
       <form onSubmit={handleSubmit} className="p-6 space-y-6 max-w-4xl mx-auto">
+        {/* AI Generate button for existing editing or regeneration */}
+        {!isEditing && (
+          <div className="flex justify-end">
+            <Button type="button" variant="outline" onClick={() => setShowGenerateDialog(true)}>
+              <Wand2 className="h-4 w-4 mr-2" />
+              Gerar / Regenerar com IA
+            </Button>
+          </div>
+        )}
+
         <Tabs defaultValue="principal" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="principal">Principal</TabsTrigger>
             <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
             <TabsTrigger value="imagem">Imagem</TabsTrigger>
+            <TabsTrigger value="tags">Tags</TabsTrigger>
+            <TabsTrigger value="faq">FAQ</TabsTrigger>
             <TabsTrigger value="autor">Autor</TabsTrigger>
             <TabsTrigger value="seo">SEO</TabsTrigger>
           </TabsList>
@@ -250,6 +359,17 @@ const BlogFormPage = () => {
                     placeholder="Título do artigo"
                   />
                   <p className="text-xs text-muted-foreground mt-1">{form.title.length}/120 caracteres</p>
+                </div>
+                <div>
+                  <Label htmlFor="subtitle">Subtítulo</Label>
+                  <Input
+                    id="subtitle"
+                    value={form.subtitle}
+                    onChange={(e) => updateField('subtitle', e.target.value)}
+                    maxLength={150}
+                    placeholder="Subtítulo complementar"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">{form.subtitle.length}/150 caracteres</p>
                 </div>
                 <div>
                   <Label htmlFor="slug">Slug</Label>
@@ -340,7 +460,15 @@ const BlogFormPage = () => {
           {/* Conteúdo */}
           <TabsContent value="conteudo" className="mt-4">
             <Card>
-              <CardHeader><CardTitle>Conteúdo do Artigo</CardTitle></CardHeader>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Conteúdo do Artigo</CardTitle>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setShowPreview(true)} disabled={!form.content}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Visualizar
+                  </Button>
+                </div>
+              </CardHeader>
               <CardContent>
                 <RichTextEditor content={form.content} onChange={(html) => updateField('content', html)} />
               </CardContent>
@@ -381,6 +509,89 @@ const BlogFormPage = () => {
                     placeholder="https://..."
                   />
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tags */}
+          <TabsContent value="tags" className="mt-4">
+            <Card>
+              <CardHeader><CardTitle>Tags</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Adicionar tag..."
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag(); } }}
+                  />
+                  <Button type="button" variant="outline" onClick={addTag} disabled={!newTag.trim()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                {form.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {form.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+                        {tag}
+                        <button type="button" onClick={() => removeTag(tag)} className="ml-1 hover:text-destructive">
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                {form.tags.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhuma tag adicionada.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* FAQ */}
+          <TabsContent value="faq" className="mt-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>FAQ - Perguntas Frequentes</CardTitle>
+                  <Button type="button" variant="outline" size="sm" onClick={addFaqItem}>
+                    <Plus className="h-4 w-4 mr-1" />
+                    Adicionar
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {form.faq.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nenhuma pergunta adicionada. Clique em "Adicionar" para criar.</p>
+                )}
+                {form.faq.map((item, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-3 relative">
+                    <button
+                      type="button"
+                      onClick={() => removeFaqItem(index)}
+                      className="absolute top-2 right-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div>
+                      <Label>Pergunta {index + 1}</Label>
+                      <Input
+                        value={item.question}
+                        onChange={(e) => updateFaqItem(index, 'question', e.target.value)}
+                        placeholder="Pergunta frequente..."
+                      />
+                    </div>
+                    <div>
+                      <Label>Resposta</Label>
+                      <Textarea
+                        value={item.answer}
+                        onChange={(e) => updateFaqItem(index, 'answer', e.target.value)}
+                        placeholder="Resposta..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
@@ -509,12 +720,57 @@ const BlogFormPage = () => {
           <Button type="button" variant="outline" onClick={() => navigateAdmin('/admin/blog')}>
             Cancelar
           </Button>
+          <Button type="button" variant="outline" onClick={() => setShowPreview(true)} disabled={!form.content}>
+            <Eye className="h-4 w-4 mr-2" />
+            Visualizar
+          </Button>
           <Button type="submit" disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
             {isEditing ? 'Salvar Alterações' : 'Criar Artigo'}
           </Button>
         </div>
       </form>
+
+      {/* AI Generate Dialog */}
+      <GenerateArticleDialog
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+        onGenerated={handleArticleGenerated}
+      />
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Preview do Artigo</DialogTitle>
+          </DialogHeader>
+          <article className="prose prose-sm max-w-none dark:prose-invert">
+            {form.cover_image_url && (
+              <img src={form.cover_image_url} alt={form.title} className="w-full rounded-lg aspect-[3/1] object-cover" />
+            )}
+            <h1>{form.title}</h1>
+            {form.subtitle && <p className="text-xl text-muted-foreground lead">{form.subtitle}</p>}
+            {form.category && <Badge variant="secondary">{form.category}</Badge>}
+            {form.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 not-prose mt-2">
+                {form.tags.map(tag => <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>)}
+              </div>
+            )}
+            <div dangerouslySetInnerHTML={{ __html: form.content }} />
+            {form.faq.length > 0 && (
+              <div className="mt-8">
+                <h2>Perguntas Frequentes</h2>
+                {form.faq.map((item, i) => (
+                  <div key={i} className="mb-4">
+                    <h3>{item.question}</h3>
+                    <p>{item.answer}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </article>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };

@@ -37,7 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Pencil, Trash2, Copy, MoreVertical, Loader2, Eye, ImageIcon, FileText } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Copy, MoreVertical, Loader2, Eye, ImageIcon, FileText, Wand2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -46,6 +46,7 @@ import {
   useToggleBlogPostPublished,
   useDuplicateBlogPost,
 } from '@/hooks/useBlogPosts';
+import GenerateArticleDialog from '@/components/admin/blog/GenerateArticleDialog';
 
 const CATEGORIES = [
   'Mercado Imobiliário',
@@ -67,6 +68,7 @@ const BlogListPage = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
 
   const { data: posts, isLoading } = useBlogPosts({
     search: search || undefined,
@@ -77,6 +79,12 @@ const BlogListPage = () => {
   const deleteMutation = useDeleteBlogPost();
   const togglePublished = useToggleBlogPostPublished();
   const duplicateMutation = useDuplicateBlogPost();
+
+  const handleArticleGenerated = (article: any) => {
+    // Navigate to new blog form with AI-generated data in sessionStorage
+    sessionStorage.setItem('ai_generated_article', JSON.stringify(article));
+    navigateAdmin('/admin/blog/novo');
+  };
 
   const handleDelete = () => {
     if (deleteId) {
@@ -125,10 +133,16 @@ const BlogListPage = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="admin" onClick={() => navigateAdmin('/admin/blog/novo')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Artigo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowGenerateDialog(true)}>
+              <Wand2 className="h-4 w-4 mr-2" />
+              Gerar com IA
+            </Button>
+            <Button variant="admin" onClick={() => navigateAdmin('/admin/blog/novo')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Artigo
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -267,6 +281,13 @@ const BlogListPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Generate Article Dialog */}
+      <GenerateArticleDialog
+        open={showGenerateDialog}
+        onOpenChange={setShowGenerateDialog}
+        onGenerated={handleArticleGenerated}
+      />
     </AdminLayout>
   );
 };

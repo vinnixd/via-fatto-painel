@@ -9,6 +9,7 @@ export interface BlogPost {
   id: string;
   tenant_id: string | null;
   title: string;
+  subtitle: string | null;
   slug: string;
   excerpt: string | null;
   content: string | null;
@@ -20,6 +21,8 @@ export interface BlogPost {
   published_at: string | null;
   seo_title: string | null;
   seo_description: string | null;
+  tags: string[] | null;
+  faq: { question: string; answer: string }[] | null;
   views: number;
   created_at: string;
   updated_at: string;

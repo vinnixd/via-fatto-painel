@@ -23,12 +23,15 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           excerpt: string | null
+          faq: Json | null
           id: string
           published: boolean
           published_at: string | null
           seo_description: string | null
           seo_title: string | null
           slug: string
+          subtitle: string | null
+          tags: string[] | null
           tenant_id: string | null
           title: string
           updated_at: string
@@ -42,12 +45,15 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           excerpt?: string | null
+          faq?: Json | null
           id?: string
           published?: boolean
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug: string
+          subtitle?: string | null
+          tags?: string[] | null
           tenant_id?: string | null
           title: string
           updated_at?: string
@@ -61,12 +67,15 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           excerpt?: string | null
+          faq?: Json | null
           id?: string
           published?: boolean
           published_at?: string | null
           seo_description?: string | null
           seo_title?: string | null
           slug?: string
+          subtitle?: string | null
+          tags?: string[] | null
           tenant_id?: string | null
           title?: string
           updated_at?: string
