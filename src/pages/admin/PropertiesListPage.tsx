@@ -506,11 +506,11 @@ const PropertiesListPage = () => {
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [tenantId]);
 
   useEffect(() => {
     fetchProperties();
-  }, [page, search, isReorderMode, sortBy]);
+  }, [page, search, isReorderMode, sortBy, tenantId]);
 
   // Listen for import job completion to refresh the list
   useEffect(() => {
