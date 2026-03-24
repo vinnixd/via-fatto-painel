@@ -485,7 +485,7 @@ const BlogFormPage = () => {
                   <span>Dimensões recomendadas: <strong>1280×800px</strong> (ou 1920×1200px para retina, proporção 16:10). Formatos aceitos: JPG, PNG, WebP.</span>
                 </div>
                 {form.cover_image_url && (
-                  <div className="relative aspect-[3/1] rounded-lg overflow-hidden bg-muted">
+                  <div className="relative aspect-[16/10] rounded-lg overflow-hidden bg-muted">
                     <img src={form.cover_image_url} alt="Capa" className="w-full h-full object-cover" />
                   </div>
                 )}
