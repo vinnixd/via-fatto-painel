@@ -37,7 +37,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Pencil, Trash2, Copy, MoreVertical, Loader2, Eye, ImageIcon, FileText } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Copy, MoreVertical, Loader2, Eye, ImageIcon, FileText, Wand2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -46,6 +46,7 @@ import {
   useToggleBlogPostPublished,
   useDuplicateBlogPost,
 } from '@/hooks/useBlogPosts';
+import GenerateArticleDialog from '@/components/admin/blog/GenerateArticleDialog';
 
 const CATEGORIES = [
   'Mercado Imobiliário',
