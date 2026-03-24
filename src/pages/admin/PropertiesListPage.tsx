@@ -426,6 +426,10 @@ const PropertiesListPage = () => {
         .from('properties')
         .select('*', { count: 'exact' });
 
+      if (tenantId) {
+        query = query.eq('tenant_id', tenantId);
+      }
+
       // Apply sorting based on sortBy state
       if (isReorderMode || sortBy === 'manual') {
         query = query.order('order_index', { ascending: true });
