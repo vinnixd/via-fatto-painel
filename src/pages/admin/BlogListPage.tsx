@@ -133,10 +133,16 @@ const BlogListPage = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="admin" onClick={() => navigateAdmin('/admin/blog/novo')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Artigo
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowGenerateDialog(true)}>
+              <Wand2 className="h-4 w-4 mr-2" />
+              Gerar com IA
+            </Button>
+            <Button variant="admin" onClick={() => navigateAdmin('/admin/blog/novo')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Artigo
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
