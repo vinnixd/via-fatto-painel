@@ -746,7 +746,7 @@ const BlogFormPage = () => {
           </DialogHeader>
           <article className="prose prose-sm max-w-none dark:prose-invert">
             {form.cover_image_url && (
-              <img src={form.cover_image_url} alt={form.title} className="w-full rounded-lg aspect-[3/1] object-cover" />
+              <img src={form.cover_image_url} alt={form.title} className="w-full rounded-lg aspect-[16/10] object-cover" />
             )}
             <h1>{form.title}</h1>
             {form.subtitle && <p className="text-xl text-muted-foreground lead">{form.subtitle}</p>}
