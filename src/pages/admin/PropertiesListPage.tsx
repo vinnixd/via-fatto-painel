@@ -354,6 +354,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 const PropertiesListPage = () => {
   const navigate = useNavigate();
+  const { tenantId } = useTenant();
   const { canAddProperty, currentProperties, maxProperties, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
