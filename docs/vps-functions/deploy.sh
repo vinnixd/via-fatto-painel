@@ -12,6 +12,7 @@ FUNCTIONS=(
   "generate-seo"
   "batch-generate-seo"
   "generate-blog-seo"
+  "generate-blog-article"
 )
 
 echo "=== Deploying AI Edge Functions (OpenAI) ==="
