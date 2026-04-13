@@ -98,6 +98,17 @@
     --admin-primary-hover: 0 0% 15%;
   }
 
+  /* Admin panel: override primary to black (monochromatic) */
+  .bg-admin {
+    --primary: 0 0% 10%;
+    --primary-foreground: 0 0% 100%;
+    --primary-muted: 0 0% 96%;
+    --primary-hover: 0 0% 15%;
+    --ring: 0 0% 10%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+  }
+
   .dark {
     /* Base colors - Dark mode */
     --background: 0 0% 7%;
@@ -151,6 +162,17 @@
     --admin-primary: 0 0% 95%;
     --admin-primary-foreground: 0 0% 7%;
     --admin-primary-hover: 0 0% 85%;
+  }
+
+  /* Admin panel dark: override primary to white (monochromatic) */
+  .dark .bg-admin {
+    --primary: 0 0% 95%;
+    --primary-foreground: 0 0% 7%;
+    --primary-muted: 0 0% 15%;
+    --primary-hover: 0 0% 85%;
+    --ring: 0 0% 95%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 95%;
   }
 }
 
