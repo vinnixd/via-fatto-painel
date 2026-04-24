@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface SubscriptionLimits {
   maxUsers: number;
@@ -15,8 +16,11 @@ interface SubscriptionLimits {
 }
 
 export function useSubscriptionLimits(): SubscriptionLimits {
+  const { tenantId } = useTenant();
+
   const { data, isLoading } = useQuery({
-    queryKey: ['subscription-limits'],
+    queryKey: ['subscription-limits', tenantId],
+    enabled: !!tenantId,
     queryFn: async () => {
       // Fetch subscription with plan
       const { data: subscription, error: subError } = await supabase
@@ -43,10 +47,11 @@ export function useSubscriptionLimits(): SubscriptionLimits {
 
       if (userError) throw userError;
 
-      // Count properties
+      // Count properties for the current tenant
       const { count: propertyCount, error: propError } = await supabase
         .from('properties')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId!);
 
       if (propError) throw propError;
 
