@@ -45,9 +45,11 @@ const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/ad
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
+const AdminSidebar = ({ collapsed, onToggle, mobileOpen = false, onMobileClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
   const { userRole: tenantUserRole, isOwnerOrAdmin: isTenantAdmin } = useTenant();
@@ -77,12 +79,26 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const isProfileActive = normalizedPath === profileItem.adminPath;
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 z-50 flex flex-col',
-        collapsed ? 'w-16' : 'w-64'
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
       )}
-    >
+      <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground transition-transform md:transition-all duration-300 z-50 flex flex-col',
+          // Mobile: full width drawer, slides in/out
+          'w-64 -translate-x-full',
+          mobileOpen && 'translate-x-0',
+          // Desktop: always visible, collapsible width
+          'md:translate-x-0',
+          collapsed ? 'md:w-16' : 'md:w-64'
+        )}
+      >
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
         {!collapsed && (
