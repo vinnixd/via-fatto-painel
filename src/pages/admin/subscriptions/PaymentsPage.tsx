@@ -172,9 +172,9 @@ const PaymentsPage = () => {
     <SubscriptionsLayout>
       <div className="max-w-5xl mx-auto animate-fade-in">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Pagamentos</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">Pagamentos</h1>
+          <p className="text-sm md:text-base text-muted-foreground">
             Gerencie sua assinatura, métodos de pagamento e dados fiscais.
           </p>
         </div>

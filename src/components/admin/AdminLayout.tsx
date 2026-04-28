@@ -79,12 +79,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     const saved = localStorage.getItem('admin-sidebar-collapsed');
     return saved === 'true';
   });
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleToggleSidebar = () => {
     const newState = !sidebarCollapsed;
     setSidebarCollapsed(newState);
     localStorage.setItem('admin-sidebar-collapsed', String(newState));
   };
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -114,19 +120,31 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-admin flex flex-col">
-      <AdminSidebar collapsed={sidebarCollapsed} onToggle={handleToggleSidebar} />
-      <main 
+      <AdminSidebar
+        collapsed={sidebarCollapsed}
+        onToggle={handleToggleSidebar}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+      <main
         className={cn(
           'flex-1 flex flex-col transition-all duration-300',
-          sidebarCollapsed ? 'ml-16' : 'ml-64'
+          // Mobile: no left margin (sidebar is overlay)
+          'ml-0',
+          // Desktop: respect sidebar width
+          sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
         )}
       >
-        <AdminHeader title={title} subtitle={subtitle} />
+        <AdminHeader
+          title={title}
+          subtitle={subtitle}
+          onOpenMobileSidebar={() => setMobileOpen(true)}
+        />
         {isBlockedByOverdue && (
-          <Alert variant="destructive" className="mx-6 mt-4 border-destructive/50 bg-destructive/10">
+          <Alert variant="destructive" className="mx-4 md:mx-6 mt-4 border-destructive/50 bg-destructive/10">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="ml-2">
-              <strong>Atenção:</strong> Você possui {overdueCount} fatura{overdueCount > 1 ? 's' : ''} em atraso. 
+              <strong>Atenção:</strong> Você possui {overdueCount} fatura{overdueCount > 1 ? 's' : ''} em atraso.
               O sistema está com funcionalidades limitadas até a regularização.{' '}
               <a href="/admin/assinaturas/faturas" className="underline font-medium hover:opacity-80">
                 Ver faturas

@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MessageSquare, ExternalLink, Settings, User, LogOut, ChevronDown } from 'lucide-react';
+import { MessageSquare, ExternalLink, Settings, User, LogOut, ChevronDown, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -19,9 +19,10 @@ import ThemeToggle from './ThemeToggle';
 interface AdminHeaderProps {
   title: string;
   subtitle?: string;
+  onOpenMobileSidebar?: () => void;
 }
 
-const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
+const AdminHeader = ({ title, subtitle, onOpenMobileSidebar }: AdminHeaderProps) => {
   const { signOut } = useAuth();
   const { profile } = useProfile();
   const { role } = usePermissions();
@@ -56,16 +57,28 @@ const AdminHeader = ({ title, subtitle }: AdminHeaderProps) => {
   const displayName = profile?.name || profile?.email?.split('@')[0] || 'Usuário';
 
   return (
-    <header className="bg-card border-b border-border px-6 py-4">
+    <header className="bg-card border-b border-border px-4 md:px-6 py-3 md:py-4">
       {/* Title and Actions */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
-          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Mobile hamburger */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden -ml-2 h-9 w-9 shrink-0"
+            onClick={onOpenMobileSidebar}
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0">
+            <h1 className="text-base md:text-xl font-semibold text-foreground truncate">{title}</h1>
+            {subtitle && <p className="text-xs md:text-sm text-muted-foreground truncate hidden sm:block">{subtitle}</p>}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+          <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
             <Link to="/" target="_blank">
               <ExternalLink className="h-4 w-4 mr-2" />
               Ver Site

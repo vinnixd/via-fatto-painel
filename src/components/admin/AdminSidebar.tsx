@@ -45,9 +45,11 @@ const profileItem: MenuItem = { icon: User, label: 'Meu Perfil', adminPath: '/ad
 interface AdminSidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
+const AdminSidebar = ({ collapsed, onToggle, mobileOpen = false, onMobileClose }: AdminSidebarProps) => {
   const location = useLocation();
   const { signOut, user, isAdmin, isGestor, isMarketing, isCorretor } = useAuth();
   const { userRole: tenantUserRole, isOwnerOrAdmin: isTenantAdmin } = useTenant();
@@ -77,38 +79,56 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   const isProfileActive = normalizedPath === profileItem.adminPath;
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground transition-all duration-300 z-50 flex flex-col',
-        collapsed ? 'w-16' : 'w-64'
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onMobileClose}
+          aria-hidden="true"
+        />
       )}
-    >
+      <aside
+        className={cn(
+          'fixed left-0 top-0 h-screen bg-sidebar text-sidebar-foreground transition-transform md:transition-all duration-300 z-50 flex flex-col',
+          // Mobile: full width drawer, slides in/out
+          'w-64 -translate-x-full',
+          mobileOpen && 'translate-x-0',
+          // Desktop: always visible, collapsible width
+          'md:translate-x-0',
+          collapsed ? 'md:w-16' : 'md:w-64'
+        )}
+      >
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
-        {!collapsed && (
-          <AdminLink to="/admin" className="flex items-center gap-2">
-            {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
-              <img 
-                src={siteConfig.logo_horizontal_url || siteConfig.logo_url} 
-                alt={siteConfig?.seo_title || 'Logo'} 
-                className="h-10 w-auto object-contain brightness-0 invert"
-              />
-            ) : (
-              <>
-                <div className="h-8 w-8 rounded-lg bg-sidebar-foreground flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-sidebar-background" />
-                </div>
-                <span className="font-bold text-lg">Painel Admin</span>
-              </>
-            )}
-          </AdminLink>
-        )}
+        {/* Expanded logo: visible when not collapsed (always shown on mobile drawer) */}
+        <AdminLink
+          to="/admin"
+          onClick={onMobileClose}
+          className={cn('flex items-center gap-2', collapsed && 'md:hidden')}
+        >
+          {(siteConfig?.logo_horizontal_url || siteConfig?.logo_url) ? (
+            <img
+              src={siteConfig.logo_horizontal_url || siteConfig.logo_url}
+              alt={siteConfig?.seo_title || 'Logo'}
+              className="h-10 w-auto object-contain brightness-0 invert"
+            />
+          ) : (
+            <>
+              <div className="h-8 w-8 rounded-lg bg-sidebar-foreground flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-sidebar-background" />
+              </div>
+              <span className="font-bold text-lg">Painel Admin</span>
+            </>
+          )}
+        </AdminLink>
+        {/* Collapsed logo: only on desktop when collapsed */}
         {collapsed && (
-          <AdminLink to="/admin" className="mx-auto">
+          <AdminLink to="/admin" className="mx-auto hidden md:block">
             {(siteConfig?.logo_symbol_url || siteConfig?.logo_url) ? (
-              <img 
-                src={siteConfig.logo_symbol_url || siteConfig.logo_url} 
-                alt={siteConfig?.seo_title || 'Logo'} 
+              <img
+                src={siteConfig.logo_symbol_url || siteConfig.logo_url}
+                alt={siteConfig?.seo_title || 'Logo'}
                 className="h-8 w-8 object-contain brightness-0 invert"
               />
             ) : (
@@ -120,13 +140,13 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         )}
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button - desktop only */}
       <Button
         variant="ghost"
         size="icon"
         onClick={onToggle}
         className={cn(
-          'absolute top-4 -right-3 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent z-50',
+          'absolute top-4 -right-3 h-6 w-6 rounded-full bg-sidebar-accent border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent z-50 hidden md:flex',
         )}
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -137,24 +157,25 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         <ul className="space-y-1">
           {visibleMenuItems.map((item) => {
             const itemPath = getPath(item.adminPath);
-            const isActive = normalizedPath === item.adminPath || 
+            const isActive = normalizedPath === item.adminPath ||
               (item.adminPath !== '/admin' && normalizedPath.startsWith(item.adminPath));
-            
+
             return (
               <li key={item.adminPath}>
                 <AdminLink
                   to={item.adminPath}
+                  onClick={onMobileClose}
                   title={collapsed ? item.label : undefined}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                    collapsed && 'justify-center px-0',
+                    collapsed && 'md:justify-center md:px-0',
                     isActive
                       ? 'bg-sidebar-accent text-sidebar-foreground'
                       : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
                   )}
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!collapsed && <span className="font-medium">{item.label}</span>}
+                  <span className={cn('font-medium', collapsed && 'md:hidden')}>{item.label}</span>
                 </AdminLink>
               </li>
             );
@@ -164,17 +185,18 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
           <li>
             <AdminLink
               to={profileItem.adminPath}
+              onClick={onMobileClose}
               title={collapsed ? profileItem.label : undefined}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                collapsed && 'justify-center px-0',
+                collapsed && 'md:justify-center md:px-0',
                 isProfileActive
                   ? 'bg-sidebar-accent text-sidebar-foreground'
                   : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
               )}
             >
               <profileItem.icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span className="font-medium">{profileItem.label}</span>}
+              <span className={cn('font-medium', collapsed && 'md:hidden')}>{profileItem.label}</span>
             </AdminLink>
           </li>
         </ul>
@@ -189,26 +211,27 @@ const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
           title={collapsed ? 'Suporte' : undefined}
           className={cn(
             'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent',
-            collapsed && 'justify-center px-0'
+            collapsed && 'md:justify-center md:px-0'
           )}
         >
           <Headphones className="h-5 w-5 flex-shrink-0" />
-          {!collapsed && <span className="font-medium">Suporte</span>}
+          <span className={cn('font-medium', collapsed && 'md:hidden')}>Suporte</span>
         </a>
         <Button
           variant="ghost"
           onClick={signOut}
           title={collapsed ? 'Sair' : undefined}
           className={cn(
-            'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent',
-            collapsed ? 'w-full justify-center px-0' : 'w-full justify-start'
+            'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent w-full',
+            collapsed ? 'md:justify-center md:px-0 justify-start' : 'justify-start'
           )}
         >
           <LogOut className="h-5 w-5" />
-          {!collapsed && <span className="ml-3">Sair</span>}
+          <span className={cn('ml-3', collapsed && 'md:hidden')}>Sair</span>
         </Button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 

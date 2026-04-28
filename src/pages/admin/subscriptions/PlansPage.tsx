@@ -95,9 +95,9 @@ const PlansPage = () => {
     <SubscriptionsLayout>
       <div className="max-w-6xl mx-auto animate-fade-in">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-3">Escolha o plano ideal para você</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold mb-3">Escolha o plano ideal para você</h1>
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
             Selecione o plano que melhor se adapta às suas necessidades.
           </p>
         </div>
@@ -135,7 +135,7 @@ const PlansPage = () => {
         {!isAnnual && <div className="mb-6" />}
 
         {/* Plans Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 md:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {plans?.map((plan) => {
             const isHighlighted = plan.slug === 'impulso';
             const Icon = getPlanIcon(plan.slug);

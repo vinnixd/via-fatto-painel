@@ -41,7 +41,7 @@ const SubscriptionsLayout = ({ children }: SubscriptionsLayoutProps) => {
 
   return (
     <AdminLayout>
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           {/* Desktop Tabs */}
           {!isMobile && (
