@@ -363,7 +363,7 @@ const PropertiesListPage = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [sortBy, setSortBy] = useState<SortOption>('manual');
+  const [sortBy, setSortBy] = useState<SortOption>('date_desc');
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
