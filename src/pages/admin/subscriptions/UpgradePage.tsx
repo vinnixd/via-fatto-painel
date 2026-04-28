@@ -58,14 +58,14 @@ const UpgradePage = () => {
 
   return (
     <AdminLayout>
-      <div className="p-6 max-w-3xl mx-auto space-y-8">
+      <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6 md:space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-foreground/5 mb-2">
-            <TrendingUp className="h-7 w-7 text-foreground" />
+          <div className="inline-flex items-center justify-center h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-foreground/5 mb-2">
+            <TrendingUp className="h-6 w-6 md:h-7 md:w-7 text-foreground" />
           </div>
-          <h1 className="text-3xl font-bold">Hora de crescer!</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">
+          <h1 className="text-2xl md:text-3xl font-bold">Hora de crescer!</h1>
+          <p className="text-sm md:text-base text-muted-foreground max-w-md mx-auto">
             Você atingiu os limites do seu plano atual. Faça upgrade para continuar expandindo seus negócios.
           </p>
         </div>
