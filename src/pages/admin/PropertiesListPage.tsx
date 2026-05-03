@@ -106,6 +106,7 @@ interface SortablePropertyCardProps {
   toggleFeatured: (id: string, featured: boolean) => void;
   setDeleteId: (id: string) => void;
   onCardClick: (id: string) => void;
+  siteBaseUrl: string;
 }
 
 const SortablePropertyCard = ({
@@ -120,6 +121,7 @@ const SortablePropertyCard = ({
   toggleFeatured,
   setDeleteId,
   onCardClick,
+  siteBaseUrl,
 }: SortablePropertyCardProps) => {
   const {
     attributes,
@@ -226,15 +228,16 @@ const SortablePropertyCard = ({
                 onPointerDown={(e) => e.stopPropagation()}
               >
                 <DropdownMenuItem asChild>
-                  <Link
-                    to={`/imovel/${property.slug}`}
+                  <a
+                    href={`${siteBaseUrl}/imovel/${property.slug}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-2"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Eye className="h-4 w-4" />
                     Ver no site
-                  </Link>
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <AdminLink
@@ -354,7 +357,15 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 const PropertiesListPage = () => {
   const navigate = useNavigate();
-  const { tenantId } = useTenant();
+  const { tenantId, domain } = useTenant();
+
+  // URL base do site público — detectada automaticamente pelo domínio
+  const siteBaseUrl = domain?.type === 'admin'
+    ? `https://${domain.hostname.replace(/^painel\./, '')}`
+    : domain?.type === 'public'
+    ? `https://${domain.hostname}`
+    : 'https://viafatto.com.br';
+
   const { canAddProperty, currentProperties, maxProperties, isBlockedByOverdue, overdueCount } = useSubscriptionLimits();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -388,22 +399,18 @@ const PropertiesListPage = () => {
 
   const fetchStats = async () => {
     try {
-      // Fetch total count
       let totalQuery = supabase.from('properties').select('*', { count: 'exact', head: true });
       if (tenantId) totalQuery = totalQuery.eq('tenant_id', tenantId);
       const { count: total } = await totalQuery;
 
-      // Fetch venda count
       let vendaQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'venda');
       if (tenantId) vendaQuery = vendaQuery.eq('tenant_id', tenantId);
       const { count: venda } = await vendaQuery;
 
-      // Fetch aluguel count
       let aluguelQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'aluguel');
       if (tenantId) aluguelQuery = aluguelQuery.eq('tenant_id', tenantId);
       const { count: aluguel } = await aluguelQuery;
 
-      // Fetch featured count
       let featuredQuery = supabase.from('properties').select('*', { count: 'exact', head: true }).eq('featured', true);
       if (tenantId) featuredQuery = featuredQuery.eq('tenant_id', tenantId);
       const { count: featured } = await featuredQuery;
@@ -430,7 +437,6 @@ const PropertiesListPage = () => {
         query = query.eq('tenant_id', tenantId);
       }
 
-      // Apply sorting based on sortBy state
       if (isReorderMode || sortBy === 'manual') {
         query = query.order('order_index', { ascending: true });
       } else {
@@ -476,7 +482,6 @@ const PropertiesListPage = () => {
 
       if (error) throw error;
 
-      // Fetch thumbnails for each property
       const propertiesWithThumbnails = await Promise.all(
         (data || []).map(async (property) => {
           const { data: images } = await supabase
@@ -512,7 +517,6 @@ const PropertiesListPage = () => {
     fetchProperties();
   }, [page, search, isReorderMode, sortBy, tenantId]);
 
-  // Listen for import job completion to refresh the list
   useEffect(() => {
     const channel = supabase
       .channel('import-jobs-list-refresh')
@@ -526,7 +530,6 @@ const PropertiesListPage = () => {
         (payload) => {
           const job = payload.new as { status: string };
           if (job.status === 'completed') {
-            // Refresh the properties list and stats when import completes
             fetchProperties();
             fetchStats();
           }
@@ -555,7 +558,6 @@ const PropertiesListPage = () => {
   const saveOrder = async () => {
     setSavingOrder(true);
     try {
-      // Update order_index for all properties in current view
       const updates = properties.map((property, index) => ({
         id: property.id,
         order_index: (page - 1) * itemsPerPage + index,
@@ -629,13 +631,11 @@ const PropertiesListPage = () => {
     try {
       const propertyIds = Array.from(selectedIds);
       
-      // 1. Get ALL images from all properties at once
       const { data: allImages } = await supabase
         .from('property_images')
         .select('url, property_id')
         .in('property_id', propertyIds);
       
-      // 2. Delete images from storage in batch (max 100 per request)
       if (allImages && allImages.length > 0) {
         const imagePaths = allImages
           .map(img => {
@@ -649,26 +649,22 @@ const PropertiesListPage = () => {
           })
           .filter((path): path is string => path !== null);
         
-        // Delete in batches of 100
         for (let i = 0; i < imagePaths.length; i += 100) {
           const batch = imagePaths.slice(i, i + 100);
           await supabase.storage.from('property-images').remove(batch);
         }
       }
       
-      // 3. Delete all property_images records at once
       await supabase
         .from('property_images')
         .delete()
         .in('property_id', propertyIds);
       
-      // 4. Delete all favorites at once
       await supabase
         .from('favorites')
         .delete()
         .in('property_id', propertyIds);
       
-      // 5. Delete all properties at once
       const { error, count } = await supabase
         .from('properties')
         .delete()
@@ -701,13 +697,11 @@ const PropertiesListPage = () => {
     if (!deleteId) return;
 
     try {
-      // 1. Get images to delete from storage
       const { data: images } = await supabase
         .from('property_images')
         .select('url')
         .eq('property_id', deleteId);
       
-      // 2. Delete images from storage in batch
       if (images && images.length > 0) {
         const imagePaths = images
           .map(img => {
@@ -726,11 +720,9 @@ const PropertiesListPage = () => {
         }
       }
       
-      // 3. Delete related records
       await supabase.from('property_images').delete().eq('property_id', deleteId);
       await supabase.from('favorites').delete().eq('property_id', deleteId);
 
-      // 4. Delete property
       const { error } = await supabase.from('properties').delete().eq('id', deleteId);
 
       if (error) throw error;
@@ -799,7 +791,6 @@ const PropertiesListPage = () => {
     }
     return <Home className="h-3.5 w-3.5" />;
   };
-
 
   return (
     <AdminLayout>
@@ -1090,10 +1081,11 @@ const PropertiesListPage = () => {
                       formatPrice={formatPrice}
                       toggleFeatured={toggleFeatured}
                       setDeleteId={setDeleteId}
+                      siteBaseUrl={siteBaseUrl}
                       onCardClick={(id) => {
-                        const property = properties.find(p => p.id === id);
-                        if (property) {
-                          window.open(`/imovel/${property.slug}`, '_blank');
+                        const prop = properties.find(p => p.id === id);
+                        if (prop) {
+                          window.open(`${siteBaseUrl}/imovel/${prop.slug}`, '_blank');
                         }
                       }}
                     />
