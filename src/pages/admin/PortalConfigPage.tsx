@@ -169,6 +169,7 @@ const PortalConfigPage = () => {
   const { portalId } = useParams();
   const { navigateAdmin } = useAdminNavigation();
   const queryClient = useQueryClient();
+  const draftKey = portalId ? `portal-config-draft-${portalId}` : null;
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
@@ -312,7 +313,7 @@ const PortalConfigPage = () => {
 
   useEffect(() => {
     if (portal) {
-      setFormData({
+      const baseData = {
         nome: portal.nome,
         ativo: portal.ativo,
         metodo: portal.metodo,
@@ -335,9 +336,29 @@ const PortalConfigPage = () => {
           remover_html: portal.config?.remover_html ?? true,
           dominio_base: portal.config?.dominio_base || '',
         },
-      });
+      };
+
+      // Apply saved draft on top of DB data if exists
+      try {
+        const key = `portal-config-draft-${portalId}`;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const draft = JSON.parse(saved);
+          setFormData({ ...baseData, ...draft, config: { ...baseData.config, ...draft.config } });
+        } else {
+          setFormData(baseData);
+        }
+      } catch {
+        setFormData(baseData);
+      }
     }
   }, [portal]);
+
+  // Auto-save draft on every formData change
+  useEffect(() => {
+    if (!draftKey) return;
+    try { localStorage.setItem(draftKey, JSON.stringify(formData)); } catch {}
+  }, [formData, draftKey]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -355,6 +376,7 @@ const PortalConfigPage = () => {
 
       if (error) throw error;
 
+      try { if (draftKey) localStorage.removeItem(draftKey); } catch {}
       toast.success('Configurações salvas com sucesso');
       queryClient.invalidateQueries({ queryKey: ['portal', portalId] });
       queryClient.invalidateQueries({ queryKey: ['portais'] });

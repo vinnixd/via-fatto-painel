@@ -94,6 +94,14 @@ const DesignerContent = () => {
   const [activeTab, setActiveTab] = useState('brand');
   const isMobile = useIsMobile();
 
+  const draftKey = tenantId ? `designer-draft-${tenantId}` : null;
+
+  // Auto-save draft on every config change
+  useEffect(() => {
+    if (!config || !draftKey) return;
+    try { localStorage.setItem(draftKey, JSON.stringify(config)); } catch {}
+  }, [config, draftKey]);
+
   useEffect(() => {
     if (tenantId) {
       fetchConfig();
@@ -105,7 +113,7 @@ const DesignerContent = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
       const { data, error } = await supabase
         .from('site_config')
@@ -116,7 +124,18 @@ const DesignerContent = () => {
       if (error) throw error;
 
       if (data) {
-        setConfig(data as SiteConfig);
+        // Apply saved draft on top of DB data if exists
+        try {
+          const key = `designer-draft-${tenantId}`;
+          const saved = localStorage.getItem(key);
+          if (saved) {
+            setConfig({ ...(data as SiteConfig), ...JSON.parse(saved) });
+          } else {
+            setConfig(data as SiteConfig);
+          }
+        } catch {
+          setConfig(data as SiteConfig);
+        }
       } else {
         const { data: newConfig, error: insertError } = await supabase
           .from('site_config')
@@ -243,6 +262,7 @@ const DesignerContent = () => {
         .single();
 
       if (error) throw error;
+      try { if (draftKey) localStorage.removeItem(draftKey); } catch {}
       toast.success('Configurações salvas!');
     } catch (error) {
       console.error('Error saving config:', error);
