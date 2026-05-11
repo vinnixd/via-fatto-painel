@@ -12,7 +12,13 @@ import { isAdminSubdomain } from "@/hooks/useAdminRoutes";
 import { RealtimeSyncProvider } from "@/components/RealtimeSyncProvider";
 import { useFavicon } from "@/hooks/useFavicon";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const FaviconUpdater = () => {
   useFavicon();

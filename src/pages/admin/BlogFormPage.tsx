@@ -56,6 +56,7 @@ const CATEGORIES = [
 ];
 
 const TENANT_STORAGE_KEY = 'active_tenant_id';
+const BLOG_DRAFT_KEY = 'blog-form-draft';
 
 const slugify = (text: string) =>
   text
@@ -79,7 +80,7 @@ const BlogFormPage = () => {
   const updateMutation = useUpdateBlogPost();
   const { profile } = useProfile();
 
-  const [form, setForm] = useState({
+  const defaultForm = {
     title: '',
     subtitle: '',
     slug: '',
@@ -95,8 +96,26 @@ const BlogFormPage = () => {
     seo_description: '',
     tags: [] as string[],
     faq: [] as FaqItem[],
+  };
+
+  const [form, setForm] = useState(() => {
+    if (!id) {
+      try {
+        const saved = localStorage.getItem(BLOG_DRAFT_KEY);
+        if (saved) return { ...defaultForm, ...JSON.parse(saved) };
+      } catch {}
+    }
+    return { ...defaultForm };
   });
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(() => {
+    if (!id) {
+      try {
+        const saved = localStorage.getItem(BLOG_DRAFT_KEY);
+        if (saved) return true;
+      } catch {}
+    }
+    return false;
+  });
   const [uploading, setUploading] = useState(false);
   const [customCategory, setCustomCategory] = useState('');
   const [generatingSeo, setGeneratingSeo] = useState(false);
@@ -167,6 +186,25 @@ const BlogFormPage = () => {
       }));
     }
   }, [isEditing, profile]);
+
+  // Auto-save draft to localStorage (new posts only)
+  useEffect(() => {
+    if (!isEditing) {
+      try {
+        localStorage.setItem(BLOG_DRAFT_KEY, JSON.stringify(form));
+      } catch {}
+    }
+  }, [form, isEditing]);
+
+  // Warn before leaving with unsaved content
+  useEffect(() => {
+    const hasContent = !isEditing && (form.title !== '' || form.content !== '' || form.excerpt !== '');
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasContent) e.preventDefault();
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isEditing, form.title, form.content, form.excerpt]);
 
   const updateField = (field: string, value: any) => {
     setForm(prev => {
@@ -301,6 +339,7 @@ const BlogFormPage = () => {
         await updateMutation.mutateAsync({ id, ...postData });
       } else {
         await createMutation.mutateAsync(postData);
+        try { localStorage.removeItem(BLOG_DRAFT_KEY); } catch {}
       }
       navigateAdmin('/admin/blog');
     } catch {
