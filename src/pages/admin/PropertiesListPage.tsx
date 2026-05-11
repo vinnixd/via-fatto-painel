@@ -37,9 +37,10 @@ import {
   CheckSquare,
   Square,
   AlertTriangle,
-  Sparkles,
   Share2,
-  Radio
+  Radio,
+  Filter,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSubscriptionLimits } from '@/hooks/useSubscriptionLimits';
@@ -382,7 +383,10 @@ const PropertiesListPage = () => {
   const [bulkDeleteConfirmText, setBulkDeleteConfirmText] = useState('');
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [savingOrder, setSavingOrder] = useState(false);
-  const [generatingSeo, setGeneratingSeo] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPortais, setFilterPortais] = useState('');
+  const [filterDestaque, setFilterDestaque] = useState('');
+  const [filterTipo, setFilterTipo] = useState('');
   const [stats, setStats] = useState({ total: 0, venda: 0, aluguel: 0, featured: 0 });
   const itemsPerPage = 24;
 
@@ -474,6 +478,13 @@ const PropertiesListPage = () => {
         query = query.ilike('title', `%${search}%`);
       }
 
+      if (filterStatus) query = query.eq('status', filterStatus);
+      if (filterTipo) query = query.eq('type', filterTipo);
+      if (filterPortais === 'sim') query = query.eq('integrar_portais', true);
+      if (filterPortais === 'nao') query = query.eq('integrar_portais', false);
+      if (filterDestaque === 'sim') query = query.eq('featured', true);
+      if (filterDestaque === 'nao') query = query.eq('featured', false);
+
       const from = (page - 1) * itemsPerPage;
       const to = from + itemsPerPage - 1;
       query = query.range(from, to);
@@ -515,7 +526,7 @@ const PropertiesListPage = () => {
 
   useEffect(() => {
     fetchProperties();
-  }, [page, search, isReorderMode, sortBy, tenantId]);
+  }, [page, search, isReorderMode, sortBy, tenantId, filterStatus, filterPortais, filterDestaque, filterTipo]);
 
   useEffect(() => {
     const channel = supabase
@@ -582,24 +593,14 @@ const PropertiesListPage = () => {
     }
   };
 
-  const handleBatchGenerateSeo = async () => {
-    setGeneratingSeo(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('batch-generate-seo');
-      
-      if (error) throw error;
-      
-      if (data.processed === 0) {
-        toast.info(data.message || 'Todos os imóveis já possuem SEO configurado');
-      } else {
-        toast.success(`SEO gerado para ${data.processed} imóveis${data.errors > 0 ? ` (${data.errors} erros)` : ''}`);
-      }
-    } catch (error) {
-      console.error('Error generating batch SEO:', error);
-      toast.error('Erro ao gerar SEO em lote');
-    } finally {
-      setGeneratingSeo(false);
-    }
+  const activeFilterCount = [filterStatus, filterPortais, filterDestaque, filterTipo].filter(Boolean).length;
+
+  const clearAllFilters = () => {
+    setFilterStatus('');
+    setFilterPortais('');
+    setFilterDestaque('');
+    setFilterTipo('');
+    setPage(1);
   };
 
   const toggleSelectProperty = (id: string) => {
@@ -933,19 +934,70 @@ const PropertiesListPage = () => {
                         </DropdownMenuRadioGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button
-                      variant="outline"
-                      onClick={handleBatchGenerateSeo}
-                      disabled={generatingSeo}
-                      className="gap-2"
-                    >
-                      {generatingSeo ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4" />
-                      )}
-                      <span className="hidden sm:inline">Gerar SEO</span>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="gap-2 relative">
+                          <Filter className="h-4 w-4" />
+                          <span className="hidden sm:inline">Filtros</span>
+                          {activeFilterCount > 0 && (
+                            <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center font-medium">
+                              {activeFilterCount}
+                            </span>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Status</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setPage(1); }}>
+                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="venda">À Venda</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="aluguel">Para Aluguel</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="vendido">Vendido</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="alugado">Alugado</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>Tipo</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup value={filterTipo} onValueChange={(v) => { setFilterTipo(v); setPage(1); }}>
+                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="casa">Casa</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="apartamento">Apartamento</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="terreno">Terreno</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="comercial">Comercial</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="cobertura">Cobertura</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="flat">Flat</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="galpao">Galpão</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="rural">Rural</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="loft">Loft</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>Portais</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup value={filterPortais} onValueChange={(v) => { setFilterPortais(v); setPage(1); }}>
+                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="sim">Com integração</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="nao">Sem integração</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>Destaque</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuRadioGroup value={filterDestaque} onValueChange={(v) => { setFilterDestaque(v); setPage(1); }}>
+                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="sim">Apenas destaques</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="nao">Sem destaque</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                        {activeFilterCount > 0 && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={clearAllFilters} className="text-muted-foreground justify-center gap-2">
+                              <X className="h-4 w-4" />
+                              Limpar filtros
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button variant="outline" asChild className="gap-2">
                       <AdminLink to="/admin/dados">
                         <Upload className="h-4 w-4" />
@@ -979,6 +1031,39 @@ const PropertiesListPage = () => {
               <div className="mt-3 p-2 bg-muted rounded-lg text-sm text-foreground/70 flex items-center gap-2">
                 <GripVertical className="h-4 w-4" />
                 Arraste os imóveis para reordenar. Clique em "Salvar Ordem" quando terminar.
+              </div>
+            )}
+            {activeFilterCount > 0 && !isSelectMode && !isReorderMode && (
+              <div className="mt-3 flex flex-wrap gap-2 items-center">
+                <span className="text-xs text-muted-foreground">Filtros ativos:</span>
+                {filterStatus && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => { setFilterStatus(''); setPage(1); }}>
+                    {filterStatus === 'venda' ? 'À Venda' : filterStatus === 'aluguel' ? 'Aluguel' : filterStatus === 'vendido' ? 'Vendido' : 'Alugado'}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {filterTipo && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => { setFilterTipo(''); setPage(1); }}>
+                    {filterTipo.charAt(0).toUpperCase() + filterTipo.slice(1)}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {filterPortais && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => { setFilterPortais(''); setPage(1); }}>
+                    {filterPortais === 'sim' ? 'Com portais' : 'Sem portais'}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                {filterDestaque && (
+                  <Badge variant="secondary" className="gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => { setFilterDestaque(''); setPage(1); }}>
+                    {filterDestaque === 'sim' ? 'Destaques' : 'Sem destaque'}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                )}
+                <Button variant="ghost" size="sm" className="h-6 text-xs text-muted-foreground gap-1" onClick={clearAllFilters}>
+                  <X className="h-3 w-3" />
+                  Limpar todos
+                </Button>
               </div>
             )}
           </CardContent>
@@ -1032,14 +1117,20 @@ const PropertiesListPage = () => {
                 <Home className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-medium mb-2">
-                {search ? 'Nenhum imóvel encontrado' : 'Nenhum imóvel cadastrado'}
+                {search || activeFilterCount > 0 ? 'Nenhum imóvel encontrado' : 'Nenhum imóvel cadastrado'}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {search
-                  ? 'Tente alterar os termos de busca'
+                {search || activeFilterCount > 0
+                  ? 'Tente ajustar a busca ou os filtros'
                   : 'Comece cadastrando seu primeiro imóvel'}
               </p>
-              {!search && (
+              {activeFilterCount > 0 && (
+                <Button variant="outline" className="mb-4 gap-2" onClick={clearAllFilters}>
+                  <X className="h-4 w-4" />
+                  Limpar filtros
+                </Button>
+              )}
+              {!search && !activeFilterCount && (
                 canAddProperty ? (
                   <Button asChild>
                     <AdminLink to="/admin/imoveis/novo">
