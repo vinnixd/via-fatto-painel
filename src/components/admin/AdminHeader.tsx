@@ -79,7 +79,7 @@ const AdminHeader = ({ title, subtitle, onOpenMobileSidebar }: AdminHeaderProps)
 
         <div className="flex items-center gap-1 md:gap-2 shrink-0">
           <Button variant="outline" size="sm" asChild className="hidden md:inline-flex">
-            <Link to="/" target="_blank">
+            <Link to="https://viafatto.com.br" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="h-4 w-4 mr-2" />
               Ver Site
             </Link>
