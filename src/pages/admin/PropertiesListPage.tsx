@@ -828,18 +828,86 @@ const PropertiesListPage = () => {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por título, cidade..."
-                  className="pl-10 bg-muted/50 border-0"
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  disabled={isReorderMode}
-                />
+              <div className="flex items-center gap-2 flex-1 max-w-lg">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por título, cidade..."
+                    className="pl-10 bg-muted/50 border-0"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    disabled={isReorderMode}
+                  />
+                </div>
+                {!isSelectMode && !isReorderMode && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="gap-2 relative shrink-0">
+                        <Filter className="h-4 w-4" />
+                        <span className="hidden sm:inline">Filtros</span>
+                        {activeFilterCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center font-medium">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56 max-h-[70vh] overflow-y-auto">
+                      <DropdownMenuLabel>Status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setPage(1); }}>
+                        <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="venda">À Venda</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="aluguel">Para Aluguel</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="vendido">Vendido</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="alugado">Alugado</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Tipo</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={filterTipo} onValueChange={(v) => { setFilterTipo(v); setPage(1); }}>
+                        <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="casa">Casa</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="apartamento">Apartamento</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="terreno">Terreno</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="comercial">Comercial</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="cobertura">Cobertura</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="flat">Flat</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="galpao">Galpão</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="rural">Rural</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="loft">Loft</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Portais</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={filterPortais} onValueChange={(v) => { setFilterPortais(v); setPage(1); }}>
+                        <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="sim">Com integração</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="nao">Sem integração</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Destaque</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup value={filterDestaque} onValueChange={(v) => { setFilterDestaque(v); setPage(1); }}>
+                        <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="sim">Apenas destaques</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="nao">Sem destaque</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                      {activeFilterCount > 0 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={clearAllFilters} className="text-muted-foreground justify-center gap-2">
+                            <X className="h-4 w-4" />
+                            Limpar filtros
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
               <div className="flex gap-2">
                 {isSelectMode ? (
@@ -932,70 +1000,6 @@ const PropertiesListPage = () => {
                             </DropdownMenuRadioItem>
                           ))}
                         </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="gap-2 relative">
-                          <Filter className="h-4 w-4" />
-                          <span className="hidden sm:inline">Filtros</span>
-                          {activeFilterCount > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-foreground text-background text-[10px] flex items-center justify-center font-medium">
-                              {activeFilterCount}
-                            </span>
-                          )}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel>Status</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuRadioGroup value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setPage(1); }}>
-                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="venda">À Venda</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="aluguel">Para Aluguel</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="vendido">Vendido</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="alugado">Alugado</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Tipo</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuRadioGroup value={filterTipo} onValueChange={(v) => { setFilterTipo(v); setPage(1); }}>
-                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="casa">Casa</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="apartamento">Apartamento</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="terreno">Terreno</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="comercial">Comercial</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="cobertura">Cobertura</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="flat">Flat</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="galpao">Galpão</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="rural">Rural</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="loft">Loft</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Portais</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuRadioGroup value={filterPortais} onValueChange={(v) => { setFilterPortais(v); setPage(1); }}>
-                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="sim">Com integração</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="nao">Sem integração</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Destaque</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuRadioGroup value={filterDestaque} onValueChange={(v) => { setFilterDestaque(v); setPage(1); }}>
-                          <DropdownMenuRadioItem value="">Todos</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="sim">Apenas destaques</DropdownMenuRadioItem>
-                          <DropdownMenuRadioItem value="nao">Sem destaque</DropdownMenuRadioItem>
-                        </DropdownMenuRadioGroup>
-                        {activeFilterCount > 0 && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={clearAllFilters} className="text-muted-foreground justify-center gap-2">
-                              <X className="h-4 w-4" />
-                              Limpar filtros
-                            </DropdownMenuItem>
-                          </>
-                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <Button variant="outline" asChild className="gap-2">
