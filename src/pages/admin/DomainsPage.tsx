@@ -59,22 +59,14 @@ import { toast } from 'sonner';
 const initialDomains = [
   {
     id: '1',
-    domain: 'viafatto.lovable.app',
-    isDefault: true,
-    isPrimary: false,
-    status: 'active' as const,
-    sslStatus: 'active' as const,
-  },
-  {
-    id: '2',
     domain: 'viafatto.com.br',
-    isDefault: false,
+    isDefault: true,
     isPrimary: true,
     status: 'active' as const,
     sslStatus: 'active' as const,
   },
   {
-    id: '3',
+    id: '2',
     domain: 'www.viafatto.com.br',
     isDefault: false,
     isPrimary: false,
@@ -88,32 +80,32 @@ const helpCards = [
     icon: Settings,
     title: 'Configure seu domínio',
     description: 'Use um domínio próprio para destacar a identidade da sua marca.',
-    linkText: 'Ver tutorial',
-    linkUrl: 'https://docs.lovable.dev/features/custom-domain',
+    linkText: 'Saiba mais',
+    linkUrl: 'https://support.cloudflare.com/hc/pt-br',
     color: 'bg-muted text-foreground/70',
   },
   {
     icon: LinkIcon,
     title: 'Verifique a configuração',
     description: 'Siga estes passos para revisar se seu domínio ficou corretamente vinculado.',
-    linkText: 'Ver tutorial',
-    linkUrl: 'https://docs.lovable.dev/features/custom-domain',
+    linkText: 'Saiba mais',
+    linkUrl: 'https://support.cloudflare.com/hc/pt-br',
     color: 'bg-muted text-foreground/70',
   },
   {
     icon: Calendar,
     title: 'Consulte o vencimento',
     description: 'Identifique se o registro do seu domínio deve ser renovado em breve.',
-    linkText: 'Ver tutorial',
-    linkUrl: 'https://docs.lovable.dev/features/custom-domain',
+    linkText: 'Saiba mais',
+    linkUrl: 'https://support.cloudflare.com/hc/pt-br',
     color: 'bg-muted text-foreground/70',
   },
   {
     icon: Shield,
     title: 'Certificado de segurança',
     description: 'Saiba se seu certificado de segurança está ativo.',
-    linkText: 'Ver tutorial',
-    linkUrl: 'https://docs.lovable.dev/features/custom-domain',
+    linkText: 'Saiba mais',
+    linkUrl: 'https://support.cloudflare.com/hc/pt-br',
     color: 'bg-muted text-foreground/70',
   },
 ];
@@ -218,8 +210,7 @@ const DomainsPage = () => {
                     <div className="text-sm text-muted-foreground">
                       <p className="font-medium text-foreground mb-1">Configuração DNS necessária:</p>
                       <ul className="space-y-1">
-                        <li>Registro A: <code className="bg-muted px-1 rounded">185.158.133.1</code></li>
-                        <li>Registro TXT: <code className="bg-muted px-1 rounded">_lovable</code></li>
+                        <li>Registro A: <code className="bg-muted px-1 rounded">68.168.222.135</code></li>
                       </ul>
                     </div>
                   </div>
@@ -459,19 +450,6 @@ const DomainsPage = () => {
           </div>
         </div>
 
-        {/* Footer Link */}
-        <div className="flex justify-center pt-4 pb-8">
-          <a
-            href="https://docs.lovable.dev/features/custom-domain"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 transition-colors"
-          >
-            <Info className="h-3.5 w-3.5" />
-            Mais sobre domínios
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        </div>
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

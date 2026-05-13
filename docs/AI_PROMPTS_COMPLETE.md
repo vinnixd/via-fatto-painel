@@ -370,8 +370,8 @@ Frontend monta payload com dados do imóvel
 Chama edge function `generate-seo`
         │
         ▼
-Edge function envia prompt ao Lovable AI Gateway
-(modelo: google/gemini-2.5-flash)
+Edge function envia prompt à Anthropic API
+(modelo: claude-haiku-4-5-20251001)
         │
         ▼
 IA retorna JSON: { seo_title, seo_description }
@@ -414,7 +414,7 @@ O frontend coleta os dados do imóvel e envia:
 1. Recebe `propertyInfo` no body
 2. Mapeia `type` e `status` para labels em português
 3. Monta system prompt (especialista SEO) + user prompt (dados do imóvel)
-4. Chama o Lovable AI Gateway
+4. Chama a Anthropic API
 5. Faz parsing do JSON da resposta
 6. Se parsing falha → gera fallback básico
 7. Trunca `seo_title` em 60 chars e `seo_description` em 155 chars
@@ -492,13 +492,14 @@ const generateSeo = async () => {
 
 ### Endpoint
 ```
-https://ai.gateway.lovable.dev/v1/chat/completions
+https://api.anthropic.com/v1/messages
 ```
 
 ### Headers
 ```javascript
 {
-  "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+  "x-api-key": ANTHROPIC_API_KEY,
+  "anthropic-version": "2023-06-01",
   "Content-Type": "application/json"
 }
 ```
@@ -506,9 +507,10 @@ https://ai.gateway.lovable.dev/v1/chat/completions
 ### Body Base
 ```javascript
 {
-  "model": "google/gemini-2.5-flash",
+  "model": "claude-haiku-4-5-20251001",
+  "max_tokens": 512,
+  "system": systemPrompt,
   "messages": [
-    { "role": "system", "content": systemPrompt },
     { "role": "user", "content": userPrompt }
   ]
 }
@@ -519,11 +521,6 @@ https://ai.gateway.lovable.dev/v1/chat/completions
 // Rate limit (429)
 if (response.status === 429) {
   return { error: "Limite de requisições excedido. Tente novamente em alguns minutos." };
-}
-
-// Créditos insuficientes (402)
-if (response.status === 402) {
-  return { error: "Créditos insuficientes. Adicione créditos ao workspace." };
 }
 ```
 
@@ -559,7 +556,7 @@ return new Response(JSON.stringify(data), {
 | generate-seo | propertyInfo | seo_title, seo_description | 60/155 chars |
 
 ### Checklist de Implementação
-- [ ] Configurar secret `LOVABLE_API_KEY`
+- [ ] Configurar secret `ANTHROPIC_API_KEY`
 - [ ] Criar edge function com CORS headers
 - [ ] Implementar tratamento de erros 429/402
 - [ ] Aplicar pós-processamento (normalização para descrições)

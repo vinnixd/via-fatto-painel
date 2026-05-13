@@ -16,7 +16,7 @@ Este documento descreve a estrutura completa de geração de conteúdo com IA pa
 
 ## Visão Geral
 
-O sistema utiliza o **Lovable AI Gateway** para gerar:
+O sistema utiliza a **Anthropic API** para gerar:
 - **Títulos** otimizados para conversão
 - **Descrições** estruturadas com formato padronizado
 - **SEO** (meta title e meta description) para melhor ranqueamento
@@ -25,10 +25,10 @@ O sistema utiliza o **Lovable AI Gateway** para gerar:
 
 | Componente | Tecnologia |
 |------------|------------|
-| AI Gateway | `https://ai.gateway.lovable.dev/v1/chat/completions` |
-| Modelo | `google/gemini-3-flash-preview` |
+| AI API | `https://api.anthropic.com/v1/messages` |
+| Modelo | `claude-haiku-4-5-20251001` |
 | Backend | Supabase Edge Functions (Deno) |
-| Autenticação | `LOVABLE_API_KEY` (automático no Lovable Cloud) |
+| Autenticação | `ANTHROPIC_API_KEY` (secret no Supabase) |
 
 ---
 
@@ -37,8 +37,8 @@ O sistema utiliza o **Lovable AI Gateway** para gerar:
 ### Secrets Necessários
 
 ```bash
-# Automáticos no Lovable Cloud
-LOVABLE_API_KEY          # Chave do Lovable AI Gateway
+# Secrets no Supabase (Dashboard → Edge Functions → Secrets)
+ANTHROPIC_API_KEY        # Chave da Anthropic API
 SUPABASE_URL             # URL do projeto Supabase
 SUPABASE_SERVICE_ROLE_KEY # Chave de serviço (para funções batch)
 ```
@@ -299,16 +299,18 @@ FORMATO DE SAÍDA (JSON):
 ### Estrutura Base de Chamada à API
 
 ```typescript
-const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+const response = await fetch("https://api.anthropic.com/v1/messages", {
   method: "POST",
   headers: {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
+    "x-api-key": ANTHROPIC_API_KEY,
+    "anthropic-version": "2023-06-01",
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    model: "google/gemini-3-flash-preview",
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 512,
+    system: systemPrompt,
     messages: [
-      { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt }
     ],
   }),
@@ -430,25 +432,27 @@ serve(async (req) => {
 
   try {
     const { inputData } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
     const systemPrompt = `Seu prompt de sistema aqui...`;
     const userPrompt = `Seu prompt de usuário com ${inputData}...`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
       }),
@@ -580,7 +584,7 @@ await new Promise(resolve => setTimeout(resolve, 500));
 - [ ] Implementar `index.ts` com template base
 - [ ] Adicionar CORS headers
 - [ ] Configurar `config.toml`
-- [ ] Tratar erros 429 e 402
+- [ ] Tratar erro 429 (rate limit)
 - [ ] Adicionar logging para debug
 - [ ] Testar via `supabase.functions.invoke()`
 - [ ] Documentar payload de entrada e saída
@@ -589,6 +593,6 @@ await new Promise(resolve => setTimeout(resolve, 500));
 
 ## Recursos Adicionais
 
-- [Lovable AI Docs](https://docs.lovable.dev/features/ai)
+- [Anthropic API Docs](https://docs.anthropic.com/en/api/getting-started)
 - [Supabase Edge Functions](https://supabase.com/docs/guides/functions)
-- [Gemini API Reference](https://ai.google.dev/docs)
+- [Claude Models](https://docs.anthropic.com/en/docs/about-claude/models)

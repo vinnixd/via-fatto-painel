@@ -1,71 +1,31 @@
-# Welcome to your Lovable project
+# Painel Via Fatto Imobiliária
 
-## Project info
+Painel administrativo do sistema imobiliário Via Fatto.
 
-https://viafatto.com.br/
+- **URL:** https://painel.viafatto.com.br
+- **Stack:** React + Vite + TypeScript + Tailwind CSS + shadcn-ui
+- **Backend:** Supabase (Project: `wzllexcaitqfkfjmqbyy`)
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Desenvolvimento local
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Instalar dependências
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Iniciar servidor de desenvolvimento
 npm run dev
+
+# Build de produção
+npm run build
 ```
 
-**Edit a file directly in GitHub**
+## Deploy
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+ssh -i C:/Users/felix/.ssh/viafatto root@68.168.222.135 \
+  "cd /var/www/painel.viafatto.com.br/app && git pull && npm run build && cp -r dist/. /var/www/painel.viafatto.com.br/public_html/ && echo DEPLOY_OK"
+```
 
-**Use GitHub Codespaces**
+## Repositório
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/441800bb-875b-4228-a5de-e1a02447ce7a) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+https://github.com/vinnixd/via-fatto-painel

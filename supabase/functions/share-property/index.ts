@@ -141,8 +141,8 @@ serve(async (req) => {
     // Build URLs
     const baseUrl = url.origin.replace("/functions/v1", "");
     // Determine the frontend URL - use referer or construct from project
-    const frontendUrl = req.headers.get("referer")?.split("/share")[0] || 
-                        `https://lwxrneoeoqzlekusqgml.lovableproject.com`;
+    const frontendUrl = req.headers.get("referer")?.split("/share")[0] ||
+                        `https://viafatto.com.br`;
     const propertyUrl = `${frontendUrl}/imovel/${property.slug}`;
     const shareUrl = `${supabaseUrl}/functions/v1/share-property/${property.slug}`;
 

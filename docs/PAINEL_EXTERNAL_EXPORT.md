@@ -4,7 +4,7 @@ Este documento contém toda a estrutura necessária para criar o projeto `via-fa
 
 ## Pré-requisitos
 
-1. Criar novo projeto Lovable **SEM** Lovable Cloud
+1. Criar novo projeto React/Vite
 2. Configurar `.env` com credenciais do Supabase externo
 
 ## Configuração do .env
@@ -407,7 +407,7 @@ export { resolveTenantByHostname };
 
 ---
 
-### 3. `vite.config.ts` (SEM lovable-tagger)
+### 3. `vite.config.ts`
 
 ```typescript
 import { defineConfig } from "vite";
@@ -566,8 +566,8 @@ export default defineConfig({
 
 ## Garantias Implementadas
 
-### ✅ Nenhuma dependência de Lovable Cloud
-- `vite.config.ts` não usa `lovable-tagger`
+### ✅ Nenhuma dependência de plataformas externas
+- `vite.config.ts` não usa plugins desnecessários
 - `supabase/client.ts` usa variáveis de ambiente padrão
 
 ### ✅ Nenhum DEV_TENANT_ID

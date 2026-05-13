@@ -206,7 +206,7 @@ WHERE pp.imovel_id = 'UUID_DO_IMOVEL'
 - Filtrar por "portal" ou "OLX"
 
 **2. Edge Function Logs**
-- Via Lovable: Verificar contexto de edge functions
+- Via Supabase Dashboard: Verificar contexto de edge functions
 - Logs automáticos aparecem após cada chamada
 
 **3. Tabela portal_logs**

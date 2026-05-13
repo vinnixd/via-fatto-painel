@@ -130,7 +130,7 @@ serve(async (req) => {
             status: 302,
             headers: {
               ...corsHeaders,
-              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent(errorDescription || error)}`,
+              'Location': `https://painel.viafatto.com.br/admin/portais?oauth_error=${encodeURIComponent(errorDescription || error)}`,
             },
           });
         }
@@ -141,7 +141,7 @@ serve(async (req) => {
             status: 302,
             headers: {
               ...corsHeaders,
-              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent('Parâmetros inválidos')}`,
+              'Location': `https://painel.viafatto.com.br/admin/portais?oauth_error=${encodeURIComponent('Parâmetros inválidos')}`,
             },
           });
         }
@@ -160,7 +160,7 @@ serve(async (req) => {
             status: 302,
             headers: {
               ...corsHeaders,
-              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais?oauth_error=${encodeURIComponent('State inválido ou expirado. Tente novamente.')}`,
+              'Location': `https://painel.viafatto.com.br/admin/portais?oauth_error=${encodeURIComponent('State inválido ou expirado. Tente novamente.')}`,
             },
           });
         }
@@ -196,7 +196,7 @@ serve(async (req) => {
             status: 302,
             headers: {
               ...corsHeaders,
-              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha na troca do código por tokens')}`,
+              'Location': `https://painel.viafatto.com.br/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha na troca do código por tokens')}`,
             },
           });
         }
@@ -244,7 +244,7 @@ serve(async (req) => {
             status: 302,
             headers: {
               ...corsHeaders,
-              'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha ao salvar tokens')}`,
+              'Location': `https://painel.viafatto.com.br/admin/portais/${portalId}?oauth_error=${encodeURIComponent('Falha ao salvar tokens')}`,
             },
           });
         }
@@ -264,7 +264,7 @@ serve(async (req) => {
           status: 302,
           headers: {
             ...corsHeaders,
-            'Location': `${supabaseUrl.replace('.supabase.co', '.lovable.app').replace('https://', 'https://id-preview--')}/admin/portais/${portalId}?oauth=success`,
+            'Location': `https://painel.viafatto.com.br/admin/portais/${portalId}?oauth=success`,
           },
         });
       }

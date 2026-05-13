@@ -926,7 +926,7 @@ async function processProperty(
       created = true;
     }
     
-    // Process images - support multiple URLs separated by "|" (WP All Export) or ", " (Lovable export)
+    // Process images - support multiple URLs separated by "|" (WP All Export) or ", " (CSV export)
     const imageUrlsRaw = row['Image URL'] || row['image_url'] || row['Attachment URL'] || row['Imagens'] || '';
     console.log(`[MAPPED] Images: ${imageUrlsRaw.length} chars`);
     

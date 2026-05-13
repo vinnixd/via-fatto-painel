@@ -163,24 +163,17 @@ const Footer = () => {
               </Link>
               {(() => {
                 const hostname = window.location.hostname;
-                const isLovablePreview = hostname.includes('lovable.app') || 
-                  hostname.includes('lovableproject.com') || 
-                  hostname.includes('localhost');
-                
-                if (isLovablePreview) {
+                if (hostname === 'localhost' || hostname === '127.0.0.1') {
                   return (
                     <Link to="/admin" className="text-neutral-500 hover:text-neutral-400 text-sm transition-colors">
                       Área Restrita
                     </Link>
                   );
                 }
-                
-                // Para produção: constrói URL absoluta para o subdomínio painel
                 const rootDomain = hostname.replace(/^www\./, '');
                 const adminUrl = `https://painel.${rootDomain}`;
-                
                 return (
-                  <a 
+                  <a
                     href={adminUrl}
                     target="_self"
                     rel="noopener"

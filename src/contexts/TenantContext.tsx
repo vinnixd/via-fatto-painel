@@ -54,9 +54,7 @@ interface ResolutionResult {
 }
 
 function isDevEnvironment(hostname: string): boolean {
-  // Considera dev se tiver localhost, lovable, ou não tiver TLD real
-  const devIndicators = ['localhost', 'lovable.app', 'lovableproject.com', '127.0.0.1'];
-  return devIndicators.some(indicator => hostname.includes(indicator));
+  return hostname === 'localhost' || hostname === '127.0.0.1';
 }
 
 function isProductionDomain(hostname: string): boolean {

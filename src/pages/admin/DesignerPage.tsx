@@ -1394,14 +1394,8 @@ const DesignerPage = () => {
                         <div>
                           <p className="font-medium text-amber-800 dark:text-amber-200">Gerenciamento de Domínios</p>
                           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                            Para adicionar ou gerenciar domínios personalizados, acesse as configurações do projeto através do painel Lovable.
+                            Para adicionar ou gerenciar domínios personalizados, acesse a página de Domínios no painel administrativo.
                           </p>
-                          <Button variant="outline" size="sm" className="mt-3 gap-2" asChild>
-                            <a href="https://docs.lovable.dev/features/custom-domain" target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4" />
-                              Ver documentação
-                            </a>
-                          </Button>
                         </div>
                       </div>
                     </div>
