@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { callAI, AIError } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,11 +13,6 @@ serve(async (req) => {
 
   try {
     const { title, excerpt, category, content } = await req.json();
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error("ANTHROPIC_API_KEY is not configured");
-    }
 
     if (!title) {
       return new Response(JSON.stringify({ error: "Título é obrigatório para gerar SEO." }), {
@@ -56,41 +52,18 @@ Retorne APENAS o JSON com seo_title e seo_description.`;
 
     console.log("Generating blog SEO for:", title);
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 512,
-        system: systemPrompt,
-        messages: [
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Anthropic API error:", response.status, errorText);
-
-      if (response.status === 429) {
+    let raw: string;
+    try {
+      raw = await callAI({ system: systemPrompt, user: userPrompt, maxTokens: 512 });
+    } catch (error) {
+      if (error instanceof AIError && error.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
-      throw new Error(`Anthropic API error: ${response.status}`);
+      throw error;
     }
-
-    const data = await response.json();
-    const raw = data.content?.[0]?.text;
-
-    if (!raw) throw new Error("No response from AI");
 
     let seoData;
     try {

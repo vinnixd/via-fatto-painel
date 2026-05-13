@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { callAI } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,13 +29,8 @@ serve(async (req) => {
   }
 
   try {
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!ANTHROPIC_API_KEY) {
-      throw new Error("ANTHROPIC_API_KEY is not configured");
-    }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -107,33 +103,11 @@ Características: ${featuresList}
 
 Retorne APENAS o JSON com seo_title e seo_description.`;
 
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
-            max_tokens: 512,
-            system: systemPrompt,
-            messages: [
-              { role: "user", content: userPrompt }
-            ],
-          }),
-        });
-
-        if (!response.ok) {
-          console.error(`Anthropic API error for property ${property.id}:`, response.status);
-          errors++;
-          continue;
-        }
-
-        const data = await response.json();
-        const content = data.content?.[0]?.text;
-
-        if (!content) {
+        let content: string;
+        try {
+          content = await callAI({ system: systemPrompt, user: userPrompt, maxTokens: 512 });
+        } catch (err) {
+          console.error(`AI API error for property ${property.id}:`, err);
           errors++;
           continue;
         }
