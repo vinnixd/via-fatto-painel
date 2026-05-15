@@ -446,7 +446,7 @@ const MessagesPage = () => {
               <CardContent className="p-0">
                 {loading ? (
                   <div className="flex justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : filteredContacts.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
