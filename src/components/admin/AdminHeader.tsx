@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
+import { useAdminRoutes } from '@/hooks/useAdminRoutes';
 import NotificationBell from './NotificationBell';
 import ThemeToggle from './ThemeToggle';
 
@@ -27,6 +28,7 @@ const AdminHeader = ({ title, subtitle, onOpenMobileSidebar }: AdminHeaderProps)
   const { profile } = useProfile();
   const { role } = usePermissions();
   const unreadCount = useUnreadCount();
+  const { getPath } = useAdminRoutes();
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -90,7 +92,7 @@ const AdminHeader = ({ title, subtitle, onOpenMobileSidebar }: AdminHeaderProps)
           <NotificationBell />
 
           <Button variant="ghost" size="icon" className="relative" asChild>
-            <Link to="/admin/mensagens">
+            <Link to={getPath('/admin/mensagens')}>
               <MessageSquare className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-destructive text-destructive-foreground text-xs font-medium rounded-full">
@@ -131,13 +133,13 @@ const AdminHeader = ({ title, subtitle, onOpenMobileSidebar }: AdminHeaderProps)
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/admin/perfil" className="cursor-pointer">
+                <Link to={getPath('/admin/perfil')} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   Meu Perfil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/admin/configuracoes" className="cursor-pointer">
+                <Link to={getPath('/admin/configuracoes')} className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   Configurações
                 </Link>
